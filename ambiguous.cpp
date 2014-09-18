@@ -896,10 +896,10 @@ bool FindBasesVisitor<N>::operator()(
 template bool IsAmbiguous<2>(
     const int base_vi, const vector<int>& incident,
     const VertexNetwork& vertices, const OctreeOptions& o);
-template void SubdivideAmbiguous(
-    VertexNetwork& vertices,
-    VerticesGpuState<2>& gpu_state,
-    const OctreeOptions& o);
+// template void SubdivideAmbiguous(
+//     VertexNetwork& vertices,
+//     VerticesGpuState<2>& gpu_state,
+//     const OctreeOptions& o);
 template bool FindBasesVisitor<2>::operator()(
     const int vi, const int2& p);
 #endif

@@ -1003,7 +1003,9 @@ VertexNetwork BuildOctree(
 #ifdef OCT3D
       LabeledGeometry lg(all_faces[j], j);
 #else
-      LabeledGeometry lg(geom_vertices.Vertices(j), all_faces[j], j);
+      // LabeledGeometry lg(geom_vertices.Vertices(j), all_faces[j], j);
+      // todo not sure if .vertices should be dependent on j
+      LabeledGeometry lg(geom_vertices.vertices, all_faces[j], j);
 #endif
       geometries.push_back(lg);
     }

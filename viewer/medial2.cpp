@@ -216,7 +216,7 @@ Medial2::Medial2(const int win_width, const int win_height)
   show_vertex_ids = false;
   show_distance_field = 0;
   show_statistics = true;
-  max_vertex_distance = oct::CellWidth(0);
+  max_vertex_distance = oct::Level2CellWidth(0);
   max_dist_oct = 0;
   max_dist_obj = 0;
   o = oct::OctreeOptions::For2D();
@@ -762,7 +762,7 @@ void Medial2::BuildOctree() {
   //------------------
 #ifdef __OPEN_CL_SUPPORT__
   if (o.gpu) {
-    OpenCLInit(3, o.opencl_log);
+    OpenCLInit(2, o, o.opencl_log);
   }
 #endif
 
@@ -792,8 +792,10 @@ void Medial2::BuildOctree() {
   bb = bb.CenteredSquare();
 
   vertices.Clear();
-  oct::BuildOctree<oct::LabeledGeometry2>(
-      all_vertices, all_edges, bb, vertices, o);
+  // oct::BuildOctree<oct::LabeledGeometry2>(
+      // all_vertices, all_edges, bb, vertices, o);
+  vertices = oct::BuildOctree(
+      all_vertices, all_edges, bb, o);
   if (o.timings)
     cout << "vertices size = " << vertices.size() << endl;
 
@@ -1190,7 +1192,7 @@ bool Medial2::DistanceFunctionVertex(const int vi, const int2& p) const {
   if (!vertices.IsBase(vi)) return true;
 
   const level_t level = vertices.CellLevel(vi);
-  const float w = oct::CellWidth(level);
+  const float w = oct::Level2CellWidth(level);
   // VisitVertices(vertices, DFDistCallback(this, &max_dist_oct, &max_dist_obj));
   // const float max_dist = oct::CellWidth(0) / 4;
 

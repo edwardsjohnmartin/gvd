@@ -175,17 +175,14 @@ void allocate(const Geometries source, const int vi,
 // ClipGeometries
 //------------------------------------------------------------
 void ClipGeometries(
-    const Geometries source, Geometries target, const int3 center,
+    const Geometries source, Geometries target, const intn center,
     const index_t cell_width, const GeomVertices geom_vertices) {
-// void ClipGeometries(
-//     const int* source_array, int* target_array, const int3 base_point,
-//     const index_t cell_width, 
-//     intn* gv_vertices, int gv_num_vertices,
-//     int* gv_offsets, int gv_num_offsets) {
-
-  // GeomVertices geom_vertices = {
   const bool old = false;
 
+#ifdef OCT2D
+  throw std::logic_error("GPU-based geometry clipping not supported in 2D. "
+                         "Run with --cpu option.");
+#else
   if (old) {
     // original
     const int n = g_n(source);
@@ -196,11 +193,11 @@ void ClipGeometries(
       const __GLOBAL__ intn* vertices = get_geom_vertices(label, geom_vertices);
       const int m = g_m(source_g);
       g_set_m(0, target_g);
-      // Loop through each triangle
+      // Loop through each face
       for (int j = 0; j < m; ++j) {
-        Triangle t = source_g.faces[j];
+        Face t = source_g.faces[j];
         if (TriBoxOverlap(center, cell_width >> 1, vertices, t)) {
-          // Add triangle to geometry
+          // Add face to geometry
           const int target_m = g_m(target_g);
           target_g.faces[target_m] = t;
           g_set_m(target_m+1, target_g);
@@ -217,10 +214,10 @@ void ClipGeometries(
       const int label = g_label(source_g);
       const __GLOBAL__ intn* vertices = get_geom_vertices(label, geom_vertices);
       const int m = g_m(source_g);
-      // Loop through each triangle
+      // Loop through each face
       bool empty = true;
       for (int j = 0; empty && j < m; ++j) {
-        Triangle t = source_g.faces[j];
+        Face t = source_g.faces[j];
         empty = !TriBoxOverlap(center, cell_width >> 1, vertices, t);
       }
       if (!empty)
@@ -251,11 +248,11 @@ void ClipGeometries(
       g_set_m(0, target_g);
       g_set_label(label, target_g);
       assert(g_label(target_g) == label);
-      // Loop through each triangle
+      // Loop through each face
       for (int j = 0; j < m; ++j) {
-        Triangle t = source_g.faces[j];
+        Face t = source_g.faces[j];
         if (TriBoxOverlap(center, cell_width >> 1, vertices, t)) {
-          // Add triangle to geometry
+          // Add face to geometry
           const int target_m = g_m(target_g);
           target_g.faces[target_m] = t;
           g_set_m(target_m+1, target_g);
@@ -286,6 +283,8 @@ void ClipGeometries(
 
     assert(geometries_size(target) <= geometries_size(source));
   }
+
+#endif
 }
 
 NAMESPACE_OCT_END

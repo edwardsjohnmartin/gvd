@@ -14,7 +14,7 @@ SET(SRCS
   ../options.cpp
   ../geometry_cpp.cpp
   ../opencl/bit.cpp
-  ../opencl/distance3.cpp
+#  ../opencl/distance3.cpp
   ../opencl/geometry.cpp
   ../opencl/uvertex_network.cpp
   ../opencl/cl_ambiguous.cpp
@@ -38,7 +38,8 @@ SET(VIEWER3_SRCS
   ./material.cpp
   ./io.cpp
   ../opencl/tribox.cpp
-  ../orientation.cpp
+  ../opencl/distance3.cpp
+ ../orientation.cpp
 )
 
 ADD_DEFINITIONS(-DANSI_DECLARATORS -DTRILIBRARY)

@@ -7,7 +7,7 @@
 #include "../opencl/vec.h"
 
 #include "../timer.h"
-#include "../vertex.h"
+#include "../opencl/vertex.h"
 #include "../vertex_network.h"
 #include "./common.h"
 #include "../bb.h"

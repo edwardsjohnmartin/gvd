@@ -5,14 +5,15 @@
 #include "./geometry_cpp.h"
 #include "./opencl/tribox.h"
 
-#include "./vector3.h"
+#include "./vectorn.h"
 #include "./triangle_cpp.h"
+#include "./edge_cpp.h"
 
 using namespace std;
 
 NAMESPACE_OCT_BEGIN
 
-LabeledGeometry3 Convert(Geometry geometry) {
+LabeledGeometry Convert(Geometry geometry) {
   using namespace std;
   // const int label = geometry.label;
   const int label = g_label(geometry);
@@ -22,34 +23,34 @@ LabeledGeometry3 Convert(Geometry geometry) {
   for (int k = 0; k < m; ++k) {
     faces.push_back(geometry.faces[k]);
   }
-  LabeledGeometry3 lg(faces, label);
+  LabeledGeometry lg(faces, label);
   return lg;
 }
 
-std::vector<LabeledGeometry3> Convert(Geometries geometries) {
+std::vector<LabeledGeometry> Convert(Geometries geometries) {
   using namespace std;
-  vector<LabeledGeometry3> vcell_geoms;
+  vector<LabeledGeometry> vcell_geoms;
   // const int n = geometries.n;
   const int n = g_n(geometries);
   for (int j = 0; j < n; ++j) {
     const Geometry geometry = get_geometry(j, geometries);
-    LabeledGeometry3 lg = Convert(geometry);
-    if (!lg.GetTriangles().empty()) {
+    LabeledGeometry lg = Convert(geometry);
+    if (!lg.GetPrimitives().empty()) {
       vcell_geoms.push_back(lg);
     }
   }
   return vcell_geoms;
 }
 
-std::vector<std::vector<LabeledGeometry3> > Convert(
+std::vector<std::vector<LabeledGeometry> > Convert(
     Vi2Geometries vi2geometries) {
   using namespace std;
   // Copy arrays to base2goemetries2
-  vector<vector<LabeledGeometry3> > base2geometries;
+  vector<vector<LabeledGeometry> > base2geometries;
   for (int vi = 0; vi < g_N(vi2geometries); ++vi) {
     // const Geometries geometries =
     //     get_geometries(vi, vi2geometries);
-    vector<LabeledGeometry3> vcell_geoms;
+    vector<LabeledGeometry> vcell_geoms;
     if (!gcell_is_empty(vi, vi2geometries)) {
       const Geometries geometries =
           get_geometries(vi, vi2geometries);
@@ -62,13 +63,13 @@ std::vector<std::vector<LabeledGeometry3> > Convert(
 
 // The size of an array containing geometries belonging to a
 // single octree cell.
-size_t lgsize(const LabeledGeometry3& geom) {
+size_t lgsize(const LabeledGeometry& geom) {
   if (geom.size() == 0) return 0;
   // 2: label, size
   return 2 + geom.size() * DIM;
 }
 
-size_t lgsize(const std::vector<LabeledGeometry3>& geoms) {
+size_t lgsize(const std::vector<LabeledGeometry>& geoms) {
   int gsize = 0;
   for (int i = 0; i < geoms.size(); ++i) {
     gsize += lgsize(geoms[i]);
@@ -77,7 +78,7 @@ size_t lgsize(const std::vector<LabeledGeometry3>& geoms) {
   return geoms.size() + gsize;
 }
 
-size_t lgsize(const std::vector<std::vector<LabeledGeometry3> >& geoms) {
+size_t lgsize(const std::vector<std::vector<LabeledGeometry> >& geoms) {
   int geom_size_sum = 0;
   for (int i = 0; i < geoms.size(); ++i) {
     geom_size_sum += lgsize(geoms[i]);
@@ -88,7 +89,7 @@ size_t lgsize(const std::vector<std::vector<LabeledGeometry3> >& geoms) {
 // returns the number of bytes written
 int Convert(
     int* array,
-    const LabeledGeometry3& g) {
+    const LabeledGeometry& g) {
   int offset = 0;
   array[offset++] = g.GetLabel();
   array[offset++] = g.size();
@@ -104,7 +105,7 @@ int Convert(
 // returns the number of bytes written
 int Convert(
     int* array,
-    const std::vector<LabeledGeometry3>& g3) {
+    const std::vector<LabeledGeometry>& g3) {
   int offset = g3.size();
   for (int i = 0; i < g3.size(); ++i) {
     array[i] = offset;
@@ -114,13 +115,13 @@ int Convert(
 }
 
 // shared_array<int> Convert(
-//     const std::vector<std::vector<LabeledGeometry3> >& lg,
+//     const std::vector<std::vector<LabeledGeometry> >& lg,
 //     Vi2Geometries& vi2geometries) {
 //   const int size = lgsize(lg);
 //   shared_array<int> array(new int[size]);
 //   int offset = lg.size();
 //   for (int vi = 0; vi < lg.size(); ++vi) {
-//     const vector<LabeledGeometry3>& geoms = lg[vi];
+//     const vector<LabeledGeometry>& geoms = lg[vi];
 //     if (geoms.empty()) {
 //       array[vi] = -1;
 //     } else {
@@ -135,7 +136,7 @@ int Convert(
 // Write geometries to vi2geometries
 shared_array<int> Convert(
     const int num_vertices,
-    const vector<LabeledGeometry3>& geometries,
+    const vector<LabeledGeometry>& geometries,
     Vi2Geometries& vi2geometries) {
 
   // Count array size
@@ -158,7 +159,7 @@ shared_array<int> Convert(
 }
 
 // // The array size in geometries must be large enough to handle old_geoms.
-// void Insert(const std::vector<LabeledGeometry3>& old_geometries,
+// void Insert(const std::vector<LabeledGeometry>& old_geometries,
 //                    const int vi, Vi2Geometries& vi2geometries) {
 //   using namespace std;
 
@@ -175,7 +176,7 @@ shared_array<int> Convert(
 //   int offset = n;
 //   for (int i = 0; i < n; ++i) {
 //     geometries.offsets[i] = offset;
-//     const LabeledGeometry3& old_geometry = old_geometries[i];
+//     const LabeledGeometry& old_geometry = old_geometries[i];
 //     Geometry geometry = get_geometry(i, geometries);
 //     vector<Face> faces = old_geometry.GetPrimitives();
 //     const int label = old_geometry.GetLabel();
@@ -249,7 +250,8 @@ std::ostream& operator<<(
         const int m = g_m(geometry);
         int sum = 0;
         for (int ti = 0; ti < m; ++ti) {
-          Triangle t = geometry.faces[ti];
+          // Triangle t = geometry.faces[ti];
+          Face t = geometry.faces[ti];
           for (int k = 0; k < 3; ++k) {
             sum += t.s[k];
           }
@@ -265,7 +267,7 @@ std::ostream& operator<<(
 }
 
 void Compare(
-    const std::vector<std::vector<LabeledGeometry3> >& base2geometries,
+    const std::vector<std::vector<LabeledGeometry> >& base2geometries,
     Vi2Geometries vi2geometries) {
   using namespace std;
   for (int vi = 0; vi < base2geometries.size(); ++vi) {

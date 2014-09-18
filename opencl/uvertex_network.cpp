@@ -255,14 +255,16 @@ void Subdivide(
 //    --------->
 //       d0
 
-inline int3 FindPosition(const int3 base_p, const int axis, const int width) {
-  int3 p = base_p;
+inline intn FindPosition(const intn base_p, const int axis, const int width) {
+  intn p = base_p;
   if (axis == 0)
     p.x += width;
   else if (axis == 1)
     p.y += width;
+#ifdef OCT3D
   else if (axis == 2)
     p.z += width;
+#endif
   return p;
 }
 
@@ -279,7 +281,7 @@ int AddCenter2(
   const Direction d1 = DirectionFromPosAxis(axis1);
   int c = -1;
   if (Neighbor(v0, d0, vn) == -1) {
-    const int3 cp = FindPosition(vn.vertices[v0].position, axis0, w);
+    const intn cp = FindPosition(vn.vertices[v0].position, axis0, w);
     c = CreateVertex(cp, &vn);
     AddEdge(v0, c, d0, level+1, &vn);
     AddEdge(c, v1, d0, level+1, &vn);
@@ -302,7 +304,7 @@ int AddCenter3(
   const Direction dx = DirectionFromPosAxis(0);
   const Direction dy = DirectionFromPosAxis(1);
   const Direction dz = DirectionFromPosAxis(2);
-  const int3 cp = FindPosition(vn.vertices[vx0].position, 0, w);
+  const intn cp = FindPosition(vn.vertices[vx0].position, 0, w);
   const int c = CreateVertex(cp, &vn);
   AddEdge(vx0, c, dx, level+1, &vn);
   AddEdge(c, vx1, dx, level+1, &vn);
@@ -321,10 +323,12 @@ void SetCell(__GLOBAL__ Vertex* v, int level,
   v->corners[1] = c1;
   v->corners[2] = c2;
   v->corners[3] = c3;
+#ifdef OCT3D
   v->corners[4] = c4;
   v->corners[5] = c5;
   v->corners[6] = c6;
   v->corners[7] = c7;
+#endif
 }
 
 void Subdivide_A(const int base_vi, UVertexNetwork vn) {

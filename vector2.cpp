@@ -222,7 +222,7 @@ void ClipGeometry(
     const level_t level,
     vector<vector<LabeledGeometry2> >& clipped,
     int2* vertices_) {
-  const index_t width = CellWidth(level);
+  const index_t width = Level2CellWidth(level);
   const index_t width2 = width >> 1;  // divides by two
   const int2 base = base_point;
   const int2 mid = base_point + width2;

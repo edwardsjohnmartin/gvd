@@ -291,6 +291,11 @@ void ComputeNonEmptyVertexDistances(
     __GLOBAL__ int* vi2geometries_array,
     int num_gvertices, __GLOBAL__ intn* gvertices,
     int num_goffsets, __GLOBAL__ int* goffsets) {
+
+#ifdef OCT2D
+  throw std::logic_error("GPU-based geometry clipping not supported in 2D. "
+                         "Run with --cpu option.");
+#else
   UVertexNetwork vn = make_uvertex_network(
       vn_header, vertex_array, cpoints_array);
   Vi2Geometries vi2g = make_vi2geometries(vi2geometries_array);
@@ -334,6 +339,8 @@ void ComputeNonEmptyVertexDistances(
   } else if (Dist(vi, vn) > dist) {
     SetClosestPoint(vi, cp_idx, &vn);
   }
+
+#endif
 }
 
 void PullDistances(

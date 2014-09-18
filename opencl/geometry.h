@@ -321,7 +321,7 @@ void allocate(const Geometries source, const int vi,
 // ClipGeometries
 //------------------------------------------------------------
 void ClipGeometries(
-    const Geometries source, Geometries target, const int3 base_point,
+    const Geometries source, Geometries target, const intn base_point,
     const index_t cell_width, const GeomVertices geom_vertices);
 
 // inline void ClipGeometries1(

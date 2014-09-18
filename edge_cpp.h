@@ -1,6 +1,8 @@
 #ifndef __EDGE_CPP_H__
 #define __EDGE_CPP_H__
 
+#include "./opencl/triangle.h"
+
 inline std::ostream& operator<<(std::ostream& out, const Edge& e) {
   out << e.s[0] << " " << e.s[1];
   return out;
