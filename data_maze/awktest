@@ -1,0 +1,13 @@
+#! /bin/bash
+output=$1
+echo $output
+shift;
+for file in "$@"
+do
+  bname=`basename $file`
+  gawk < $file '  
+    {$1 = $1 + 0.36}
+    {$2 = $2 - 0.81}
+    {if ($2 > -0.17) {if($1 < 0.143556) print}}
+    ' > "${output}/shifted_${bname}"
+done

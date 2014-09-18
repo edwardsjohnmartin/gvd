@@ -1,0 +1,39 @@
+#! /bin/bash
+
+#i=0;
+#for f in $@; do
+#    convert -quality 100 $f  `basename $f .png`.jpg;
+#    files[i]=`basename $f .png`.jpg;
+#    i=$((i+1));
+#done
+
+#echo ${files[@]}
+
+#convert -delay 6 -quality 95 sshot*.png movie.mpg
+#convert -delay 6 -quality 95 ${files[@]} movie.mpg
+#ffmpeg -i sshot-%d%d.jpg -vcodec mpeg4 test.avi
+
+# Usage: movie movie_file_base
+EXPECTED_ARGS=1
+E_BADARGS=65
+
+if [ $# -ne $EXPECTED_ARGS ]
+then
+  echo
+  echo "Usage: `basename $0` movie_file_base"
+  echo
+  exit $E_BADARGS
+fi
+
+rm -f movie.mp4
+
+#ffmpeg -qscale 1 -r 48 -b 19200 -i sshot-%03d.png movie.mp4
+#mplayer movie.mp4
+
+b=$1
+
+ffmpeg -qscale 1 -r 30 -b 256k -i shot-%04d.png ${b}.mp4
+#ffmpeg -qscale 1 -r 30 -b 256k -i shot-%04d-1.png ${b}-1.mp4
+#ffmpeg -qscale 1 -r 30 -b 256k -i shot-%04d-2.png ${b}-2.mp4
+
+

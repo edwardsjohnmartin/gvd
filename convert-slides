@@ -1,0 +1,6 @@
+#! /bin/bash
+
+rm talk.*
+cp ~/projects/papers/edwardsdaniel2013voronoi/talk.pdf .
+convert -density 300 talk.pdf -resize 1366 talk.png
+for f in talk.png.[0-9]; do mv $f `echo $f | sed 's/png\./png\.0/'`; done

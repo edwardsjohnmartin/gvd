@@ -1,0 +1,7 @@
+#include "./opencl/bit.cpp"
+#include "./opencl/uvertex_network.cpp"
+#include "./opencl/geometry.cpp"
+#include "./opencl/tribox.cpp"
+#include "./opencl/distance3.cpp"
+#include "./opencl/cl_ambiguous.cpp"
+#include "./opencl/cl_octree.cpp"

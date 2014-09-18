@@ -1,0 +1,28 @@
+#! /bin/bash
+
+mkdir slice
+cd slice
+
+mkdir o
+mkdir om
+mkdir omi
+mkdir omc
+mkdir m
+mkdir mi
+mkdir mc
+mkdir object-meshes
+mkdir gvd-meshes
+
+rm o/*
+rm om/*
+rm omi/*
+rm omc/*
+rm m/*
+rm mi/*
+rm mc/*
+rm object-meshes/*
+rm gvd-meshes/*
+
+cd ..
+
+./viewer3 -l 10 ~/data/knife/knife-holder.obj ~/data/knife/knife[2-4].obj

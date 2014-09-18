@@ -1,0 +1,5 @@
+#! /bin/bash
+
+for f in sshot-*.png; do
+    mv $f `echo $f | sed 's/sshot/sshot1/g'`
+done

@@ -1,0 +1,11 @@
+#! /bin/bash
+output=$1
+echo $output
+shift;
+for file in "$@"
+do
+  bname=`basename $file`
+  gawk < $file '  
+  {if ($1 < -0.4) print}
+    ' > "${output}/test_${bname}"
+done
