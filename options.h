@@ -20,11 +20,13 @@ struct OctreeOptions {
   }
 
   OctreeOptions(level_t max_level_,
-                int tri_threshold_, bool simple_dist_, bool timings_)
+                int tri_threshold_, bool simple_dist_, bool timings_,
+                bool report_statistics_)
       : max_level(max_level_), tri_threshold(tri_threshold_),
         simple_dist(simple_dist_), timings(timings_),
         ambiguous_max_level(max_level_), simple_q(false),
-        full_subdivide(false), make_buffer(true), report_statistics(true),
+        full_subdivide(false), make_buffer(true),
+        report_statistics(report_statistics_),
         gpu(false),
         opencl_log(false), cell_of_interest(-1), level_of_interest(-1),
         bb_scale(1), center(-1),
@@ -35,13 +37,13 @@ struct OctreeOptions {
 
   static OctreeOptions For2D() {
     OctreeOptions o(kMaxLevel,
-                    0, false, false);
+                    0, false, false, false);
     o.gpu = false;
     return o;
   }
   static OctreeOptions For3D() {
     OctreeOptions o(kMaxLevel,
-                         5, false, true);
+                    5, false, true, true);
 #ifdef __OPEN_CL_SUPPORT__
     o.gpu = true;
 #else

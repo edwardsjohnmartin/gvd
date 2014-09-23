@@ -232,17 +232,30 @@ void ClipGeometry(
   const vector<Edge>& edges = geometry.GetEdges();
   const vector<SATData2>& axes = geometry.GetAxes();
 
+  // cout << "Splitting. base_point = " << base_point << endl;
+  // cout << "           level = " << (int)level << endl;
+
   // The current geometry split into 4
   LabeledGeometry2 split[4];
   for (int i = 0; i < 4; ++i) {
-    split[i] = LabeledGeometry2(vertices, geometry.GetLabel());
-    // split[i] = LabeledGeometry2(geometry.GetLabel());
+    LabeledGeometry2 quad_geom(vertices, geometry.GetLabel());
     for (int j = 0; j < edges.size(); ++j) {
       const int2 v = base + make_int2(width2*(i&1), width2*((i&2)>>1));
       if (Intersects(v, width2, axes[j])) {
-        split[i].Add(edges[j], axes[j]);
+        quad_geom.Add(edges[j], axes[j]);
+        // // remove
+        // cout << "  Added edge to quad " << i << ". Edge = "
+        //      << vertices[edges[j].s[0]] << ", " 
+        //      << vertices[edges[j].s[1]]
+        //      << endl;
+      // } else {
+      //   cout << "  No add edge to quad " << i << ". Edge = "
+      //        << vertices[edges[j].s[0]] << ", " 
+      //        << vertices[edges[j].s[1]]
+      //        << endl;
       }
     }
+    split[i] = quad_geom;
   }
   for (int i = 0; i < 4; ++i) {
     if (!split[i].empty()) {

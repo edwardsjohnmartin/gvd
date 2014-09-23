@@ -22,24 +22,16 @@ class LabeledGeometry3 {
   LabeledGeometry3(const std::vector<Triangle> triangles, int label)
       : _label(label), _triangles(triangles) {
   }
-  // LabeledGeometry3(const Triangle* triangles, int count, int label)
-  //     : _label(label), _triangles(triangles), _count(count) {
-  // }
 
   int GetLabel() const { return _label; }
   size_t size() const { return _triangles.size(); }
-  // size_t size() const { return _count; }
   bool empty() const { return _triangles.empty(); }
-  // bool empty() const { return _count == 0; }
-  // const Triangle* GetTriangles() const { return _triangles; }
   const std::vector<Triangle>& GetTriangles() const { return _triangles; }
   const std::vector<Triangle>& GetPrimitives() const { return GetTriangles(); }
 
  private:
   int _label;
   std::vector<Triangle> _triangles;
-  // const Triangle* _triangles;
-  // const int _count;
 };
 
 typedef LabeledGeometry3 LabeledGeometry;

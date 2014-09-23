@@ -536,11 +536,13 @@ void Medial2::Zoom(const float2& target, const float zoom) {
 
 float2 rubberband_start = make_float2(0);
 float2 rubberband_cur = make_float2(0);
+bool rubberband_mode = false;
 void Medial2::Mouse(int button, int state, int x, int y) {
   if (button == GLUT_LEFT_BUTTON) {
     if (state == GLUT_DOWN) {
       if (glutGetModifiers() == GLUT_ACTIVE_CTRL) {
         rubberband_start = Win2Obj(make_float2(x, y));
+        rubberband_mode = true;
       } else if (glutGetModifiers() == GLUT_ACTIVE_SHIFT) {
         SetStartSearch(x, y);
       } else {
@@ -552,6 +554,7 @@ void Medial2::Mouse(int button, int state, int x, int y) {
       }
     } else if (state == GLUT_UP) {
       if (glutGetModifiers() == GLUT_ACTIVE_CTRL) {
+        rubberband_mode = false;
         const float w = window_width;
         const float h = window_height;
         const float r = w/h;
@@ -610,7 +613,8 @@ void Medial2::Mouse(int button, int state, int x, int y) {
 }
 
 void Medial2::MouseMotion(int x, int y) {
-  if (glutGetModifiers() == GLUT_ACTIVE_CTRL) {
+  // if (glutGetModifiers() == GLUT_ACTIVE_CTRL) {
+  if (rubberband_mode) {
     rubberband_cur = Win2Obj(make_float2(x, y));
   } else if (mouse_active) {
     AddPoint(x, y);
@@ -777,6 +781,9 @@ void Medial2::BuildOctree() {
     all_vertices[i] = polygon;
     for (int j = 0; j < polygon.size()-1; ++j) {
       all_edges[i].push_back(make_edge(j, j+1));
+      // cout << "Adding edge " << i << ": (" << polygon[j]
+      //      << "), (" << polygon[j+1] << ")"
+      //      << endl;
     }
   }
 
@@ -792,10 +799,8 @@ void Medial2::BuildOctree() {
   bb = bb.CenteredSquare();
 
   vertices.Clear();
-  // oct::BuildOctree<oct::LabeledGeometry2>(
-      // all_vertices, all_edges, bb, vertices, o);
-  vertices = oct::BuildOctree(
-      all_vertices, all_edges, bb, o);
+  // Build the octree
+  vertices = oct::BuildOctree(all_vertices, all_edges, bb, o);
   if (o.timings)
     cout << "vertices size = " << vertices.size() << endl;
 

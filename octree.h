@@ -329,6 +329,7 @@ shared_array<int> SubdivideCell(
     VertexNetwork& vertices) {
 
   const intn base_point = vertices.Position(vi);
+  // cout << "Subdividing cell. vi = " << vi << " base_point = " << base_point << endl;
   const level_t level = vertices.CellLevel(vi);
   std::vector<LabeledGeometry>& cell_geometries = base2geometries[vi];
 

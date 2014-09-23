@@ -9,6 +9,8 @@
 #include "./vector2.h"
 #include "./vertices_gpu_state.h"
 #include "./geometry_cpp.h"
+#include "./edge_cpp.h"
+#include "./triangle_cpp.h"
 #include "./opencl/uvertex_network.h"
 #include "./opencl/cl_octree.h"
 
@@ -484,6 +486,9 @@ void SubdivideCells(
         !geometries.empty() &&
         (HasMultipleLabels(geometries) || o.full_subdivide);
     
+    // cout << "Checking vi = " << vi << " subdivide = " << subdivide
+    //      << " geometries.size() = " << geometries.size()
+    //      << endl;
     if (subdivide) {
       SubdivideCell(
           vi, base2geometries, geom_vertices, 0, adjacent_cells,
@@ -911,42 +916,37 @@ void GpuTest(
 // BuildOctree
 //
 // Given polylines or triangles, build an octree.
+//
+// label2gverts - given a label, get vertices of the associated geometry
 //------------------------------------------------------------------------------
 // ManagedVertexNetwork BuildOctree(
 VertexNetwork BuildOctree(
-// void BuildOctree(
-    const vector<vector<floatn> >& all_vertices,
-    const vector<vector<Face> >& all_faces,
+    const vector<vector<floatn> >& label2gverts,
+    const vector<vector<Face> >& label2faces,
     const BoundingBox<floatn>& bb,
-    // VertexNetwork& vertices,
-    // ManagedVertexNetwork& mvertices,
     const OctreeOptions& o) {
   static const int D = DIM;
-  // const int kNumCorners = (1 << D);
+  if (label2faces.size() != label2gverts.size()) return VertexNetwork();
+  if (label2faces.empty()) return VertexNetwork();
+  if (label2faces[0].empty()) return VertexNetwork();
 
-  // ManagedVertexNetwork mvertices = make_mvertex_network();
-  // VertexNetwork vertices = make_vertex_network(mvertices);
-  // VertexNetwork vertices = make_vertex_network();
-
-  // if (vertices.size() > (1<<D)) {
-  //   cerr << vertices.size() << endl;
-  //   throw logic_error("vertices passed to BuildOctree must be empty");
+  const int num_labels = label2gverts.size();
+  // cout << "label2faces: " << endl;
+  // for (int i = 0; i < num_labels; ++i) {
+  //   const vector<Face>& faces = label2faces[i];
+  //   for (int j = 0; j < faces.size(); ++j) {
+  //     cout << "(" << faces[j] << ") ";
+  //   }
+  //   cout << endl;
   // }
-
-  // if (all_faces.size() != all_vertices.size()) return make_vertex_network();
-  // if (all_faces.empty()) return make_vertex_network();
-  // if (all_faces[0].empty()) return make_vertex_network();
-  if (all_faces.size() != all_vertices.size()) return VertexNetwork();
-  if (all_faces.empty()) return VertexNetwork();
-  if (all_faces[0].empty()) return VertexNetwork();
 
   Timer t("Convert vertices", "*BuildOctree*");
   t.set_output(o.timings || o.report_statistics);
 
   // Find bounding box of vertices
   BoundingBox<floatn> vert_bb;
-  for (int j = 0; j < all_vertices.size(); ++j) {
-    const std::vector<floatn>& fvertices = all_vertices[j];
+  for (int j = 0; j < num_labels; ++j) {
+    const std::vector<floatn>& fvertices = label2gverts[j];
     for (int i = 0; i < fvertices.size(); ++i) {
       vert_bb(fvertices[i]);
     }
@@ -960,26 +960,24 @@ VertexNetwork BuildOctree(
 
   const float dwidth = bb.size().s[0];
 
-  // if (dwidth == 0) return make_vertex_network();
   if (dwidth == 0) return VertexNetwork();
 
   // Count total number of geometry vertices
-  int num_geom_vertices = 0;
-  for (int j = 0; j < all_vertices.size(); ++j) {
-    num_geom_vertices += all_vertices[j].size();
+  int num_gverts = 0;
+  for (int j = 0; j < num_labels; ++j) {
+    num_gverts += label2gverts[j].size();
   }
 
   // Convert vertices to integer coordinates
-  std::vector<LabeledGeometry> geometries;
-  shared_array<intn> all_geom_vertices(new intn[num_geom_vertices]);
-  shared_array<int> all_geom_vertex_offsets(new int[all_vertices.size()]);
+  std::vector<LabeledGeometry> lgeometries;
+  shared_array<intn> gverts(new intn[num_gverts]);
+  shared_array<int> gvert_offsets(new int[num_labels]);
   GeomVertices geom_vertices = {
-      num_geom_vertices, all_geom_vertices.get(),
-      all_vertices.size(), all_geom_vertex_offsets.get() };
+      num_gverts, gverts.get(), label2gverts.size(), gvert_offsets.get() };
   int geom_vert_idx = 0;
-  for (int j = 0; j < all_vertices.size(); ++j) {
-    all_geom_vertex_offsets[j] = geom_vert_idx;
-    const std::vector<floatn>& fvertices = all_vertices[j];
+  for (int j = 0; j < label2gverts.size(); ++j) {
+    gvert_offsets[j] = geom_vert_idx;
+    const std::vector<floatn>& fvertices = label2gverts[j];
     const int n = fvertices.size();
     for (int i = 0; i < n; ++i) {
       intn p = make_intn(0);
@@ -997,17 +995,17 @@ VertexNetwork BuildOctree(
         }
         p.s[k] = v;
       }
-      all_geom_vertices[geom_vert_idx++] = p;
+      gverts[geom_vert_idx++] = p;
+      // cout << "Adding geometry vertex: " << p << endl;
     }
     if (n > 0) {
 #ifdef OCT3D
-      LabeledGeometry lg(all_faces[j], j);
+      LabeledGeometry lg(label2faces[j], j);
 #else
-      // LabeledGeometry lg(geom_vertices.Vertices(j), all_faces[j], j);
-      // todo not sure if .vertices should be dependent on j
-      LabeledGeometry lg(geom_vertices.vertices, all_faces[j], j);
+      int2* lgverts = get_geom_vertices(j, geom_vertices);
+      LabeledGeometry lg(lgverts, label2faces[j], j);
 #endif
-      geometries.push_back(lg);
+      lgeometries.push_back(lg);
     }
   }
 
@@ -1018,15 +1016,15 @@ VertexNetwork BuildOctree(
   }
 
   if (o.gpu) {
-    GpuTest(geometries, geom_vertices, bb, vertices, o);
+    GpuTest(lgeometries, geom_vertices, bb, vertices, o);
 
     MVertexNetwork mvertices = make_mvertex_network();
-    BuildOctreeGpu(geometries, geom_vertices, mvertices, o);
+    BuildOctreeGpu(lgeometries, geom_vertices, mvertices, o);
     vertices = VertexNetwork(
         NumVertices(mvertices), mvertices.vertices.get(),
         NumCPoints(mvertices), mvertices.cpoints.get());
   } else {
-    BuildOctreeCpu(geometries, geom_vertices, bb, vertices, o);
+    BuildOctreeCpu(lgeometries, geom_vertices, bb, vertices, o);
   }
 
   // return make_mvertex_network(vertices);
