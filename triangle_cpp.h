@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <map>
+#include <iostream>
 
 #include "./opencl/triangle.h"
 
