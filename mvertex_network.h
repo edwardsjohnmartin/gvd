@@ -5,6 +5,8 @@
 // Managed and unmanaged vertex network structs
 //----------------------------------------------------------------------
 
+#include <cstring>
+
 #include "./opencl/uvertex_network.h"
 #include "./shared_array.h"
 
