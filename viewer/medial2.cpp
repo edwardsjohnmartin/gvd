@@ -202,15 +202,15 @@ Medial2::Medial2(const int win_width, const int win_height)
 
   dirty = false;
 
+  show_help = false;
+  show_advanced_help = false;
   show_octree = false;
   show_vertex_labels = false;
-  show_cell_neighbors = false;
   show_cell_vertices = false;
   show_vertex_distance = false;
-  midpoint_medial_axis = false;
   polygon_mode = 1;
   show_closest_point_line = false;
-  show_medial_axis = true;
+  show_gvd = true;
   show_path = true;
   show_voronoi = false;
   show_vertex_ids = false;
@@ -320,14 +320,16 @@ void Medial2::PrintCommands() const {
 void Medial2::Keyboard(unsigned char key, int x, int y) {
   bool redisplay = true;
   switch (key) {
+    case 'h':
+      show_help = !show_help;
+      show_advanced_help = false;
+      break;
+    case 'H':
+      show_advanced_help = !show_advanced_help;
+      show_help = false;
+      break;
     case 'o':
       show_octree = !show_octree;
-      break;
-    case 'n':
-      show_cell_neighbors = !show_cell_neighbors;
-      break;
-    case 'M':
-      midpoint_medial_axis = !midpoint_medial_axis;
       break;
     case 'v':
       show_vertex_labels = !show_vertex_labels;
@@ -336,7 +338,7 @@ void Medial2::Keyboard(unsigned char key, int x, int y) {
       show_closest_point_line = !show_closest_point_line;
       break;
     case 'm':
-      show_medial_axis = !show_medial_axis;
+      show_gvd = !show_gvd;
       break;
     case 'P':
       show_path = !show_path;
@@ -870,19 +872,19 @@ void Medial2::DrawOctree() const {
   glEnd();
 }
 
-void DrawMedialAxisVisitor(int ai, const double2& a,
+void DrawGVDVisitor(int ai, const double2& a,
                            int bi, const double2& b) {
   glVertex2dv(a.s);
   glVertex2dv(b.s);
 }
 
-void Medial2::DrawMedialAxis() const {
+void Medial2::DrawGVD() const {
   glColor3fv(red.s);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glLineWidth(1.5);
 
   glBegin(GL_LINES);
-  medial_graph.VisitEdges(DrawMedialAxisVisitor);
+  medial_graph.VisitEdges(DrawGVDVisitor);
   glEnd();
 }
 
@@ -1338,6 +1340,53 @@ void Medial2::PrintStatistics() const {
   }
 }
 
+void Medial2::HelpString(const string msg, const int i) const {
+  static const int sep = 17;
+  static const int y = 2;
+  static const int x = 2;
+  BitmapString(msg, Win2Obj(make_float2(x, y+sep*i)),
+               kLeftJustify, kTopJustify);
+}
+
+void Medial2::PrintHelp() const {
+  int i = 0;
+  HelpString("h - toggle help", i++);
+  if (show_help) {
+    HelpString("View", i++);
+    HelpString("  m - toggle GVD", i++);
+    HelpString("  o - toggle quadtree", i++);
+    HelpString("  v - toggle vertex labels", i++);
+    HelpString("  l - toggle closest point line", i++);
+    HelpString("  i - toggle vertex IDs", i++);
+    HelpString("  p - toggle statistics", i++);
+    HelpString("  Ctrl+left drag - zoom", i++);
+    HelpString("  r - reset view", i++);
+    HelpString("  H - toggle advanced help", i++);
+    HelpString("Polygon entry", i++);
+    HelpString("  z - clear last polygon drawn", i++);
+    HelpString("  c - clear all polygons", i++);
+    HelpString("  e - entry mode", i++); // ????
+    HelpString("GVD computation", i++);
+    HelpString("  f/d - increment/decrement max octree level", i++);
+    HelpString("  V - toggle full subdivide", i++);
+    HelpString("  B - toggle buffer", i++);
+    // HelpString("C - ???", i++);
+    HelpString("q - quit", i++);
+    // HelpString("", i++);
+    // HelpString("", i++);
+    // HelpString("", i++);
+  } else if (show_advanced_help) {
+    HelpString("H - toggle advanced help", i++);
+    HelpString("P - toggle min path", i++); // show_path
+    HelpString("g - polygon mode", i++); // polygon_mode
+    HelpString("W - write polygons", i++);
+    HelpString("s/S - increment/decrement ambiguous max level", i++);
+    HelpString("j/k - increment/decrement max vertex distance", i++);
+    HelpString("u - show distance field", i++); // ????
+    HelpString("t - test function", i++);
+  }
+}
+
 void Medial2::Display() {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -1413,8 +1462,8 @@ void Medial2::Display() {
   glEnd();
 
   // Draw other stuff
-  if (show_medial_axis) {
-    DrawMedialAxis();
+  if (show_gvd) {
+    DrawGVD();
   }
   if (show_path) {
     DrawPath();
@@ -1434,6 +1483,7 @@ void Medial2::Display() {
   if (show_statistics) {
     PrintStatistics();
   }
+  PrintHelp();
 
   // Debug circles
   glLineWidth(1.0);

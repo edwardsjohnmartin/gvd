@@ -81,8 +81,7 @@ class Medial2 : public GL2D {
                 // const oct::Direction<2>& d) const;
                 const oct::Direction& d) const;
   void DrawOctree() const;
-  // bool DrawMedialLines(const int vi, const int2& p) const;
-  void DrawMedialAxis() const;
+  void DrawGVD() const;
   void DrawPath() const;
   void DrawVoronoi() const;
   bool DrawVertexID(const int vi, const int2& p) const;
@@ -94,12 +93,16 @@ class Medial2 : public GL2D {
   bool DistanceFunctionVertex(const int vi, const int2& p) const;
   void DrawDistanceField();
   void PrintStatistics() const;
+  void PrintHelp() const;
 
+  void SetShowHelp(const bool show_help_) {
+    show_help = show_help_;
+  }
   void SetShowOctree(const bool show_octree_) {
     show_octree = show_octree_;
   }
-  void SetShowMedialAxis(const bool show_medial_axis_) {
-    show_medial_axis = show_medial_axis_;
+  void SetShowGVD(const bool show_gvd_) {
+    show_gvd = show_gvd_;
   }
   void SetShowVoronoi(const bool b) {
     show_voronoi = b;
@@ -127,6 +130,10 @@ class Medial2 : public GL2D {
   const oct::VertexNetwork& Vertices() const { return vertices; }
   
  private:
+  void HelpString(const std::string msg, const int i) const;
+
+
+ private:
   float2 mouse_obj;
   bool mouse_active;
 
@@ -143,16 +150,16 @@ class Medial2 : public GL2D {
   std::vector<float2> middle_down;
   std::vector<float2> middle_up;
 
+  bool show_help;
+  bool show_advanced_help;
   bool show_octree;
   bool show_vertex_labels;
-  bool show_cell_neighbors;
   bool show_cell_vertices;
   bool show_vertex_distance;
-  bool midpoint_medial_axis;
   int polygon_mode;
   bool show_closest_point_line;
   bool show_closest_point_path;
-  bool show_medial_axis;
+  bool show_gvd;
   bool show_path;
   bool show_voronoi;
   bool show_vertex_ids;
