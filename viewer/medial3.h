@@ -1,5 +1,5 @@
-#ifndef __MEDIAL3_H__
-#define __MEDIAL3_H__
+#ifndef __GVDVIEWER3_H__
+#define __GVDVIEWER3_H__
 
 #include <vector>
 
@@ -17,7 +17,7 @@
 #include "../statistics.h"
 
 // TODO: Clean up textures
-class Medial3 : public GL3D {
+class GVDViewer3 : public GL3D {
  public:
   typedef oct::Timer Timer;
   typedef oct::index_t index_t;
@@ -29,9 +29,9 @@ class Medial3 : public GL3D {
   static const float3 red;
 
  public:
-  Medial3(const int win_width, const int win_height);//,
+  GVDViewer3(const int win_width, const int win_height);//,
           // const float2& world_min, const float2& world_max);
-  ~Medial3();
+  ~GVDViewer3();
 
   int3 Obj2Oct(const float3& v) const;
   float3 Oct2Obj(const int3& v) const;
@@ -53,12 +53,12 @@ class Medial3 : public GL3D {
   void DrawMeshes();
 
   const std::vector<Mesh>& Meshes() const { return meshes; }
-  const std::vector<Mesh>& MedialMeshes() const { return medial_meshes; }
+  const std::vector<Mesh>& GVDMeshes() const { return gvd_meshes; }
 
 
   // void TileSurfaceCpu();
   void TileSurfaceGpu();
-  void DrawMedialSeparator();
+  void DrawGVDSeparator();
   bool DrawEdge(const int vi, const int n_vi, const int3& p, const int3& q,
                 // const oct::Direction<3>& d) const;
                 const oct::Direction& d) const;
@@ -73,17 +73,17 @@ class Medial3 : public GL3D {
   void SetShowVertices(const bool show_vertices_) {
     show_vertices = show_vertices_;
   }
-  void SetShowMedial(const bool show_medial_separator_) {
-    show_medial_separator = show_medial_separator_;
+  void SetShowGVD(const bool show_gvd_) {
+    show_gvd = show_gvd_;
   }
-  void InvertMedial() {
-    for (int i = 0; i < medial_meshes.size(); ++i) {
-      medial_meshes[i].InvertOrientation();
+  void InvertGVD() {
+    for (int i = 0; i < gvd_meshes.size(); ++i) {
+      gvd_meshes[i].InvertOrientation();
     }
   }
-  void SetMedialColor(const bool b) {
-    for (int i = 0; i < medial_meshes.size(); ++i) {
-      medial_meshes[i].SetColor(b);
+  void SetGVDColor(const bool b) {
+    for (int i = 0; i < gvd_meshes.size(); ++i) {
+      gvd_meshes[i].SetColor(b);
     }
   }
   void SetShowVertDistLines(const bool show_vertex_distance_lines_) {
@@ -98,11 +98,11 @@ class Medial3 : public GL3D {
   void SetMeshMode(const int mesh_mode_) {
     mesh_mode = mesh_mode_;
   }
-  void SetMedialMode(const int medial_mode_) {
-    medial_mode = medial_mode_;
+  void SetGVDMode(const int gvd_mode_) {
+    gvd_mode = gvd_mode_;
   }
-  int GetMedialMode() const {
-    return medial_mode;
+  int GetGVDMode() const {
+    return gvd_mode;
   }
   void SetShowStatistics(const bool b) {
     show_statistics = b;
@@ -143,7 +143,7 @@ class Medial3 : public GL3D {
   void PrintStatistics() const;
 
   // void SetMaxDepth(int level) { maxDepth = level; }
-  void ReadMesh(const std::string& filename, bool medial = false);
+  void ReadMesh(const std::string& filename, bool gvd = false);
   void GenerateSurface(const oct::OctreeOptions& o =
                        oct::OctreeOptions::For3D());
 
@@ -160,6 +160,8 @@ class Medial3 : public GL3D {
   void WriteGvdMesh();
 
  private:
+  void PrintHelp() const;
+  void HelpString(const std::string msg, const int i) const;
   void DrawAxis();
   float3 MapMouse(GLfloat x, GLfloat y);
 
@@ -187,8 +189,8 @@ class Medial3 : public GL3D {
 
  private:
   std::vector<Mesh> meshes;
-  std::vector<Mesh> medial_meshes;
-  std::vector<Mesh> medial_meshes_orig;
+  std::vector<Mesh> gvd_meshes;
+  std::vector<Mesh> gvd_meshes_orig;
   GLuint* texture_ids;
   // std::vector<float3> centroids;
   BoundingBox3f bb_objects;
@@ -197,7 +199,7 @@ class Medial3 : public GL3D {
   VertexNetwork vertices;
   ManagedVertexNetwork mvertices;
   // int maxDepth;
-  Graph<3> _medial_graph;
+  Graph<3> _gvd_graph;
   std::vector<int> search_path;
 
   GLfloat mouse_x, mouse_y;
@@ -222,10 +224,13 @@ class Medial3 : public GL3D {
   bool scene_lighting;// = false;
 
 
+  bool show_help;
+  bool show_advanced_help;
+
   bool show_mesh;
   bool show_octree;
   bool show_vertices;
-  bool show_medial_separator;
+  bool show_gvd;
   bool show_vertex_distance_lines;
   bool show_all_vertex_distance_lines;
   bool show_vertex_id;
@@ -256,7 +261,7 @@ class Medial3 : public GL3D {
   double _path_size;
 
   int mesh_mode;
-  int medial_mode;
+  int gvd_mode;
 
   GLuint _buffer_names[4];
   bool _buffers_valid;

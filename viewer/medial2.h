@@ -1,5 +1,5 @@
-#ifndef __MEDIAL2_H__
-#define __MEDIAL2_H__
+#ifndef __GVDViewer2_H__
+#define __GVDViewer2_H__
 
 #include <vector>
 
@@ -15,7 +15,7 @@
 #include "../octree.h"
 #include "../graph.h"
 
-class Medial2 : public GL2D {
+class GVDViewer2 : public GL2D {
  public:
   typedef oct::Timer Timer;
   typedef oct::index_t index_t;
@@ -25,8 +25,7 @@ class Medial2 : public GL2D {
   static const float3 red;
 
  public:
-  // Medial2(const int2& win, const float2& world_min, const float2& world_max);
-  Medial2(const int win_width, const int win_height);
+  GVDViewer2(const int win_width, const int win_height);
 
   void PrintCommands() const;
 
@@ -132,7 +131,6 @@ class Medial2 : public GL2D {
  private:
   void HelpString(const std::string msg, const int i) const;
 
-
  private:
   float2 mouse_obj;
   bool mouse_active;
@@ -143,7 +141,7 @@ class Medial2 : public GL2D {
 
   oct::VertexNetwork vertices;
   bool dirty;
-  Graph<2> medial_graph;
+  Graph<2> gvd_graph;
 
   std::vector<float2> vertex_locations;
   std::vector<bool> vertex_circle;

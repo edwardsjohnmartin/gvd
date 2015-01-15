@@ -16,8 +16,7 @@ void SimpleScreenshot();
 int window_width = 800, window_height = 600;
 float window_aspect = window_width / static_cast<float>(window_height);
 
-// Medial3 scene(int2(window_width, window_height));
-Medial3 scene(window_width, window_height);
+GVDViewer3 scene(window_width, window_height);
 // GLfloat near = 1;
 GLfloat near = -1;
 GLfloat far = -1;
@@ -74,11 +73,11 @@ void Keyboard(unsigned char key, int x, int y) {
       near *= 1.1;
       glutPostRedisplay();
       break;
-    case 'h':
+    case 'u':
       far *= 0.9;
       glutPostRedisplay();
       break;
-    case 'H':
+    case 'U':
       far *= 1.1;
       glutPostRedisplay();
       break;
@@ -93,9 +92,6 @@ void Keyboard(unsigned char key, int x, int y) {
       break;
     case 'Y': 
       ExplodeRiceDwarf();
-      break;
-    case 'U':
-      ExplodeKnives();
       break;
     case 'q':
     case 27:  // esc
@@ -120,7 +116,7 @@ void SimpleScreenshot() {
 // To rename:
 //    for f in *.png; do mv $f new-name${f/screenshot}; done
 void Screenshot() {
-  const int mm = scene.GetMedialMode();
+  const int mm = scene.GetGVDMode();
 
   scene.WriteGvdMesh();
 
@@ -129,67 +125,67 @@ void Screenshot() {
 
   // objects
   scene.SetShowMesh(true);
-  scene.SetShowMedial(false);
+  scene.SetShowGVD(false);
   MyDisplay();
   writePngImage("screenshot-o.png", window_width, window_height);
 
-  // objects and medial
+  // objects and GVD
   scene.SetShowMesh(true);
-  scene.SetShowMedial(true);
-  scene.SetMedialColor(false);
-  scene.SetMedialMode(3);
+  scene.SetShowGVD(true);
+  scene.SetGVDColor(false);
+  scene.SetGVDMode(3);
   MyDisplay();
   writePngImage("screenshot-om.png", window_width, window_height);
 
-  // objects and inverted medial
+  // objects and inverted GVD
   scene.SetShowMesh(true);
-  scene.SetShowMedial(true);
-  scene.SetMedialColor(false);
-  scene.SetMedialMode(3);
-  scene.InvertMedial();
+  scene.SetShowGVD(true);
+  scene.SetGVDColor(false);
+  scene.SetGVDMode(3);
+  scene.InvertGVD();
   MyDisplay();
-  scene.InvertMedial();
+  scene.InvertGVD();
   writePngImage("screenshot-omi.png", window_width, window_height);
 
-  // objects and colored medial
+  // objects and colored GVD
   scene.SetShowMesh(true);
-  scene.SetShowMedial(true);
-  scene.SetMedialColor(true);
-  scene.SetMedialMode(2);
+  scene.SetShowGVD(true);
+  scene.SetGVDColor(true);
+  scene.SetGVDMode(2);
   MyDisplay();
   writePngImage("screenshot-omc.png", window_width, window_height);
 
-  // medial
+  // GVD
   scene.SetShowMesh(false);
-  scene.SetShowMedial(true);
-  scene.SetMedialColor(false);
-  scene.SetMedialMode(3);
+  scene.SetShowGVD(true);
+  scene.SetGVDColor(false);
+  scene.SetGVDMode(3);
   MyDisplay();
   writePngImage("screenshot-m.png", window_width, window_height);
 
-  // inverted medial
+  // inverted GVD
   scene.SetShowMesh(false);
-  scene.SetShowMedial(true);
-  scene.SetMedialColor(false);
-  scene.SetMedialMode(3);
-  scene.InvertMedial();
+  scene.SetShowGVD(true);
+  scene.SetGVDColor(false);
+  scene.SetGVDMode(3);
+  scene.InvertGVD();
   MyDisplay();
-  scene.InvertMedial();
+  scene.InvertGVD();
   writePngImage("screenshot-mi.png", window_width, window_height);
 
-  // colored medial
+  // colored GVD
   scene.SetShowMesh(false);
-  scene.SetShowMedial(true);
-  scene.SetMedialColor(true);
-  scene.SetMedialMode(2);
+  scene.SetShowGVD(true);
+  scene.SetGVDColor(true);
+  scene.SetGVDMode(2);
   MyDisplay();
   writePngImage("screenshot-mc.png", window_width, window_height);
 
   // Restore
   scene.SetShowMesh(true);
-  scene.SetShowMedial(true);
-  scene.SetMedialColor(false);
-  scene.SetMedialMode(mm);
+  scene.SetShowGVD(true);
+  scene.SetGVDColor(false);
+  scene.SetGVDMode(mm);
   MyDisplay();
 }
 
@@ -288,59 +284,59 @@ void ExplodeKnives() {
     {
       // objects
       scene.SetShowMesh(true);
-      scene.SetShowMedial(false);
+      scene.SetShowGVD(false);
       MyDisplay();
       const string fn = "slice/o/" + base + ".png";
       writePngImage(fn.c_str(), window_width, window_height);
     } {
-      // objects and medial
+      // objects and GVD
       scene.SetShowMesh(true);
-      scene.SetShowMedial(true);
-      scene.SetMedialColor(false);
+      scene.SetShowGVD(true);
+      scene.SetGVDColor(false);
       MyDisplay();
       const string fn = "slice/om/" + base + ".png";
       writePngImage(fn.c_str(), window_width, window_height);
     } {
-      // objects and inverted medial
+      // objects and inverted GVD
       scene.SetShowMesh(true);
-      scene.SetShowMedial(true);
-      scene.SetMedialColor(false);
-      scene.InvertMedial();
+      scene.SetShowGVD(true);
+      scene.SetGVDColor(false);
+      scene.InvertGVD();
       MyDisplay();
-      scene.InvertMedial();
+      scene.InvertGVD();
       const string fn = "slice/omi/" + base + ".png";
       writePngImage(fn.c_str(), window_width, window_height);
     } {
-      // objects and colored medial
+      // objects and colored GVD
       scene.SetShowMesh(true);
-      scene.SetShowMedial(true);
-      scene.SetMedialColor(true);
+      scene.SetShowGVD(true);
+      scene.SetGVDColor(true);
       MyDisplay();
       const string fn = "slice/omc/" + base + ".png";
       writePngImage(fn.c_str(), window_width, window_height);
     } {
-      // medial
+      // GVD
       scene.SetShowMesh(false);
-      scene.SetShowMedial(true);
-      scene.SetMedialColor(false);
+      scene.SetShowGVD(true);
+      scene.SetGVDColor(false);
       MyDisplay();
       const string fn = "slice/m/" + base + ".png";
       writePngImage(fn.c_str(), window_width, window_height);
     } {
-      // inverted medial
+      // inverted GVD
       scene.SetShowMesh(false);
-      scene.SetShowMedial(true);
-      scene.SetMedialColor(false);
-      scene.InvertMedial();
+      scene.SetShowGVD(true);
+      scene.SetGVDColor(false);
+      scene.InvertGVD();
       MyDisplay();
-      scene.InvertMedial();
+      scene.InvertGVD();
       const string fn = "slice/mi/" + base + ".png";
       writePngImage(fn.c_str(), window_width, window_height);
     } {
-      // colored medial
+      // colored GVD
       scene.SetShowMesh(false);
-      scene.SetShowMedial(true);
-      scene.SetMedialColor(true);
+      scene.SetShowGVD(true);
+      scene.SetGVDColor(true);
       MyDisplay();
       const string fn = "slice/mc/" + base + ".png";
       writePngImage(fn.c_str(), window_width, window_height);
@@ -356,7 +352,7 @@ void ExplodeKnives() {
       }
     } {
       // Write gvd meshes
-      const std::vector<Mesh>& meshes = scene.MedialMeshes();
+      const std::vector<Mesh>& meshes = scene.GVDMeshes();
       for (int label = 1; label < meshes.size(); ++label) {
         stringstream ss2;
         ss2 << "slice/gvd-meshes/" << base << "-" << label << ".obj";

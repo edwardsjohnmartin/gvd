@@ -77,38 +77,38 @@ T MeanValue(const float2& p, const vector<float2>& polygon,
 }
 
 struct M2Callback {
-  M2Callback(const Medial2* m2_) : m2(m2_) {}
-  const Medial2* m2;
+  M2Callback(const GVDViewer2* m2_) : m2(m2_) {}
+  const GVDViewer2* m2;
 };
 
 struct M2CallbackNoConst {
-  M2CallbackNoConst(Medial2* m2_) : m2(m2_) {}
-  Medial2* m2;
+  M2CallbackNoConst(GVDViewer2* m2_) : m2(m2_) {}
+  GVDViewer2* m2;
 };
 
 struct StoreVertexLocationCallback : public M2CallbackNoConst {
-  StoreVertexLocationCallback(Medial2* m2_) : M2CallbackNoConst(m2_) {}
+  StoreVertexLocationCallback(GVDViewer2* m2_) : M2CallbackNoConst(m2_) {}
   bool operator()(const int vi, const int2& p) {
     return m2->StoreVertexLocation(vi, p);
   }
 };
 
 struct DrawVertexDistanceLineCallback : public M2Callback {
-  DrawVertexDistanceLineCallback(const Medial2* m2_) : M2Callback(m2_) {}
+  DrawVertexDistanceLineCallback(const GVDViewer2* m2_) : M2Callback(m2_) {}
   bool operator()(const int vi, const int2& p) {
     return m2->DrawVertexDistanceLine(vi, p);
   }
 };
 
-struct DrawMedialLinesCallback : public M2Callback {
+struct DrawGVDLinesCallback : public M2Callback {
   typedef oct::OctreeOptions OctreeOptions;
-  DrawMedialLinesCallback(const Medial2* m2_, const OctreeOptions& o_)
+  DrawGVDLinesCallback(const GVDViewer2* m2_, const OctreeOptions& o_)
       : M2Callback(m2_),
         graph_constructor(new GraphConstructor<2>()),
         o(o_) {}
   bool operator()(const int vi, const int2& p) {
     const oct::VertexNetwork& vertices = m2->Vertices();
-    // return m2->DrawMedialLines(vi, p);
+    // return m2->DrawGVDLines(vi, p);
     if (!vertices.IsBase(vi)) return true;
 
     vector<pair<int2, LabeledSegment> > intersections;
@@ -118,7 +118,7 @@ struct DrawMedialLinesCallback : public M2Callback {
                                        back_inserter(intersections), o);
 
     if (!intersections.empty()) {
-      // medial_cells.push_back(MedialCell(vi, intersections));
+      // gvd_cells.push_back(GVDCell(vi, intersections));
       double2 center = make_double2(0);
       for (int i = 0; i < intersections.size(); ++i) {
         const int2& edge_intersection = intersections[i].first;
@@ -141,7 +141,7 @@ struct DrawMedialLinesCallback : public M2Callback {
 };
 
 struct DrawEdgeCallback : public M2Callback {
-  DrawEdgeCallback(const Medial2* m2_) : M2Callback(m2_) {}
+  DrawEdgeCallback(const GVDViewer2* m2_) : M2Callback(m2_) {}
   bool operator()(const int vi, const int n_vi,
                   const int2& p, const int2& q,
                   // const oct::Direction<2>& d) {
@@ -151,21 +151,21 @@ struct DrawEdgeCallback : public M2Callback {
 };
 
 struct VertexIDCallback : public M2Callback {
-  VertexIDCallback(const Medial2* m2_) : M2Callback(m2_) {}
+  VertexIDCallback(const GVDViewer2* m2_) : M2Callback(m2_) {}
   bool operator()(const int vi, const int2& p) {
     return m2->DrawVertexID(vi, p);
   }
 };
 
 struct VertexLabelCallback : public M2Callback {
-  VertexLabelCallback(const Medial2* m2_) : M2Callback(m2_) {}
+  VertexLabelCallback(const GVDViewer2* m2_) : M2Callback(m2_) {}
   bool operator()(const int vi, const int2& p) {
     return m2->DrawVertexLabel(vi, p);
   }
 };
 
 struct DistanceFunctionCallback : public M2Callback {
-  DistanceFunctionCallback(const Medial2* m2_) : M2Callback(m2_) {}
+  DistanceFunctionCallback(const GVDViewer2* m2_) : M2Callback(m2_) {}
   bool operator()(const int vi, const int2& p) {
     return m2->DistanceFunctionVertex(vi, p);
   }
@@ -173,7 +173,7 @@ struct DistanceFunctionCallback : public M2Callback {
 
 // Finds the max distance from a vertex to a site.
 struct DFDistCallback : public M2Callback {
-  DFDistCallback(const Medial2* m2_,
+  DFDistCallback(const GVDViewer2* m2_,
                  float* dist_oct_,
                  float* dist_obj_)
       : M2Callback(m2_), dist_oct(dist_oct_), dist_obj(dist_obj_) {}
@@ -192,11 +192,11 @@ struct DFDistCallback : public M2Callback {
   float* dist_obj;
 };
 
-const float3 Medial2::red = make_float3(1, 0, 0);
+const float3 GVDViewer2::red = make_float3(1, 0, 0);
 
-// Medial2::Medial2(const int2& win, const float2& world_min,
+// GVDViewer2::GVDViewer2(const int2& win, const float2& world_min,
 //                  const float2& world_max) : GL2D(win, world_min, world_max) {
-Medial2::Medial2(const int win_width, const int win_height)
+GVDViewer2::GVDViewer2(const int win_width, const int win_height)
     : GL2D(win_width, win_height) {
   mouse_active = false;
 
@@ -223,7 +223,7 @@ Medial2::Medial2(const int win_width, const int win_height)
   entry_mode = 0;
 }
 
-void Medial2::ReadMesh(const string& filename) {
+void GVDViewer2::ReadMesh(const string& filename) {
   ifstream in(filename.c_str());
   if (!in) {
     cerr << "Failed to read " << filename << endl;
@@ -244,7 +244,7 @@ void Medial2::ReadMesh(const string& filename) {
   MakePolygon();
 }
 
-void Medial2::WritePolygons() const {
+void GVDViewer2::WritePolygons() const {
   for (int i = 0; i < polygons.size(); ++i) {
     stringstream ss;
     ss << "poly" << (i+1) << ".dat";
@@ -259,7 +259,7 @@ void Medial2::WritePolygons() const {
   cout << "Wrote objects" << endl;
 }
 
-void Medial2::ProcessArgs(int argc, char** argv) {
+void GVDViewer2::ProcessArgs(int argc, char** argv) {
   int i = 1;
   // if (argc > 1) {
   bool stop = false;
@@ -285,39 +285,10 @@ void Medial2::ProcessArgs(int argc, char** argv) {
   cout << "Number of polygon edges: " << num_edges << endl;
 }
 
-void Medial2::PrintCommands() const {
-  cout << endl;
-  cout << "Key commands:" << endl;
-  cout << "  c - clear" << endl;
-  cout << "  o - show octree" << endl;
-  cout << "  m - show medial axis" << endl;
-  cout << "  g - show polygons" << endl;
-  cout << "  v - show vertices colored by label" << endl;
-  cout << "  i - show vertex ids" << endl;
-  cout << "  # - [012...] level for which to show cell ids etc." << endl;
-  cout << "  M - midpoint medial axis" << endl;
-  cout << "  l - show above line as a path from vertex to vertex" << endl;
-  cout << "  s/S - inc/dec medial subdivision level" << endl;
-  cout << "  r - toggle secondary voronoi diagram" << endl;
-  cout << "  u - toggle distance function" << endl;
-  cout << "  f/d - inc/dec octree level" << endl;
-  cout << "  j/k - inc/dec displayed vertex distance" << endl;
-  cout << "  l - show line from each vertex to its closest point" << endl;
-  cout << "  V - toggle full subdivide" << endl;
-  cout << "  B - toggle make buffer" << endl;
-  cout << "  r - reset to original view" << endl;
-  cout << "  e - input mode (poly, unclosed poly, poly verts)" << endl;
-  cout << "  z - remove last input polygon" << endl;
-  cout << "  W - write object polygons" << endl;
-  cout << "  p - toggle statistics display" << endl;
-  cout << "Mouse:" << endl;
-  cout << "  ctrl + left drag - zoom" << endl;
-  cout << "  shift + left click - set start position for path search" << endl;
-  cout << "  shift + right click - set end position for path search" << endl;
-  cout << endl;
+void GVDViewer2::PrintCommands() const {
 }
 
-void Medial2::Keyboard(unsigned char key, int x, int y) {
+void GVDViewer2::Keyboard(unsigned char key, int x, int y) {
   bool redisplay = true;
   switch (key) {
     case 'h':
@@ -376,13 +347,13 @@ void Medial2::Keyboard(unsigned char key, int x, int y) {
       break;
     case 's':
       o.ambiguous_max_level++;
-      cout << "Max medial subdivision level = "
+      cout << "Max GVD subdivision level = "
            << o.ambiguous_max_level << endl;
       dirty = true;
       break;
     case 'S':
       o.ambiguous_max_level--;
-      cout << "Max medial subdivision level = "
+      cout << "Max GVD subdivision level = "
            << o.ambiguous_max_level << endl;
       dirty = true;
       break;
@@ -443,7 +414,7 @@ void Medial2::Keyboard(unsigned char key, int x, int y) {
   }
 }
 
-void Medial2::Special(int key, int x, int y) {
+void GVDViewer2::Special(int key, int x, int y) {
   // switch (key) {
   //   case GLUT_KEY_DOWN:
   //     maxDepth--;
@@ -460,7 +431,7 @@ void Medial2::Special(int key, int x, int y) {
 }
 
 // x, y in window coordinates
-void Medial2::AddPoint(int x, int y) {
+void GVDViewer2::AddPoint(int x, int y) {
   float2 v = Win2Obj(make_float2(x, y));
   verts.push_back(v);
   bb(v);
@@ -468,18 +439,18 @@ void Medial2::AddPoint(int x, int y) {
   dirty = true;
 }
 
-void Medial2::Search(const int start, const int end) {
+void GVDViewer2::Search(const int start, const int end) {
   search_path.clear();
-  medial_graph.Dijkstra(start, end, back_inserter(search_path));
+  gvd_graph.Dijkstra(start, end, back_inserter(search_path));
   reverse(search_path.begin(), search_path.end());
   glutPostRedisplay();
 }
 
-void Medial2::SetStartSearch(int x, int y) {
+void GVDViewer2::SetStartSearch(int x, int y) {
   const double2 p = convert_double2(Win2Obj(make_float2(x, y)));
   double min_dist = numeric_limits<double>::max();
   int start = -1;
-  const std::vector<double2>& vertices = medial_graph.GetVertices();
+  const std::vector<double2>& vertices = gvd_graph.GetVertices();
   for (int i = 0; i < vertices.size(); ++i) {
     // const double d = (p-vertices[i]).norm2();
     const double d = length2(p-vertices[i]);
@@ -499,11 +470,11 @@ void Medial2::SetStartSearch(int x, int y) {
   }
 }
 
-void Medial2::SetEndSearch(int x, int y) {
+void GVDViewer2::SetEndSearch(int x, int y) {
   const double2 p = convert_double2(Win2Obj(make_float2(x, y)));
   double min_dist = numeric_limits<double>::max();
   int end = -1;
-  const std::vector<double2>& vertices = medial_graph.GetVertices();
+  const std::vector<double2>& vertices = gvd_graph.GetVertices();
   for (int i = 0; i < vertices.size(); ++i) {
     // const double d = (p-vertices[i]).norm2();
     const double d = length2(p-vertices[i]);
@@ -524,7 +495,7 @@ void Medial2::SetEndSearch(int x, int y) {
   }
 }
 
-void Medial2::Zoom(const float2& target, const float zoom) {
+void GVDViewer2::Zoom(const float2& target, const float zoom) {
   const float w = window_width;
   const float h = window_height;
   const float r = w/h;
@@ -539,7 +510,7 @@ void Medial2::Zoom(const float2& target, const float zoom) {
 float2 rubberband_start = make_float2(0);
 float2 rubberband_cur = make_float2(0);
 bool rubberband_mode = false;
-void Medial2::Mouse(int button, int state, int x, int y) {
+void GVDViewer2::Mouse(int button, int state, int x, int y) {
   if (button == GLUT_LEFT_BUTTON) {
     if (state == GLUT_DOWN) {
       if (glutGetModifiers() == GLUT_ACTIVE_CTRL) {
@@ -614,7 +585,7 @@ void Medial2::Mouse(int button, int state, int x, int y) {
   }
 }
 
-void Medial2::MouseMotion(int x, int y) {
+void GVDViewer2::MouseMotion(int x, int y) {
   // if (glutGetModifiers() == GLUT_ACTIVE_CTRL) {
   if (rubberband_mode) {
     rubberband_cur = Win2Obj(make_float2(x, y));
@@ -625,29 +596,29 @@ void Medial2::MouseMotion(int x, int y) {
   glutPostRedisplay();
 }
 
-void Medial2::PassiveMouseMotion(int x, int y) {
+void GVDViewer2::PassiveMouseMotion(int x, int y) {
   mouse_obj = Win2Obj(make_float2(x, y));
   glutPostRedisplay();
 }
 
-float2 Medial2::Obj2Oct(const float2& v) const {
+float2 GVDViewer2::Obj2Oct(const float2& v) const {
   const GLfloat bbw = bb.max_size();
   return ((v-bb.min())/bbw) * (float)oct::kWidth;
 }
 
-float2 Medial2::Oct2Obj(const int2& v) const {
+float2 GVDViewer2::Oct2Obj(const int2& v) const {
   const float2 vf = make_float2(v.s[0], v.s[1]);
   const GLfloat bbw = bb.max_size();
   return (vf/kWidth)*bbw+bb.min();
 }
 
-GLfloat Medial2::Oct2Obj(int dist) const {
+GLfloat GVDViewer2::Oct2Obj(int dist) const {
   const GLfloat bbw = bb.max_size();
   const GLfloat ow = kWidth;
   return (dist/ow)*bbw;
 }
 
-unsigned char Medial2::outcode(const float2& v) const {
+unsigned char GVDViewer2::outcode(const float2& v) const {
   unsigned char code = 0;
   if (v.s[0] < -1) {
     code = code | 0x01;
@@ -662,13 +633,13 @@ unsigned char Medial2::outcode(const float2& v) const {
   return code;
 }
 
-bool Medial2::InBounds(const float2& v) const {
+bool GVDViewer2::InBounds(const float2& v) const {
   return (outcode(v) == 0);
 }
 
 // Given a code, returns the corner that represents the
 // intersection of the code's line and the next code's line.
-float2 Medial2::corner(unsigned char code) const {
+float2 GVDViewer2::corner(unsigned char code) const {
   if (code == 0x0001) {
     return make_float2(-1, -1);
   }
@@ -686,7 +657,7 @@ float2 Medial2::corner(unsigned char code) const {
 
 // Clip a line to the bounds
 // a is outside, b is inside
-vector<float2> Medial2::clip(const float2& a0, const float2& a1,
+vector<float2> GVDViewer2::clip(const float2& a0, const float2& a1,
                             const float2& b0, const float2& b1) const {
   // x = x0 + t*xd
   // y = y0 + t*yd
@@ -745,13 +716,13 @@ vector<float2> Medial2::clip(const float2& a0, const float2& a1,
   return ret;
 }
 
-void Medial2::MakePolygon() {
+void GVDViewer2::MakePolygon() {
   const int n = verts.size();
   polygons.push_back(verts);
   verts.clear();
 }
 
-bool Medial2::StoreVertexLocation(const int vi, const int2& p) {
+bool GVDViewer2::StoreVertexLocation(const int vi, const int2& p) {
   vertex_locations[vi] = Oct2Obj(p);
   return true;
 }
@@ -762,7 +733,7 @@ void DefaultCallback(const int3& base_point,
                      const bool complete) {
 }
 
-void Medial2::BuildOctree() {
+void GVDViewer2::BuildOctree() {
   //------------------
   // Initialize OpenCL
   //------------------
@@ -819,9 +790,9 @@ void Medial2::BuildOctree() {
         vertices, DFDistCallback(this, &max_dist_oct, &max_dist_obj));
 
     // Compute the bisector
-    DrawMedialLinesCallback callback(this, o);
+    DrawGVDLinesCallback callback(this, o);
     oct::VisitVertices<2>(vertices, callback);
-    medial_graph = callback.GetGraph();
+    gvd_graph = callback.GetGraph();
 
     search_path.clear();
   }
@@ -836,7 +807,7 @@ void Medial2::BuildOctree() {
 #endif
 }
 
-void Medial2::glSquare(GLfloat x, GLfloat y, GLfloat w) const {
+void GVDViewer2::glSquare(GLfloat x, GLfloat y, GLfloat w) const {
   glBegin(GL_POLYGON);
   glVertex2f(x, y);
   glVertex2f(x+w, y);
@@ -845,16 +816,16 @@ void Medial2::glSquare(GLfloat x, GLfloat y, GLfloat w) const {
   glEnd();
 }
 
-void Medial2::glSquare(const float2& p, GLfloat w) const {
+void GVDViewer2::glSquare(const float2& p, GLfloat w) const {
   glSquare(p.s[0], p.s[1], w);
 }
 
-void Medial2::glSquareWinWidth(const float2& p, GLfloat w) const {
+void GVDViewer2::glSquareWinWidth(const float2& p, GLfloat w) const {
   const float2 q = p - Win2Obj(w/2);
   glSquare(q, Win2Obj(w));
 }
 
-bool Medial2::DrawEdge(const int vi, const int n_vi,
+bool GVDViewer2::DrawEdge(const int vi, const int n_vi,
                        const int2& p, const int2& q,
                        // const oct::Direction<2>& d) const {
                        const oct::Direction& d) const {
@@ -863,7 +834,7 @@ bool Medial2::DrawEdge(const int vi, const int n_vi,
   return true;
 }
 
-void Medial2::DrawOctree() const {
+void GVDViewer2::DrawOctree() const {
   glLineWidth(1.0);
   glColor3f(0.7, 0.7, 0.7);
 
@@ -878,35 +849,35 @@ void DrawGVDVisitor(int ai, const double2& a,
   glVertex2dv(b.s);
 }
 
-void Medial2::DrawGVD() const {
+void GVDViewer2::DrawGVD() const {
   glColor3fv(red.s);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glLineWidth(1.5);
 
   glBegin(GL_LINES);
-  medial_graph.VisitEdges(DrawGVDVisitor);
+  gvd_graph.VisitEdges(DrawGVDVisitor);
   glEnd();
 }
 
-void Medial2::DrawPath() const {
+void GVDViewer2::DrawPath() const {
   glLineWidth(4.0);
   glColor3f(0.0, 0.0, 1.0);
   glBegin(GL_LINE_STRIP);
   for (int i = 0; i < search_path.size(); ++i) {
-    glVertex2dv(medial_graph[search_path[i]].s);
+    glVertex2dv(gvd_graph[search_path[i]].s);
   }
   glEnd();
 }
 
-void Medial2::DrawVoronoi() const {
+void GVDViewer2::DrawVoronoi() const {
   // struct triangulateio in, mid, out, vorout;
 
   // set<float2> point_set;
-  // medial_cells.clear();
-  // VisitVertices(vertices, DrawMedialLinesCallback(this));
+  // gvd_cells.clear();
+  // VisitVertices(vertices, DrawGVDLinesCallback(this));
   // // Update centers
-  // for (int i = 0; i < medial_cells.size(); ++i) {
-  //   const MedialCell& mc = medial_cells[i];
+  // for (int i = 0; i < gvd_cells.size(); ++i) {
+  //   const GVDCell& mc = gvd_cells[i];
   //   if (mc.edge_intersections.size() > 2)
   //     point_set.insert(Oct2Obj(mc.center));
   //   for (int i = 0; i < mc.edge_intersections.size(); ++i) {
@@ -1085,17 +1056,17 @@ void Medial2::DrawVoronoi() const {
   // // return centroids;
 }
 
-bool Medial2::DrawVertexID(const int vi, const int2& p) const {
+bool GVDViewer2::DrawVertexID(const int vi, const int2& p) const {
   BitmapString(vi, Oct2Obj(p),
                GL2D::kCenterJustify, GL2D::kCenterJustify);
   return true;
 }
 
-void Medial2::DrawVertexIDs() {
+void GVDViewer2::DrawVertexIDs() {
   oct::VisitVertices<2>(vertices, VertexIDCallback(this));
 }
 
-bool Medial2::DrawVertexLabel(const int vi, const int2& p) const {
+bool GVDViewer2::DrawVertexLabel(const int vi, const int2& p) const {
   const double d = length(vertices.ClosestPoint(vi) - p);
   if (d < max_vertex_distance) {
     SetColor(vertices.Label(vi), red);
@@ -1111,12 +1082,12 @@ bool Medial2::DrawVertexLabel(const int vi, const int2& p) const {
   return true;
 }
 
-void Medial2::DrawVertexLabels() {
+void GVDViewer2::DrawVertexLabels() {
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   oct::VisitVertices<2>(vertices, VertexLabelCallback(this));
 }
 
-bool Medial2::DrawVertexDistanceLine(const int vi, const int2& p) const {
+bool GVDViewer2::DrawVertexDistanceLine(const int vi, const int2& p) const {
   if (length(vertices.ClosestPoint(vi) - p) < max_vertex_distance) {
     const int2& cp = vertices.ClosestPoint(vi);
     glVertex2fv(Oct2Obj(p).s);
@@ -1125,7 +1096,7 @@ bool Medial2::DrawVertexDistanceLine(const int vi, const int2& p) const {
   return true;
 }
 
-void Medial2::DrawVertexDistanceLines() {
+void GVDViewer2::DrawVertexDistanceLines() {
   glColor3f(0, 0.7, 0);
   glLineWidth(1.0);
   glBegin(GL_LINES);
@@ -1134,7 +1105,7 @@ void Medial2::DrawVertexDistanceLines() {
 }
 
 struct DFWalkCallback : public M2Callback {
-  DFWalkCallback(const Medial2* m2_,
+  DFWalkCallback(const GVDViewer2* m2_,
                  const int2& base_,
                  const int width_,
                  vector<float3>* colors_,
@@ -1191,7 +1162,7 @@ bool tex_init[] = { false, false, false, false, false, false };
 GLuint tex_id[6];
 unsigned char* texture = 0;
 
-bool Medial2::DistanceFunctionVertex(const int vi, const int2& p) const {
+bool GVDViewer2::DistanceFunctionVertex(const int vi, const int2& p) const {
   typedef oct::level_t level_t;
   // typedef oct::Direction<2> Direction_t;
   typedef oct::Direction Direction_t;
@@ -1256,7 +1227,7 @@ bool Medial2::DistanceFunctionVertex(const int vi, const int2& p) const {
   return true;
 }
 
-void Medial2::DrawDistanceField() {
+void GVDViewer2::DrawDistanceField() {
   const int width = window_width;
   const int height = window_height;
   const float2 p = Win2Obj(make_float2(0, 0));;
@@ -1311,7 +1282,7 @@ void Medial2::DrawDistanceField() {
   // // glEnd();
 }
 
-void Medial2::PrintStatistics() const {
+void GVDViewer2::PrintStatistics() const {
   int num_cells = 0;
   oct::level_t max_level = 0;
   for (int i = 0; i < vertices.size(); ++i) {
@@ -1340,7 +1311,7 @@ void Medial2::PrintStatistics() const {
   }
 }
 
-void Medial2::HelpString(const string msg, const int i) const {
+void GVDViewer2::HelpString(const string msg, const int i) const {
   static const int sep = 17;
   static const int y = 2;
   static const int x = 2;
@@ -1348,7 +1319,7 @@ void Medial2::HelpString(const string msg, const int i) const {
                kLeftJustify, kTopJustify);
 }
 
-void Medial2::PrintHelp() const {
+void GVDViewer2::PrintHelp() const {
   int i = 0;
   HelpString("h - toggle help", i++);
   if (show_help) {
@@ -1387,7 +1358,7 @@ void Medial2::PrintHelp() const {
   }
 }
 
-void Medial2::Display() {
+void GVDViewer2::Display() {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluOrtho2D(win_obj.min().s[0], win_obj.max().s[0],

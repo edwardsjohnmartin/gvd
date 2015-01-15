@@ -110,33 +110,33 @@ void UpdateTrianglesWithVertexMap(const vector<int>& v2v,
 }
 
 struct M3Callback {
-  M3Callback(const Medial3* m3_) : m3(m3_) {}
-  const Medial3* m3;
+  M3Callback(const GVDViewer3* m3_) : m3(m3_) {}
+  const GVDViewer3* m3;
 };
 
 struct DrawVertexDistanceLineCallback : public M3Callback {
-  DrawVertexDistanceLineCallback(const Medial3* m3_) : M3Callback(m3_) {}
+  DrawVertexDistanceLineCallback(const GVDViewer3* m3_) : M3Callback(m3_) {}
   bool operator()(const int vi, const int3& p) {
     return m3->DrawVertexDistanceLine(vi, p);
   }
 };
 
 struct DrawLabelCallback : public M3Callback {
-  DrawLabelCallback(const Medial3* m3_) : M3Callback(m3_) {}
+  DrawLabelCallback(const GVDViewer3* m3_) : M3Callback(m3_) {}
   bool operator()(const int vi, const int3& p) {
     return m3->DrawLabel(vi, p);
   }
 };
 
 struct DrawIDCallback : public M3Callback {
-  DrawIDCallback(const Medial3* m3_) : M3Callback(m3_) {}
+  DrawIDCallback(const GVDViewer3* m3_) : M3Callback(m3_) {}
   bool operator()(const int vi, const int3& p) {
     return m3->DrawID(vi, p);
   }
 };
 
 struct DrawEdgeCallback : public M3Callback {
-  DrawEdgeCallback(const Medial3* m3_) : M3Callback(m3_) {}
+  DrawEdgeCallback(const GVDViewer3* m3_) : M3Callback(m3_) {}
   bool operator()(const int vi, const int n_vi,
                   const int3& p, const int3& q,
                   // const oct::Direction<3>& d) {
@@ -146,7 +146,7 @@ struct DrawEdgeCallback : public M3Callback {
 };
 
 struct OctreeEdgeCallback : public M3Callback {
-  OctreeEdgeCallback(const Medial3* m3_)
+  OctreeEdgeCallback(const GVDViewer3* m3_)
       : M3Callback(m3_), vn(m3_->GetVertices()),
         vertices(new vector<int3>()),
         edges(new vector<Edge>()),
@@ -190,7 +190,7 @@ struct OctreeEdgeCallback : public M3Callback {
   oct::OctreeOptions o;
 };
 
-Medial3::Medial3(const int win_width, const int win_height)//,
+GVDViewer3::GVDViewer3(const int win_width, const int win_height)//,
                  // const float2& world_min, const float2& world_max)
     : GL3D(win_width, win_height), texture_ids(0) {//, world_min, world_max) {
   mouse_x = 0;
@@ -215,13 +215,15 @@ Medial3::Medial3(const int win_width, const int win_height)//,
 
   // scene_lighting = false;
 
+  show_help = false;
+  show_advanced_help = false;
+
   show_mesh = true;
   show_octree = false;
   show_vertices = false;
-  show_medial_separator = true;
+  show_gvd = true;
 
   show_vertex_distance_lines = false;
-  show_all_vertex_distance_lines = false;
   show_vertex_id = false;
   show_axis = false;
   show_cell_id = false;
@@ -232,9 +234,9 @@ Medial3::Medial3(const int win_width, const int win_height)//,
 
   mesh_mode = 2;
   // mesh lines
-  medial_mode = 3;
+  gvd_mode = 3;
   // no mesh lines
-  // medial_mode = 2;
+  // gvd_mode = 2;
 
   _buffers_valid = false;
 
@@ -254,20 +256,20 @@ Medial3::Medial3(const int win_width, const int win_height)//,
   _random_colors = true;
 }
 
-Medial3::~Medial3() {
+GVDViewer3::~GVDViewer3() {
   if (texture_ids) {
     delete [] texture_ids;
   }
 }
 
-int3 Medial3::Obj2Oct(const float3& v) const {
+int3 GVDViewer3::Obj2Oct(const float3& v) const {
   const float3 size = bb_objects.size();
   const float max_size = max(size.s[0], max(size.s[1], size.s[2]));
   return
       convert_int3(make_float3(kWidth, kWidth, kWidth) * ((v-bb_objects.min())/max_size));
 }
 
-float3 Medial3::Oct2Obj(const int3& v) const {
+float3 GVDViewer3::Oct2Obj(const int3& v) const {
   const float3 vf = make_float3(v.s[0], v.s[1], v.s[2]);
   const float3 size = bb_objects.size();
   const float max_size = max(size.s[0], max(size.s[1], size.s[2]));
@@ -275,33 +277,18 @@ float3 Medial3::Oct2Obj(const int3& v) const {
   return (vf/w)*max_size+bb_objects.min();
 }
 
-GLfloat Medial3::Oct2Obj(int dist) const {
+GLfloat GVDViewer3::Oct2Obj(int dist) const {
   const float3 size = bb_objects.size();
   const float max_size = max(size.s[0], max(size.s[1], size.s[2]));
   const GLfloat ow = kWidth;
   return (dist/ow)*max_size;
 }
 
-bool Medial3::DrawVertexDistanceLine(const int vi, const int3& p) const {
+bool GVDViewer3::DrawVertexDistanceLine(const int vi, const int3& p) const {
   if (o.cell_of_interest > -1 &&
       o.cells_of_interest.find(vi) == o.cells_of_interest.end()) {
     return true;
   }
-  // if (show_all_vertex_distance_lines) {
-  //   glLineWidth(1.0);
-  //   glBegin(GL_LINES);
-  //   // All secondary in yellow
-  //   glColor3f(0.7, 0.7, 0);
-  //   oct::Vertex<3> v = vertices[vi];
-  //   typedef oct::Vertex<3>::OPConstIter Iter;
-  //   for (Iter it = vertices.OtherPointsBegin(vi);
-  //        it != vertices.OtherPointsEnd(vi); ++it) {
-  //     const int3& cp = vertices.ClosestPointByPointId(*it);
-  //     glVertex3fv(Oct2Obj(p));
-  //     glVertex3fv(Oct2Obj(cp));
-  //   }
-  //   glEnd();
-  // }
 
   glLineWidth(2.0);
   glBegin(GL_LINES);
@@ -335,7 +322,7 @@ bool Medial3::DrawVertexDistanceLine(const int vi, const int3& p) const {
   return true;
 }
 
-void Medial3::DrawVertexDistanceLines() {
+void GVDViewer3::DrawVertexDistanceLines() {
   glDisable(GL_LIGHTING);
   glColor3f(0, 0.7, 0);
   glLineWidth(1.0);
@@ -345,7 +332,7 @@ void Medial3::DrawVertexDistanceLines() {
   glEnable(GL_LIGHTING);
 }
 
-bool Medial3::DrawLabel(const int vi, const int3& p) const {
+bool GVDViewer3::DrawLabel(const int vi, const int3& p) const {
   static const double base_size = 10;
   static const int max_dist = oct::kWidth / 2;
 
@@ -378,7 +365,7 @@ bool Medial3::DrawLabel(const int vi, const int3& p) const {
   return true;
 }
 
-void Medial3::DrawVertexLabels() {
+void GVDViewer3::DrawVertexLabels() {
   // glColor3f(0, 0, 0);
   // VisitVertices(vertices, DrawLabelCallback(this));
 
@@ -427,17 +414,17 @@ void Medial3::DrawVertexLabels() {
   glEnable(GL_LIGHTING);
 }
 
-bool Medial3::DrawID(const int vi, const int3& p) const {
+bool GVDViewer3::DrawID(const int vi, const int3& p) const {
   if (o.OfInterest(vi))
     BitmapString(vi, Oct2Obj(p), kCenterJustify, kCenterJustify);
   return true;
 }
 
-void Medial3::DrawVertexIDs() {
+void GVDViewer3::DrawVertexIDs() {
   oct::VisitVertices<3>(vertices, DrawIDCallback(this));
 }
 
-bool Medial3::DrawSeparatorVertex(const int vi, const int n_vi,
+bool GVDViewer3::DrawSeparatorVertex(const int vi, const int n_vi,
                          const int3& p, const int3& q,
                          // const oct::Direction<3>& d) const {
                          const oct::Direction& d) const {
@@ -463,11 +450,11 @@ bool Medial3::DrawSeparatorVertex(const int vi, const int n_vi,
   return true;
 }
 
-void Medial3::DrawMesh(const Mesh& mesh, const bool face_normals) {
+void GVDViewer3::DrawMesh(const Mesh& mesh, const bool face_normals) {
   mesh.Display(false);
 }
 
-void Medial3::DrawMesh(const Mesh& mesh,
+void GVDViewer3::DrawMesh(const Mesh& mesh,
                        const bool surface, const bool wireframe,
                        const bool face_normals) {
   if (surface)
@@ -477,7 +464,7 @@ void Medial3::DrawMesh(const Mesh& mesh,
   // mesh.DisplayNormals();
 }
 
-float3 Medial3::ComputeExplodeDir(
+float3 GVDViewer3::ComputeExplodeDir(
     const int i, const set<int>& prev_ring, const vector<double3>& dirs) {
   typedef set<int> Set;
   typedef set<int>::const_iterator Set_iter;
@@ -488,10 +475,10 @@ float3 Medial3::ComputeExplodeDir(
     if (_explode_dir == 0) {
       dir = gvd_graph->Dir(_anchor_object, i) * d * ri;
     } else {
-      // dir = (medial_meshes[i].Centroid()
-      //        -medial_meshes[_anchor_object].Centroid()).unit() * d * ri;
-      dir = convert_double3(normalize(medial_meshes[i].Centroid()
-                                -medial_meshes[_anchor_object].Centroid())) * d * ri;
+      // dir = (gvd_meshes[i].Centroid()
+      //        -gvd_meshes[_anchor_object].Centroid()).unit() * d * ri;
+      dir = convert_double3(normalize(gvd_meshes[i].Centroid()
+                                -gvd_meshes[_anchor_object].Centroid())) * d * ri;
     }
   } else {
     const Set& one = gvd_graph->Ring(i, 1);
@@ -509,16 +496,16 @@ float3 Medial3::ComputeExplodeDir(
       // dir = dir_sum.unit() * d * ri;
       dir = normalize(dir_sum) * d * ri;
     } else {
-      // dir = (medial_meshes[i].Centroid()
-      //        -medial_meshes[_anchor_object].Centroid()).unit() * d * ri;
-      dir = convert_double3(normalize(medial_meshes[i].Centroid()
-                                -medial_meshes[_anchor_object].Centroid())) * d * ri;
+      // dir = (gvd_meshes[i].Centroid()
+      //        -gvd_meshes[_anchor_object].Centroid()).unit() * d * ri;
+      dir = convert_double3(normalize(gvd_meshes[i].Centroid()
+                                -gvd_meshes[_anchor_object].Centroid())) * d * ri;
     }
   }
   return convert_float3(dir);
 }
 
-void Medial3::DrawMeshes() {
+void GVDViewer3::DrawMeshes() {
   typedef set<int> Set;
   typedef set<int>::const_iterator Set_iter;
 
@@ -582,7 +569,7 @@ void Medial3::DrawMeshes() {
   }
 }
 
-void Medial3::SetGvdGraphDirs(
+void GVDViewer3::SetGvdGraphDirs(
     const int label,
     const std::map<LabelPair, list<Triangle> >& directed_tris,
     const vector<float3>& mesh_vertices,
@@ -652,7 +639,7 @@ void Medial3::SetGvdGraphDirs(
   }
 }
 
-void Medial3::TileSurfaceGpu() {
+void GVDViewer3::TileSurfaceGpu() {
   gvd_graph.reset(new TopoGraph());
 
   // Get the vertex->base mapping for 3D and the 3 2D planes
@@ -757,14 +744,14 @@ void Medial3::TileSurfaceGpu() {
   oct::VisitVerticesBFS<3>(vertices, v3);
 
   // Create meshes
-  medial_meshes = vector<Mesh>(meshes.size());
-  for (int i = 0; i < medial_meshes.size(); ++i) {
+  gvd_meshes = vector<Mesh>(meshes.size());
+  for (int i = 0; i < gvd_meshes.size(); ++i) {
     if (_random_colors)
-      medial_meshes[i].AddMaterial(meshes[i].material(0));
+      gvd_meshes[i].AddMaterial(meshes[i].material(0));
     else {
       const float3 c = RandomColor(i, make_float3(1, 0, 0));
       const Material mat = Material::FromDiffuseAmbient(c);
-      medial_meshes[i].AddMaterial(mat);
+      gvd_meshes[i].AddMaterial(mat);
     }
   }
   
@@ -828,7 +815,7 @@ void Medial3::TileSurfaceGpu() {
             // const Edge& e = edges[i];
             const Edge& e = edges[i].e;
             Triangle t = make_triangle(center_idx, e.s[0], e.s[1]);
-            medial_meshes[label].AddTriangle(t);
+            gvd_meshes[label].AddTriangle(t);
 
             const int olabel = edges[i].olabel;
             // LabelPair lpair(olabel, label);
@@ -842,28 +829,28 @@ void Medial3::TileSurfaceGpu() {
   }
 
   // t.restart("* 6");
-  for (int label = 0; label < medial_meshes.size(); ++label) {
-    Mesh& mesh = medial_meshes[label];
+  for (int label = 0; label < gvd_meshes.size(); ++label) {
+    Mesh& mesh = gvd_meshes[label];
     for (int i = 0; i < tri_verts[label].size(); ++i) {
       mesh.AddVertex(Oct2Obj(tri_verts[label][i]));
     }
     const vector<float3>& mesh_vertices = mesh.vertices();
     SetGvdGraphDirs(label, directed_tris, mesh_vertices, vert_dist[label]);
   }
-  for (int label = 0; label < medial_meshes.size(); ++label) {
-    medial_meshes[label].compute_normals();
+  for (int label = 0; label < gvd_meshes.size(); ++label) {
+    gvd_meshes[label].compute_normals();
   }
   ResetGvdMeshVertexColors();
 
   // t.restart("* 7");
-  bb_full = medial_meshes[0].bb();
+  bb_full = gvd_meshes[0].bb();
   if (center == float3())
     ResetCenter();
 }
 
-void Medial3::ResetGvdMeshVertexColors() {
-  for (int label = 0; label < medial_meshes.size(); ++label) {
-    Mesh& mesh = medial_meshes[label];
+void GVDViewer3::ResetGvdMeshVertexColors() {
+  for (int label = 0; label < gvd_meshes.size(); ++label) {
+    Mesh& mesh = gvd_meshes[label];
     for (int i = 0; i < vert_dist[label].size(); ++i) {
       const double d =
           (vert_dist[label][i]-dist_stats.min())/dist_stats.range();
@@ -878,7 +865,7 @@ void Medial3::ResetGvdMeshVertexColors() {
   }
 }
 
-void Medial3::DrawMedialSeparator() {
+void GVDViewer3::DrawGVDSeparator() {
   glPolygonMode(GL_FRONT, GL_FILL);
   // glPolygonMode(GL_BACK, GL_POINT);
   //glPolygonMode(GL_BACK, GL_POINT);
@@ -886,9 +873,9 @@ void Medial3::DrawMedialSeparator() {
   glCullFace(GL_BACK);
   glPointSize(0.0f);
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-  if (show_medial_separator) {
-    for (int i = 0; i < medial_meshes.size(); ++i) {
-      DrawMesh(medial_meshes[i], medial_mode&2, medial_mode&1, true);
+  if (show_gvd) {
+    for (int i = 0; i < gvd_meshes.size(); ++i) {
+      DrawMesh(gvd_meshes[i], gvd_mode&2, gvd_mode&1, true);
     }
   }
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
@@ -901,7 +888,7 @@ void Medial3::DrawMedialSeparator() {
     glDisable(GL_LIGHTING);
     glBegin(GL_LINE_STRIP);
     for (int i = 0; i < search_path.size(); ++i) {
-      glVertex3dv(_medial_graph[search_path[i]].s);
+      glVertex3dv(_gvd_graph[search_path[i]].s);
     }
     glEnd();
   } else if (!search_path.empty()) {
@@ -913,8 +900,8 @@ void Medial3::DrawMedialSeparator() {
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 40);
     float3 cur = make_float3(0);
     for (int i = 0; i < search_path.size()-1; ++i) {
-      const float3& p = convert_float3(_medial_graph[search_path[i]]);
-      const float3& q = convert_float3(_medial_graph[search_path[i+1]]);
+      const float3& p = convert_float3(_gvd_graph[search_path[i]]);
+      const float3& q = convert_float3(_gvd_graph[search_path[i+1]]);
       // const float3 v = (q-p).unit();
       const float3 v = normalize(q-p);
       const float len = length(q-p);
@@ -932,7 +919,7 @@ void Medial3::DrawMedialSeparator() {
   }
 }
 
-bool Medial3::DrawEdge(const int vi, const int n_vi,
+bool GVDViewer3::DrawEdge(const int vi, const int n_vi,
                        const int3& p, const int3& q,
                        // const oct::Direction<3>& d) const {
                        const oct::Direction& d) const {
@@ -952,7 +939,7 @@ struct OctVertex {
   // GLbyte padding[4];  // to make it 32 bytes
 };
 
-void Medial3::UpdateVBO() {
+void GVDViewer3::UpdateVBO() {
   OctreeEdgeCallback cb(this);
   oct::VisitVertices<3>(vertices, cb);
   cb.UpdateIndices();
@@ -1049,7 +1036,7 @@ void Medial3::UpdateVBO() {
   delete [] indices;
 }
 
-void Medial3::DrawOctree() {
+void GVDViewer3::DrawOctree() {
   bool use_vbo = IsExtensionSupported("GL_ARB_vertex_buffer_object");
   if (!use_vbo) {
     cerr << "VBOs not supported -- can't draw octree" << endl;
@@ -1098,7 +1085,7 @@ void Medial3::DrawOctree() {
   // glEnable(GL_LIGHTING);
 }
 
-void Medial3::PrintStatistics() const {
+void GVDViewer3::PrintStatistics() const {
   int num_cells = 0;
   oct::level_t max_level = 0;
   for (int i = 0; i < vertices.size(); ++i) {
@@ -1124,7 +1111,60 @@ void Medial3::PrintStatistics() const {
   }
 }
 
-void Medial3::Display() {
+void GVDViewer3::HelpString(const string msg, const int i) const {
+  static const int sep = 17;
+  // static const int y = 2;
+  static const int y = window_height-15;
+  static const int x = 2;
+  // BitmapString(msg, Win2Obj(make_int2(x, y+sep*i)),
+  //              kLeftJustify, kTopJustify);
+  BitmapString(msg, make_int2(x, y-sep*i));
+}
+
+void GVDViewer3::PrintHelp() const {
+  int i = 0;
+  HelpString("h - toggle help", i++);
+  if (show_help) {
+    HelpString("View", i++);
+    HelpString("  m - toggle GVD", i++);
+    HelpString("  g - toggle objects", i++);
+    HelpString("  o - toggle octree", i++);
+    HelpString("  n - invert GVD mesh orientation", i++);
+    HelpString("  N - toggle GVD mesh colored by distance", i++);
+    HelpString("  x/X - increment/decrement GVD color distance factor", i++);
+    HelpString("  G - object mesh mode (filled, mesh/filled, mesh)", i++);
+    HelpString("  a - toggle axis", i++);
+    HelpString("  v - toggle vertex labels", i++);
+    HelpString("  l - toggle closest point line", i++);
+    HelpString("  i - toggle vertex IDs (slow)", i++);
+    HelpString("  p - toggle statistics", i++);
+    HelpString("  left drag - rotate", i++);
+    HelpString("  Shift+left drag - strafe", i++);
+    HelpString("  Ctrl+left drag - zoom", i++);
+    HelpString("  t - reset view", i++);
+    HelpString("  T - save current view", i++);
+    HelpString("  H - toggle advanced help", i++);
+    HelpString("GVD computation", i++);
+    HelpString("  f/d - increment/decrement max octree level", i++);
+    HelpString("  V - toggle full subdivide", i++);
+    HelpString("  B - toggle buffer", i++);
+    HelpString("q - quit", i++);
+  } else if (show_advanced_help) {
+    HelpString("H - toggle advanced help", i++);
+    HelpString("View", i++);
+    HelpString("  C/c - increment/decrement near clipping plane", i++);
+    HelpString("  U/u - increment/decrement far clipping plane", i++);
+    HelpString("  P - toggle min path", i++);
+    HelpString("  s - simple screenshot", i++);
+    HelpString("  S - screenshot", i++);
+    HelpString("  y - rotate 360 degrees with screenshots", i++);
+    HelpString("  R/r - increment/decrement reduce factor", i++);
+    HelpString("GVD computation", i++);
+    HelpString("  w/W - increment/decrement ambiguous max level", i++);
+  }
+}
+
+void GVDViewer3::Display() {
   glShadeModel(GL_SMOOTH);
   // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   // // glPolygonMode(GL_FRONT, GL_FILL);
@@ -1208,8 +1248,8 @@ void Medial3::Display() {
   if (show_octree) {
     DrawOctree();
   }
-  // if (show_medial_separator) {
-    DrawMedialSeparator();
+  // if (show_gvd) {
+    DrawGVDSeparator();
   // }
   if (show_mesh) {
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
@@ -1240,6 +1280,7 @@ void Medial3::Display() {
   if (show_statistics) {
     PrintStatistics();
   }
+  PrintHelp();
 
   // Show debug vertices
   for (int i = 0; i < _debug_verts.size(); ++i) {
@@ -1281,7 +1322,7 @@ void ProgressBarCallback(const int3& base_point,
   cout.flush();
 }
 
-void Medial3::ReadMesh(const string& filename, bool medial) {
+void GVDViewer3::ReadMesh(const string& filename, bool gvd) {
   // Parse the obj file, compute the normals, read the textures
   Mesh mesh;
   if (!ParseObj(filename, mesh)) {
@@ -1310,14 +1351,14 @@ void Medial3::ReadMesh(const string& filename, bool medial) {
     c = RandomColor(meshes.size(), red);
   }
   Material mat = Material::FromDiffuseAmbient(c);
-  if (medial) {
+  if (gvd) {
     mat = Material::FromDiffuseAmbient(red);
   }
   mesh.AddMaterial(mat);
 
-  if (medial) {
-    medial_meshes.clear();
-    medial_meshes.push_back(mesh);
+  if (gvd) {
+    gvd_meshes.clear();
+    gvd_meshes.push_back(mesh);
   } else {
     meshes.push_back(mesh);
   }
@@ -1327,7 +1368,7 @@ void Medial3::ReadMesh(const string& filename, bool medial) {
     ResetCenter();
 }
 
-void Medial3::GenerateSurface(const oct::OctreeOptions& o_) {
+void GVDViewer3::GenerateSurface(const oct::OctreeOptions& o_) {
   Timer t("** Building octree");
   Timer total("*** Total GVD computation");
 
@@ -1422,7 +1463,7 @@ void Medial3::GenerateSurface(const oct::OctreeOptions& o_) {
 #endif
 }
 
-void Medial3::SaveTransformations() {
+void GVDViewer3::SaveTransformations() {
   ofstream out("view.config");
   if (out) {
     for (int i = 0; i < 16; ++i) {
@@ -1444,7 +1485,7 @@ void Medial3::SaveTransformations() {
   out.close();
 }
 
-void Medial3::ReadTransformations() {
+void GVDViewer3::ReadTransformations() {
   ifstream in("view.config");
   if (in) {
     for (int i = 0; i < 16; ++i) {
@@ -1466,12 +1507,12 @@ void Medial3::ReadTransformations() {
 
 void PrintKeyCommands();
 
-int Medial3::ProcessArgs(int argc, char** argv) {
+int GVDViewer3::ProcessArgs(int argc, char** argv) {
   if (argc < 2) {
     cout << endl;
     cout << "Usage: ./octree3 [-l maxlevel] [-s screenshotBasename] -x "
          << "[filenames.obj | -f filename]" << endl;
-    cout << "  -x              - default to not draw medial separator" << endl;
+    cout << "  -x              - default to not draw GVD" << endl;
     cout << "  -f              - get object filenames from file" << endl;
     cout << "  --cp            - corner indices on gpu" << endl;
     cout << "  --init-wave-cpu - disable gpu wave initialization" << endl;
@@ -1505,7 +1546,7 @@ int Medial3::ProcessArgs(int argc, char** argv) {
       ++i;
       stop = false;
     } else if (strcmp(argv[i], "-x") == 0) {
-      show_medial_separator = false;
+      show_gvd = false;
       ++i;
       stop = false;
     } else if (strcmp(argv[i], "--uniform-colors") == 0) {
@@ -1559,7 +1600,7 @@ int Medial3::ProcessArgs(int argc, char** argv) {
   return 0;
 }
 
-void Medial3::Init() {
+void GVDViewer3::Init() {
   glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_TRUE);
   glDepthFunc(GL_LEQUAL);
@@ -1576,7 +1617,7 @@ void Medial3::Init() {
   // gluPerspective(40.0, window_aspect, 1, 1500);
 }
 
-void Medial3::DrawAxis() {
+void GVDViewer3::DrawAxis() {
   const float3 c = make_float3(0, 0, 0);
   // const float L = 20;
   const float L = 0.5;
@@ -1601,7 +1642,7 @@ void Medial3::DrawAxis() {
   BitmapString("z", c+Z, 5, 0, GLUT_BITMAP_8_BY_13);
 }
 
-float3 Medial3::MapMouse(GLfloat x, GLfloat y) {
+float3 GVDViewer3::MapMouse(GLfloat x, GLfloat y) {
   if (x*x + y*y > 1) {
     const GLfloat len = sqrt(x*x + y*y);
     x = x/len;
@@ -1681,7 +1722,7 @@ string MouseCommands() {
 
 static const GLfloat zfactor = 2;
 
-float3 Medial3::Pick(int x, int y, bool& hit) {
+float3 GVDViewer3::Pick(int x, int y, bool& hit) {
   float2 m = make_float2(x, window_height-y);
   // In window coordinates, z==1 --> far
   //                        z==0 --> near
@@ -1699,9 +1740,9 @@ float3 Medial3::Pick(int x, int y, bool& hit) {
       mint = std::min(mint, t);
     }
   }
-  if (show_medial_separator) {
-    for (int i = 0; i < medial_meshes.size(); ++i) {
-      const float t = medial_meshes[i].pick(p, v);
+  if (show_gvd) {
+    for (int i = 0; i < gvd_meshes.size(); ++i) {
+      const float t = gvd_meshes[i].pick(p, v);
       mint = std::min(mint, t);
     }
   }
@@ -1714,7 +1755,7 @@ float3 Medial3::Pick(int x, int y, bool& hit) {
   return q;
 }
 
-void Medial3::Recenter(int x, int y) {
+void GVDViewer3::Recenter(int x, int y) {
   bool hit;
   const float3 p = Pick(x, y, hit);
   if (hit) {
@@ -1723,21 +1764,21 @@ void Medial3::Recenter(int x, int y) {
   }
 }
 
-void Medial3::Search(const int start, const int end) {
+void GVDViewer3::Search(const int start, const int end) {
   search_path.clear();
-  _medial_graph.Dijkstra(start, end, back_inserter(search_path));
+  _gvd_graph.Dijkstra(start, end, back_inserter(search_path));
   reverse(search_path.begin(), search_path.end());
   glutPostRedisplay();
 }
 
-void Medial3::SetStartSearch(int x, int y) {
+void GVDViewer3::SetStartSearch(int x, int y) {
   bool hit;
   const double3 p = convert_double3(Pick(x, y, hit));
   if (!hit) return;
 
   double min_dist = numeric_limits<double>::max();
   int start = -1;
-  const std::vector<double3>& vertices = _medial_graph.GetVertices();
+  const std::vector<double3>& vertices = _gvd_graph.GetVertices();
   for (int i = 0; i < vertices.size(); ++i) {
     // const double d = (p-vertices[i]).norm2();
     const double d = length2(p-vertices[i]);
@@ -1756,14 +1797,14 @@ void Medial3::SetStartSearch(int x, int y) {
   // cout << "started search with " << start << endl;
 }
 
-void Medial3::SetEndSearch(int x, int y) {
+void GVDViewer3::SetEndSearch(int x, int y) {
   bool hit;
   const double3 p = convert_double3(Pick(x, y, hit));
   if (!hit) return;
 
   double min_dist = numeric_limits<double>::max();
   int end = -1;
-  const std::vector<double3>& vertices = _medial_graph.GetVertices();
+  const std::vector<double3>& vertices = _gvd_graph.GetVertices();
   for (int i = 0; i < vertices.size(); ++i) {
     // const double d = (p-vertices[i]).norm2();
     const double d = length2(p-vertices[i]);
@@ -1782,7 +1823,7 @@ void Medial3::SetEndSearch(int x, int y) {
   // cout << "ended search with " << end << endl;
 }
 
-// void Medial3::Mouse(int button, int state, int x, int y) {
+// void GVDViewer3::Mouse(int button, int state, int x, int y) {
 //   mouse_x = 2 * x / (GLfloat)window_width - 1;
 //   mouse_y = 2 * (window_height-y) / (GLfloat)window_height - 1;
 //   const Mode mode = GetMode(button, state, x, y);
@@ -1859,7 +1900,7 @@ void Medial3::SetEndSearch(int x, int y) {
 //   glutPostRedisplay();
 // }
 
-void Medial3::Mouse(int button, int state, int x, int y) {
+void GVDViewer3::Mouse(int button, int state, int x, int y) {
   mouse_x = 2 * x / (GLfloat)window_width - 1;
   mouse_y = 2 * (window_height-y) / (GLfloat)window_height - 1;
   const Mode mode = GetMode(button, state, x, y);
@@ -1920,7 +1961,7 @@ void Medial3::Mouse(int button, int state, int x, int y) {
   glutPostRedisplay();
 }
 
-void Medial3::MouseMotion(int x, int y) {
+void GVDViewer3::MouseMotion(int x, int y) {
   mouse_x = 2 * x / (GLfloat)window_width - 1;
   mouse_y = 2 * (window_height-y) / (GLfloat)window_height - 1;
   float2 mouse = make_float2(mouse_x, mouse_y);
@@ -1942,59 +1983,39 @@ void Medial3::MouseMotion(int x, int y) {
 }
 
 void PrintKeyCommands() {
-  cout << endl;
-  cout << "Key commands:" << endl;
-  cout << "  g - show mesh geometry" << endl;
-  cout << "  o - show octree" << endl;
-  cout << "  m - show medial separator" << endl;
-  cout << "  G - mesh geometry mode" << endl;
-  cout << "  M - medial separator mode" << endl;
-  cout << "  d - show vertex distance lines" << endl;
-  cout << "  v - show vertices colored by label" << endl;
-  cout << "  i - show vertex IDs" << endl;
-  cout << "  a - show axis" << endl;
-  cout << "  z - zoom in" << endl;
-  cout << "  Z - zoom out" << endl;
-  cout << "  w - write medial obj file" << endl;
-  cout << "  V - toggle full subdivide" << endl;
-  cout << "  B - toggle make buffer" << endl;
-  cout << "  p - toggle statistics display" << endl;
-  cout << "  s - increase max medial subdivision level" << endl;
-  cout << "  S - decrease max medial subdivision level" << endl;
-  cout << "  e - cycle explode mode" << endl;
-  cout << "  E - cycle explode direction" << endl;
-  cout << "  Y - save rotated views to png" << endl;
-  cout << "  t - save current view to view.config" << endl;
-  cout << "  c/C - adjust near clipping plane" << endl;
-  cout << "  R - reset center" << endl;
-  cout << "  r - reset view" << endl;
-  cout << "  P - write png image" << endl;
-  cout << endl;
-  cout << MouseCommands() << endl;
 }
 
-void Medial3::WriteGvdMesh() {
+void GVDViewer3::WriteGvdMesh() {
   cout << "Writing gvd mesh to file gvd.obj" << endl;
-  for (int i = 0; i < medial_meshes.size(); ++i) {
+  for (int i = 0; i < gvd_meshes.size(); ++i) {
     {
       stringstream ss;
       ss << "gvd-" << (i+1) << ".obj";
       ofstream out(ss.str().c_str());
-      WriteObj(out, medial_meshes[i]); 
+      WriteObj(out, gvd_meshes[i]); 
     } {
       stringstream ss;
       ss << "gvd-" << (i+1) << ".ply";
       ofstream out(ss.str().c_str());
-      WritePly(out, medial_meshes[i]); 
+      WritePly(out, gvd_meshes[i]); 
     }
   }
   cout << "Gvd mesh written" << endl;
 }
 
-void Medial3::Keyboard(unsigned char key, int x, int y) {
+void GVDViewer3::Keyboard(unsigned char key, int x, int y) {
   const float zoom_factor = 1.2;
   bool redisplay = true;
   switch (key) {
+    case 'h':
+      show_help = !show_help;
+      show_advanced_help = false;
+      break;
+    case 'H':
+      show_advanced_help = !show_advanced_help;
+      show_help = false;
+      break;
+
     // the next few are shift+[1,2,3...]
     case '!':
       ResizeMeshes(1);
@@ -2051,13 +2072,13 @@ void Medial3::Keyboard(unsigned char key, int x, int y) {
       show_mesh = !show_mesh;
       break;
     case 'm':
-      show_medial_separator = !show_medial_separator;
+      show_gvd = !show_gvd;
       break;
     case 'G':
       mesh_mode = (mesh_mode%3) + 1;
       break;
     case 'M':
-      medial_mode = (medial_mode%3) + 1;
+      gvd_mode = (gvd_mode%3) + 1;
       break;
     case 'z':
       zoom *= 1/zoom_factor;
@@ -2072,17 +2093,17 @@ void Medial3::Keyboard(unsigned char key, int x, int y) {
       show_axis = !show_axis;
       break;
     case 'n': {
-      for (int i = 0; i < medial_meshes.size(); ++i) {
-        medial_meshes[i].InvertOrientation();
-        if (!medial_meshes_orig.empty()) {
-          medial_meshes_orig[i].InvertOrientation();
+      for (int i = 0; i < gvd_meshes.size(); ++i) {
+        gvd_meshes[i].InvertOrientation();
+        if (!gvd_meshes_orig.empty()) {
+          gvd_meshes_orig[i].InvertOrientation();
         }
       }
       break;
     }
     case 'N': {
-      for (int i = 0; i < medial_meshes.size(); ++i) {
-        medial_meshes[i].SetColor(!medial_meshes[i].IsColor());
+      for (int i = 0; i < gvd_meshes.size(); ++i) {
+        gvd_meshes[i].SetColor(!gvd_meshes[i].IsColor());
       }
       break;
     }
@@ -2099,13 +2120,10 @@ void Medial3::Keyboard(unsigned char key, int x, int y) {
     case 'l':
       show_vertex_distance_lines = !show_vertex_distance_lines;
       break;
-    case 'D':
-      show_all_vertex_distance_lines = !show_all_vertex_distance_lines;
-      break;
     case 'v':
       show_vertices = !show_vertices;
       break;
-    case 'u':
+    case 'Q':
       o.simple_q = !o.simple_q;
       GenerateSurface(o);
       break;
@@ -2208,7 +2226,7 @@ pair<float3,double> Interpolate(
 //
 // edge2idx maps an edge to a split point.  If there is an entry, then that
 // point is returned.
-int Medial3::SplitEdge(const float3& a, const float3& b,
+int GVDViewer3::SplitEdge(const float3& a, const float3& b,
               const int ai, const int bi,
               const double dist_a, const double dist_b,
               std::vector<int>& vert_dist,
@@ -2233,15 +2251,15 @@ int Medial3::SplitEdge(const float3& a, const float3& b,
 
 // Cuts out all triangles in the mesh that are above the average distance
 // from an object
-void Medial3::ReduceGVD() {
+void GVDViewer3::ReduceGVD() {
   // hack
-  if (medial_meshes_orig.empty()) {
-    medial_meshes_orig = medial_meshes;
+  if (gvd_meshes_orig.empty()) {
+    gvd_meshes_orig = gvd_meshes;
   }
 
   const double f = _gvd_reduce_factor;
-  for (int label = 0; label < medial_meshes_orig.size(); ++label) {
-    const Mesh& orig_mesh = medial_meshes_orig[label];
+  for (int label = 0; label < gvd_meshes_orig.size(); ++label) {
+    const Mesh& orig_mesh = gvd_meshes_orig[label];
     const vector<Triangle>& orig_triangles = orig_mesh.triangles();
     const vector<float3>& orig_vertices = orig_mesh.vertices();
     vert_dist[label].resize(orig_vertices.size());
@@ -2313,15 +2331,15 @@ void Medial3::ReduceGVD() {
       }
     }
     mesh.compute_normals();
-    mesh.AddMaterial(medial_meshes[label].material(0));
-    mesh.SetColor(medial_meshes[label].IsColor());
-    medial_meshes[label] = mesh;
+    mesh.AddMaterial(gvd_meshes[label].material(0));
+    mesh.SetColor(gvd_meshes[label].IsColor());
+    gvd_meshes[label] = mesh;
   }
   ResetGvdMeshVertexColors();
   cout << "Mesh reduced " << _gvd_reduce_factor << endl;
 }
 
-void Medial3::ResizeMeshes(const size_t size) {
+void GVDViewer3::ResizeMeshes(const size_t size) {
   meshes.resize(min(meshes.size(), size));
 
   const BoundingBox3f bb_full_bak = bb_full;
@@ -2337,22 +2355,22 @@ void Medial3::ResizeMeshes(const size_t size) {
   bb_objects = bb_objects_bak;
 }
 
-float Medial3::GetExplode() {
+float GVDViewer3::GetExplode() {
   return _exploded_factor;
 }
-void Medial3::SetExplode(float f) {
+void GVDViewer3::SetExplode(float f) {
   _exploded_factor = f;
 }
 
-void Medial3::IncExplode(float f) {
+void GVDViewer3::IncExplode(float f) {
   _exploded_factor *= f;
 }
 
-void Medial3::DecExplode() {
+void GVDViewer3::DecExplode() {
   _exploded_factor *= 0.9;
 }
 
-int Medial3::Explode(const int max_dist) {
+int GVDViewer3::Explode(const int max_dist) {
   _anchor_object = 0;
   const float3 old_center = center;
   vector<float3> dirs(meshes.size());
@@ -2395,7 +2413,7 @@ int Medial3::Explode(const int max_dist) {
   return dist;
 }
 
-void Medial3::Special(unsigned char key, int x, int y) {
+void GVDViewer3::Special(unsigned char key, int x, int y) {
   if (key == GLUT_KEY_LEFT) {
     _anchor_object = (_anchor_object+meshes.size()-1) % meshes.size();
     cout << "target object = " << _anchor_object << endl;

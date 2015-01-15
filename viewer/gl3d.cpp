@@ -125,6 +125,27 @@ void GL3D::BitmapString(const string& s, const int2& p,
   glLoadIdentity();
   gluOrtho2D(0, window_width, 0, window_height);
 
+  // Draw white behind
+  glColor3f(1.0f, 1.0f, 1.0f);
+  for (int i = -1; i <= 1; ++i) {
+    for (int j = -1; j <= 1; ++j) {
+      glRasterPos2iv((p + make_int2(i, j)).s);
+      for (int i = 0; i < s.size(); ++i) {
+        glutBitmapCharacter(font, s[i]);
+      }
+    }
+  }
+
+  // for (int i = -1; i <= 1; ++i) {
+  //   for (int j = -1; j <= 1; ++j) {
+  //     const float3 pos = Win2Obj(Obj2Win(p) + make_float3(i, j, -.01));
+  //     glRasterPos3fv(pos.s);
+  //     for (int i = 0; i < s.size(); ++i) {
+  //       glutBitmapCharacter(font, s[i]);
+  //     }
+  //   }
+  // }
+
   // Draw black in front
   glColor3f(0.0f, 0.0f, 0.0f);
   glRasterPos2iv(p.s);

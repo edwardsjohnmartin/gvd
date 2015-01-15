@@ -80,8 +80,8 @@ void Advance(const int inc) {
 void Keyboard(unsigned char key, int x, int y) {
   switch (key) {
     case 'Y': {
-      Medial2* medial = (Medial2*)scene.get();
-      medial->SetShowStatistics(false);
+      GVDViewer2* gvd_viewer = (GVDViewer2*)scene.get();
+      gvd_viewer->SetShowStatistics(false);
       // 30 fps is iMovie max
       const int fps = 30;
       const int secs = 30;
@@ -89,14 +89,14 @@ void Keyboard(unsigned char key, int x, int y) {
       const float max_zoom = 80000;
       const int n_size = 4;
       const float2 target = make_float2(0.0687421, 0.024298);
-      medial->Zoom(target, 1);
+      gvd_viewer->Zoom(target, 1);
       for (int i = 0; i < n; ++i) {
         // Update zoom level
         // When i = 0, then zoom == 1
         // When i = n-1, then zoom == max_zoom.
         const float f = (i/(float)n);
         const float zoom = pow(max_zoom, f);
-        medial->Zoom(target, zoom);
+        gvd_viewer->Zoom(target, zoom);
         MyDisplay();
 
         stringstream ss;
@@ -180,9 +180,9 @@ int main(int argc, char** argv) {
   }
 
   const float r = window_width / static_cast<float>(window_height);
-  // scene.reset(new Medial2(int2(window_width, window_height),
+  // scene.reset(new GVDViewer2(int2(window_width, window_height),
   //                         float2(-r, -1), float2(r, 1)));
-  scene.reset(new Medial2(window_width, window_height)),
+  scene.reset(new GVDViewer2(window_width, window_height)),
 
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
