@@ -31,13 +31,13 @@ typedef cl_double4 double4;
 // Define our own type
 //------------------------------------------------------------
 template <class NumType, int NumDims>
-struct MyVec {
-  NumType s[NumDims];
-};
-// union MyVec {
-//   struct { NumType s[NumDims]; };
-//   struct { NumType x, y, z, w; };
+// struct MyVec {
+//   NumType s[NumDims];
 // };
+union MyVec {
+  struct { NumType s[NumDims]; };
+  struct { NumType x, y, z, w; };
+};
 
 // #define __extension__
 // typedef union {

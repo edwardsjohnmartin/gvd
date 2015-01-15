@@ -69,9 +69,3 @@ TARGET_LINK_LIBRARIES(viewer2 ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${JPEG_LIBRA
 ADD_EXECUTABLE(viewer3 ${SRCS} ${VIEWER3_SRCS} viewer3.cpp)
 set_target_properties (viewer3 PROPERTIES COMPILE_DEFINITIONS "OCT3D")
 TARGET_LINK_LIBRARIES(viewer3 ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${OPENCL_LIBRARY})
-
-#ADD_EXECUTABLE(presentation ${VIEWER2_SRCS} ${VIEWER3_SRCS} presentation.cpp)
-#TARGET_LINK_LIBRARIES(presentation ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${JPEG_LIBRARIES} ${PNG_LIBRARIES})
-
-#add_custom_target(cpplint
-#    COMMAND ../cpplint.py --filter=-readability/todo,-readability/streams,-runtime/threadsafe_fn,-legal,-build/namespaces,-build/header_guard,-runtime/sizeof,-build/include_order,-runtime/references,-runtime/explicit ${CMAKE_SOURCE_DIR}/*.cpp ${CMAKE_SOURCE_DIR}/*.h ${CMAKE_SOURCE_DIR}/../*.cpp ${CMAKE_SOURCE_DIR}/../*.cpp)

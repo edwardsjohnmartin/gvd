@@ -26,7 +26,7 @@ inline void set_intn_comp(int i, intn* p, int value) {
 #endif
 }
 
-#else
+#else // OPEN_CL
 #include "./vec_cpp.h"
 inline int intn_comp(int i, intn p) {
   if (i == 0)

@@ -50,4 +50,8 @@ void CheckError(cl_int error, const std::string& call);
 void OpenCLInit(const int D, oct::OctreeOptions o, const bool safe_log);
 void OpenCLCleanup();
 
+#else // __OPEN_CL_SUPPORT__
+
+#define cl_event int
+
 #endif // __OPEN_CL_SUPPORT__

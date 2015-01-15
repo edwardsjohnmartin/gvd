@@ -1,3 +1,5 @@
+#ifdef __OPEN_CL_SUPPORT__
+
 #include "./gpu.h"
 
 using namespace std;
@@ -813,3 +815,5 @@ cl_event Gpu::EnqueueFindAmbiguous(
 }
 
 NAMESPACE_OCT_END
+
+#endif // __OPEN_CL_SUPPORT__

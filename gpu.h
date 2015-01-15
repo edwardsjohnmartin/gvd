@@ -46,6 +46,12 @@ class GpuEvents {
   shared_array<cl_event> _events;
 };
 
+#ifdef __OPEN_CL_SUPPORT__
+
+//------------------------------------------------------------------------------
+// Gpu class with OpenCL support
+//------------------------------------------------------------------------------
+
 class Gpu {
  public:
   Gpu();
@@ -153,6 +159,131 @@ class Gpu {
   int Vi2GeometriesSize() const { return vi2geometries_n; }
 };
 
+#else // __OPEN_CL_SUPPORT__
+
+//------------------------------------------------------------------------------
+// Gpu class with no OpenCL support
+// Throws exceptions
+//------------------------------------------------------------------------------
+
+class gpu_error : public std::logic_error {
+ public:
+  gpu_error() : std::logic_error("OpenCL not supported") {}
+};
+
+class Gpu {
+ public:
+  Gpu() {}
+  ~Gpu() {}
+
+  void CreateToSubdivide(int n) { throw gpu_error(); }
+  void CreateVertices(int n) { throw gpu_error(); }
+  void CreateCPoints(int n) { throw gpu_error(); }
+  void CreateVi2Geometries(int n) { throw gpu_error(); }
+  void CreateGeomVertices(GeomVertices geom_vertices) { throw gpu_error(); }
+
+  // Ensures that the buffer in gpu memory is sufficient to hold n vertices
+  void EnsureVertices(
+      int threshold, int new_n, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  void EnsureCPoints(GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+
+  cl_event EnqueueWriteToSubdivide(
+      int n, uchar* array, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueWriteVNHeader(
+      int* header, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueWriteVertices(
+      int n, Vertex* array, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueWriteCPoints(
+      int n, GeomPoint* array, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueWriteVi2Geometries(
+      int* array, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueWriteChanged(
+      uchar* value, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueWriteSize(
+      int* value, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  GpuEvents EnqueueWriteGeomVertices(
+      GeomVertices geom_vertices, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+
+  cl_event EnqueueReadToSubdivide(
+      int n, uchar* array, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueReadVNHeader(
+      int* header, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueReadVertices(
+      int n, Vertex* array, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueReadCPoints(
+      int n, GeomPoint* array, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueReadVi2Geometries(
+      int* array, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueReadChanged(
+      uchar* changed, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueReadCount(
+      int* count, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueReadSize(
+      int* size, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+
+  cl_event EnqueueFindToSubdivide1(
+      int num_vertices, int max_level, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueFindToSubdivide2(
+      int num_vertices, int max_level, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueCountToSubdivide(
+      int num_vertices, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueComputeSparseVi2GeometriesSize(
+      GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  void MakeSparseVi2Geometries(
+      const int new_n, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  void CondenseVi2Geometries(
+      GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  GpuEvents EnqueueSubdivideCell(
+      int num_vertices, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  GpuEvents EnqueueClipGeometries(
+      int num_vertices, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  GpuEvents EnqueueComputeNonEmptyVertexDistances(
+      int num_vertices, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueuePullDistances(
+      int num_vertices, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+  cl_event EnqueueFindAmbiguous(
+      int num_vertices, int max_level, GpuEvents wait_events = GpuEvents()) {
+    throw gpu_error(); }
+
+  void Finish() { throw gpu_error(); }
+
+ public:
+  int VerticesSize() const { throw gpu_error(); }
+  int CPointsSize() const { throw gpu_error(); }
+  int Vi2GeometriesSize() const { throw gpu_error(); }
+};
+
+#endif // __OPEN_CL_SUPPORT__
+
 NAMESPACE_OCT_END
 
 #endif
+
