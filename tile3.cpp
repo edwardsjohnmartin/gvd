@@ -5,7 +5,7 @@
 #include "./opencl/vec.h"
 
 #include "./octree.h"
-#include "./medial.h"
+#include "./gvd.h"
 #include "./search.h"
 
 bool TileSurfaceVisitorGpu2::operator()(const int vi, const int3& p) {

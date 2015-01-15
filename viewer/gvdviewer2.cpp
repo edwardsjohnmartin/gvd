@@ -1,4 +1,4 @@
-#include "./medial2.h"
+#include "./gvdviewer2.h"
 
 #include <iostream>
 #include <fstream>
@@ -12,7 +12,7 @@
 #include "../octree.h"
 #include "../search.h"
 #include "../vector2.h"
-#include "../medial.h"
+#include "../gvd.h"
 #include "../graph.h"
 
 #ifdef SINGLE

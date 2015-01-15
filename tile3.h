@@ -5,7 +5,7 @@
 #include "./graph.h"
 #include "./shared_ptr.h"
 #include "./ambiguous.h"
-#include "./medial.h"
+#include "./gvd.h"
 
 struct ViNormal {
   ViNormal() {}

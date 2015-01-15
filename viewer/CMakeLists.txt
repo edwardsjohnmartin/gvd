@@ -24,7 +24,7 @@ SET(SRCS
 SET(VIEWER2_SRCS
   ../vector2.cpp
   ./gl2d.cpp
-  ./medial2.cpp
+  ./gvdviewer2.cpp
   ../jrs-triangle.c
 )
 
@@ -32,7 +32,7 @@ SET(VIEWER3_SRCS
   ../vector3.cpp
   ../tile3.cpp
   ./gl3d.cpp
-  ./medial3.cpp
+  ./gvdviewer3.cpp
   ./texture.cpp
   ./mesh.cpp
   ./material.cpp

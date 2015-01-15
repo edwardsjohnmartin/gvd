@@ -1,11 +1,11 @@
-#include "./medial3.h"
+#include "./gvdviewer3.h"
 
 #include <map>
 #include <climits>
 #include <algorithm>
 
 #include "../octree.h"
-#include "../medial.h"
+#include "../gvd.h"
 #include "./io.h"
 #include "./pngio.h"
 #include "../vector3.h"

@@ -1,4 +1,4 @@
-#include "./medial3.h"
+#include "./gvdviewer3.h"
 #include "../opencl.h"
 #include "../orientation.h"
 #include "./pngio.h"

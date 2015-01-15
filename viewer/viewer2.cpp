@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <string>
 
-#include "./medial2.h"
+#include "./gvdviewer2.h"
 #include "../shared_ptr.h"
 #include "./pngio.h"
 

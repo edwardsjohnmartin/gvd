@@ -1,5 +1,5 @@
-#ifndef __OCT_MEDIAL_H__
-#define __OCT_MEDIAL_H__
+#ifndef __OCT_GVD_H__
+#define __OCT_GVD_H__
 
 #include <vector>
 #include <utility>
