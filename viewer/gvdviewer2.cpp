@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <limits>
+#include <algorithm>
 
 #include "../opencl/edge.h"
 
@@ -221,6 +222,7 @@ GVDViewer2::GVDViewer2(const int win_width, const int win_height)
   max_dist_obj = 0;
   o = oct::OctreeOptions::For2D();
   entry_mode = 0;
+  octree_color = make_double3(0.7, 0.7, 0.7);
 }
 
 void GVDViewer2::ReadMesh(const string& filename) {
@@ -290,6 +292,8 @@ void GVDViewer2::PrintCommands() const {
 
 void GVDViewer2::Keyboard(unsigned char key, int x, int y) {
   bool redisplay = true;
+  // cout << glutGetModifiers() << endl;
+  // cout << key << endl;
   switch (key) {
     case 'h':
       show_help = !show_help;
@@ -300,7 +304,20 @@ void GVDViewer2::Keyboard(unsigned char key, int x, int y) {
       show_help = false;
       break;
     case 'o':
-      show_octree = !show_octree;
+      if (glutGetModifiers() & GLUT_ACTIVE_ALT) {
+        for (int i = 0; i < 3; ++i) {
+          octree_color.s[i] = std::min(octree_color.s[i] * 1.1, 1.0);
+        }
+      } else {
+        show_octree = !show_octree;
+      }
+      break;
+    case 'O':
+      if (glutGetModifiers() & GLUT_ACTIVE_ALT) {
+        for (int i = 0; i < 3; ++i) {
+          octree_color.s[i] = octree_color.s[i] / 1.1;
+        }
+      }
       break;
     case 'v':
       show_vertex_labels = !show_vertex_labels;
@@ -836,7 +853,8 @@ bool GVDViewer2::DrawEdge(const int vi, const int n_vi,
 
 void GVDViewer2::DrawOctree() const {
   glLineWidth(1.0);
-  glColor3f(0.7, 0.7, 0.7);
+  // glColor3f(0.7, 0.7, 0.7);
+  glColor3dv(octree_color.s);
 
   glBegin(GL_LINES);
   oct::VisitEdges<2>(vertices, DrawEdgeCallback(this));
@@ -1347,13 +1365,16 @@ void GVDViewer2::PrintHelp() const {
     // HelpString("", i++);
     // HelpString("", i++);
   } else if (show_advanced_help) {
-    HelpString("H - toggle advanced help", i++);
-    HelpString("P - toggle min path", i++); // show_path
-    HelpString("g - polygon mode", i++); // polygon_mode
+    HelpString("view", i++);
+    HelpString("  P - toggle min path", i++); // show_path
+    HelpString("  Alt+O/o - increase/decrease octree color", i++); // show_path
+    HelpString("  H - toggle advanced help", i++);
+    HelpString("misc", i++);
     HelpString("W - write polygons", i++);
+    HelpString("g - polygon mode", i++); // polygon_mode
     HelpString("s/S - increment/decrement ambiguous max level", i++);
     HelpString("j/k - increment/decrement max vertex distance", i++);
-    HelpString("u - show distance field", i++); // ????
+    // HelpString("u - show distance field", i++); // ????
     HelpString("t - test function", i++);
   }
 }

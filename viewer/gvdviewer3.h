@@ -125,6 +125,7 @@ class GVDViewer3 : public GL3D {
 
   // Returns the picked point in object coordinates
   virtual float3 Pick(int x, int y, bool& hit);
+  virtual int PickGvdVertex(int x, int y, int* label);
   virtual void Recenter(int x, int y);
 
   void ResetCenter() {
@@ -268,6 +269,7 @@ class GVDViewer3 : public GL3D {
   int _num_octree_edges;
 
   float zoom;
+  std::string _status;
   float3 _picked;
   int _anchor_object;
   double _exploded_factor;

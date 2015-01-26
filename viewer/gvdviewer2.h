@@ -176,6 +176,7 @@ class GVDViewer2 : public GL2D {
   // 2 = click polygons
   int entry_mode;
   std::vector<int> search_path;
+  double3 octree_color;
 };
 
 #endif

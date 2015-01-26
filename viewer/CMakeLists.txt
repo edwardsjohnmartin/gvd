@@ -69,3 +69,21 @@ TARGET_LINK_LIBRARIES(viewer2 ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${JPEG_LIBRA
 ADD_EXECUTABLE(viewer3 ${SRCS} ${VIEWER3_SRCS} viewer3.cpp)
 set_target_properties (viewer3 PROPERTIES COMPILE_DEFINITIONS "OCT3D")
 TARGET_LINK_LIBRARIES(viewer3 ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${OPENCL_LIBRARY})
+
+## Copy opencl files
+#file(GLOB open_cl_files
+#  ${CMAKE_SOURCE_DIR}/opencl/*.cpp
+#  ${CMAKE_SOURCE_DIR}/opencl/*.h
+#  ${CMAKE_SOURCE_DIR}/opencl/*.cl
+#)
+#
+#message(STATUS "$<TARGET_FILE_DIR:viewer2>")
+#
+#add_custom_target(copy)
+#foreach(open_cl_file ${open_cl_files})
+#  add_custom_command(TARGET viewer2 PRE_BUILD
+#                     COMMAND ${CMAKE_COMMAND} -E
+#                         copy ${open_cl_file} $<TARGET_FILE_DIR:viewer2>)
+##                         copy ${open_cl_file} ${viewer2dir}/opencl)
+#endforeach()
+##add_dependencies(viewer2 copy)

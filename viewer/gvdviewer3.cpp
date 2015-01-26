@@ -1103,7 +1103,9 @@ void GVDViewer3::PrintStatistics() const {
     ss << "Octree cells: " << num_cells;
     BitmapString(ss.str(), make_int2(2, 19));
   } {
-    if (_picked != float3()) {
+    if (!_status.empty()) {
+      BitmapString(_status, make_int2(2, 19+17));
+    } else if (_picked != float3()) {
       stringstream ss;
       ss << "Picked: " << _picked << " | " << Obj2Oct(_picked);
       BitmapString(ss.str(), make_int2(2, 19+17));
@@ -1141,6 +1143,7 @@ void GVDViewer3::PrintHelp() const {
     HelpString("  left drag - rotate", i++);
     HelpString("  Shift+left drag - strafe", i++);
     HelpString("  Ctrl+left drag - zoom", i++);
+    HelpString("  Alt+left click - GVD distance from objects", i++);
     HelpString("  t - reset view", i++);
     HelpString("  T - save current view", i++);
     HelpString("  H - toggle advanced help", i++);
@@ -1669,6 +1672,8 @@ Mode GetMode(int button, int state, int x, int y) {
       mode = MODE_STRAFE;
     } else if (mod == GLUT_ACTIVE_CTRL) {
       mode = MODE_ZOOM;
+    } else if (mod == GLUT_ACTIVE_ALT) {
+      mode = MODE_PICK;
     } else if (mod == (GLUT_ACTIVE_ALT | GLUT_ACTIVE_SHIFT)) {
       mode = MODE_START_PATH;
     } else if (mod == (GLUT_ACTIVE_ALT | GLUT_ACTIVE_CTRL)) {
@@ -1753,6 +1758,29 @@ float3 GVDViewer3::Pick(int x, int y, bool& hit) {
     q = p+v*mint;
   }
   return q;
+}
+
+int GVDViewer3::PickGvdVertex(int x, int y, int* label) {
+  bool hit;
+  const float3 p = Pick(x, y, hit);
+  if (!hit) return -1;
+
+  double min_dist = numeric_limits<double>::max();
+  int vi = -1;
+  // for (const Mesh& mesh : gvd_meshes) {
+  for (int l = 0; l < gvd_meshes.size(); ++l) {
+    const Mesh& mesh = gvd_meshes[l];
+    const vector<float3>& vertices = mesh.vertices();
+    for (int i = 0; i < vertices.size(); ++i) {
+      const double d = length2(p-vertices[i]);
+      if (d < min_dist) {
+        min_dist = d;
+        vi = i;
+        *label = l;
+      }
+    }
+  }
+  return vi;
 }
 
 void GVDViewer3::Recenter(int x, int y) {
@@ -1950,10 +1978,18 @@ void GVDViewer3::Mouse(int button, int state, int x, int y) {
   } else if (mode == MODE_PICK) {
     bool hit;
     const float3 p = Pick(x, y, hit);
-    if (hit)
+    if (hit) {
       _picked = p;
-    else
+      int label;
+      const int vi = PickGvdVertex(x, y, &label);
+      stringstream ss;
+      ss << "Distance = " << Oct2Obj(vert_dist[label][vi]);
+      _status = ss.str();
+    }
+    else {
       _picked = float3();
+      _status = "";
+    }
   } else if (mode == MODE_RECENTER) {
     Recenter(x, y);
   }
