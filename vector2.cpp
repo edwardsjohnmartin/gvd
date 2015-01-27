@@ -1,6 +1,7 @@
 #include "./vector2.h"
 
 #include <assert.h>
+#include <limits.h>
 
 #include <list>
 #include <iostream>

@@ -1,6 +1,7 @@
 #ifndef __TRIANGLE_CPP_H__
 #define __TRIANGLE_CPP_H__
 
+#include <algorithm>
 #include <vector>
 #include <map>
 #include <iostream>

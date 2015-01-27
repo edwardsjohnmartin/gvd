@@ -1,6 +1,7 @@
 #ifndef __JME_OCTREE_H__
 #define __JME_OCTREE_H__
 
+#include <memory.h>
 #include <math.h>
 #include <climits>
 #include <vector>

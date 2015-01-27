@@ -1,6 +1,7 @@
 #ifndef __VEC_CPP_H__
 #define __VEC_CPP_H__
 
+#include <stdexcept>
 #include <cmath>
 #include <iostream>
 

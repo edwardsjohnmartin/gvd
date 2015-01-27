@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "./geometry.h"
 #include "./tribox.h"
 

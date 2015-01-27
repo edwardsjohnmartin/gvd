@@ -8,6 +8,7 @@
 //------------------------------------------------------------
 #ifndef OPEN_CL
 
+#include <stdlib.h>
 #include <assert.h>
 #include <iostream>
 

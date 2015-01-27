@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "./vertex.h"
 #include "./vec.h"
 #include "./uvertex_network.h"

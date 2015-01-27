@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "./cl_octree.h"
 #include "./distance3.h"
 #include "./cl_ambiguous.h"
