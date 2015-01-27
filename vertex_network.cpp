@@ -78,6 +78,7 @@ void VertexNetwork::Initialize() {
         p.s[j] = Level2CellWidth(0);
       }
     }
+    // TODO!!!
     // Bug: the commented-out code should work but for some reason
     // _vertices[base_vi].corners[i] remains -1 for the first two corners.
     const int c_vi = CreateVertex(p);
