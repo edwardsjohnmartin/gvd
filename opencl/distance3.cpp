@@ -1,3 +1,5 @@
+#include <limits.h>
+
 #include "./distance3.h"
 
 #include "./geometry.h"

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <limits.h>
 
 #include "./cl_octree.h"
 #include "./distance3.h"
