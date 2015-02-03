@@ -1299,6 +1299,40 @@ void GVDViewer2::DrawVoronoi() const {
   // // return centroids;
 }
 
+void GVDViewer2::DrawNormals(const vector<float2> &verts, bool connect) const {
+  int count = (int)verts.size();
+
+  // do nothing if there are no lines to be drawn
+  if (count < 2) return;
+
+  // draw vertices
+  glColor3f(0, 1, 0);
+  glBegin(GL_LINES);
+
+  // first index is 0 or the last vertex index if connected
+  int first_index = (connect ? count - 2 : 0);
+  // next index is 0 or 1, depending on first vertex
+  int second_index = (connect ? 0 : 1);
+  
+  //std::cout << first_index << ", " << second_index << std::endl;
+
+  float2 v_prev = verts[first_index];
+  float2 n_prev = v_prev / length(v_prev);//make_float2(-v_prev.y, v_prev.x);
+  for (int i = second_index; i < count - 1; ++i) {
+    float2 v_next = verts[i] - verts[i+1];
+    float2 n_next = make_float2(-v_next.y, v_next.x);
+    float2 n = (n_prev + n_next) / 2;
+    n = n / length(n);
+    n = n * 0.25;
+    glVertex2fv(verts[i].s);
+    glVertex2fv((verts[i] + n).s);
+    v_prev = v_next;
+    n_prev = n_next;
+  }
+
+  glEnd();
+}
+
 bool GVDViewer2::DrawVertexID(const int vi, const int2& p) const {
   BitmapString(vi, Oct2Obj(p),
                GL2D::kCenterJustify, GL2D::kCenterJustify);
@@ -1677,6 +1711,11 @@ void GVDViewer2::Display() {
     glVertex2fv(verts[i].s);
   }
   glEnd();
+
+  DrawNormals(verts, false);
+  for (int i = 0; i < polygons.size(); ++i) {
+    DrawNormals(polygons[i], true);
+  }
 
   // Draw other stuff
   if (show_gvd) {
