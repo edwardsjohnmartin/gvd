@@ -9,12 +9,9 @@ using namespace std;
 int main()
 {
     set<Candidate> s;
-    float2 a;
-    float2 b;
-    float2 c;
-    a.x = 0; a.y = 1;
-    b.x = 0.5; b.y = 0.866;
-    c.x = 1; c.y = 0;
+    float2 a = make_float2(0, 1);
+    float2 b = make_float2(0.5, 0.866);
+    float2 c = make_float2(1, 0);
     s.insert(Candidate(1, 2, b, c));
     s.insert(Candidate(0, 1, a, b));
     s.insert(Candidate(0, 2, a, c));

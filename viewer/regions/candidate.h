@@ -1,4 +1,4 @@
-#include "float2.h"
+#include "../../opencl/vec_cpp.h"
 
 
 class Candidate {
