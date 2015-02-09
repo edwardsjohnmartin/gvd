@@ -10,18 +10,18 @@ using namespace std;
 
 void test_merge_algorithm()
 {
-    vector<float2> verts;
-    verts.push_back(make_float2(0, 1));
-    verts.push_back(make_float2(0.5, 0.866));
-    verts.push_back(make_float2(1, 0));
-    verts.push_back(make_float2(-1, 0));
-    mergeRegions(verts);
+    vector<float2> normals;
+    normals.push_back(make_float2(0, 1));
+    normals.push_back(make_float2(0.5, 0.866));
+    normals.push_back(make_float2(1, 0));
+    normals.push_back(make_float2(-1, 0));
+    mergeRegions(normals);
 }
 
 
 void test_candidate()
 {
-    float2 a = make_float2(0, 1);
+    /*float2 a = make_float2(0, 1);
     float2 b = make_float2(0.5, 0.866);
     float2 c = make_float2(1, 0);
     set<Candidate> s;
@@ -35,7 +35,7 @@ void test_candidate()
     it = s.begin();
     x = *(it);
     s.erase(it);
-    cout << "Next best score: " << x.getScore() << endl;
+    cout << "Next best score: " << x.getScore() << endl;*/
 }
 
 

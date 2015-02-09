@@ -7,29 +7,22 @@
 /* Builds the candidate between the two regions identified by their unique
  * IDs and their respective normals.
  */
-Candidate::Candidate(int region1, int region2, float2 normal1, float2 normal2)
+Candidate::Candidate(Region ** regions, int region1, int region2)
 {
+    this->regions = regions;
     this->region1 = region1;
     this->region2 = region2;
-    computeScore(normal1, normal2);
 }
 
 
-/* Evaluates the score based on the angle between the two normals.
- * Assumes the vectors are normalized.
- * A lower score implies the vectors are closer together.
+/* Computes the score (angle between the two regions).
  */
-void Candidate::computeScore(float2 normal1, float2 normal2)
+double Candidate::getScore() const
 {
+    float2 normal1 = regions[region1]->getNormal();
+    float2 normal2 = regions[region2]->getNormal();
     double dotp = normal1.x * normal2.x + normal1.y * normal2.y;
-    score = acos(dotp);
+    double score = acos(dotp);
     std::cout << score << std::endl;
-}
-
-
-/* Returns the score (angle between the two regions).
- */
-double Candidate::getScore()
-{
-    return this->score;
+    return score;
 }
