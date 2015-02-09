@@ -23,6 +23,6 @@ double Candidate::getScore() const
     float2 normal2 = regions[region2]->getNormal();
     double dotp = normal1.x * normal2.x + normal1.y * normal2.y;
     double score = acos(dotp);
-    std::cout << score << std::endl;
+    //std::cout << score << std::endl;
     return score;
 }

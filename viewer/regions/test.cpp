@@ -11,10 +11,21 @@ using namespace std;
 void test_merge_algorithm()
 {
     vector<float2> normals;
-    normals.push_back(make_float2(0, 1));
-    normals.push_back(make_float2(0.5, 0.866));
+    // sqrt(3)/2 = 0.866
+    // sqrt(2)/2 = 0.707
+
+    // R1 (0, 1, 2)
     normals.push_back(make_float2(1, 0));
-    normals.push_back(make_float2(-1, 0));
+    normals.push_back(make_float2(0.866, 0.5));
+    normals.push_back(make_float2(0.707, 0.707));
+
+    // R2 (3)
+    normals.push_back(make_float2(-0.866, 0.5));
+
+    // R3 (4, 5, 6)
+    normals.push_back(make_float2(-0.5, -0.866));
+    normals.push_back(make_float2(0, -1));
+    normals.push_back(make_float2(0.5, -0.866));
     mergeRegions(normals);
 }
 

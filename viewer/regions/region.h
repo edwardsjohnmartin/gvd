@@ -8,24 +8,34 @@
 class Region {
 
   private:
-    float2 min_norm;
-    float2 max_norm;
+    float2 average_norm;
+    int num_regions;
+    int unique_id;
 
   public:
-    Region(float2 normal) {
-        min_norm = normal;
-        max_norm = normal;
+    Region(float2 normal, int id) {
+        average_norm = normal;
+        num_regions = 1;
+        unique_id = id;
     }
 
     void merge(Region *other) {
-        // TODO
-        // if other.max_norm > max_norm, max_norm = other.max_norm
-        // if other.min_norm < min_norm, min_norm = other.min_norm
+        float2 weighted_average = getNormal() * numRegions();
+        weighted_average += other->getNormal() * other->numRegions();
+        num_regions += other->numRegions();
+        average_norm = weighted_average / num_regions;
     }
 
     float2 getNormal() {
-        // TODO - left or right? average??
-        return min_norm;
+        return average_norm;
+    }
+
+    int numRegions() {
+        return num_regions;
+    }
+
+    int getId() {
+        return unique_id;
     }
 };
 
