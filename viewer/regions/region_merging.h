@@ -10,8 +10,8 @@
 #include "candidate.h"
 
 
-#define THRESHOLD 1.571 // half pi (quarter circle)
-//#define THRESHOLD 0.7854
+//#define THRESHOLD 1.571 // half pi (quarter circle)
+#define THRESHOLD 0.7854 // quarter pi (either circle)
 
 
 void mergeRegions(std::vector<float2> normals)
@@ -38,14 +38,23 @@ void mergeRegions(std::vector<float2> normals)
     {
         it = queue.begin();
         Candidate best = *(it);
+        // if best.region1 in merged or best.region2 in merged,
+        //  continue
         if(best.getScore() < THRESHOLD)
         {
             regions[best.region1]->merge(regions[best.region2]);
             regions[best.region2] = regions[best.region1];
             merged_indices.push_back(best.region2);
+            std::cout << "Merged " << best.region2 << " with "
+                      << best.region1 << std::endl;
+            // merged = new Region(region1, region2, next id);
+            // for all neighbors of merged:
+            //  queue.insert(Candidate(merged, neighbor);
+            // seen.push_back(region1.id);
+            // seen.push_back(region2.id);
         }
-        else
-        {
+        else {
+            std::cout << "Failed: " << best.getScore() << std::endl;
             break;
         }
         queue.erase(it);
