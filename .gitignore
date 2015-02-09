@@ -2,4 +2,5 @@
 release
 debug
 xcode
+a.out
 *.swp
