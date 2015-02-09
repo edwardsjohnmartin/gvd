@@ -1317,7 +1317,7 @@ void GVDViewer2::DrawNormals(const vector<float2> &verts, bool connect) const {
   //std::cout << first_index << ", " << second_index << std::endl;
 
   float2 v_prev = verts[first_index];
-  float2 n_prev = v_prev / length(v_prev);//make_float2(-v_prev.y, v_prev.x);
+  float2 n_prev = make_float2(-v_prev.y, v_prev.x);
   for (int i = second_index; i < count - 1; ++i) {
     float2 v_next = verts[i] - verts[i+1];
     float2 n_next = make_float2(-v_next.y, v_next.x);
