@@ -7,7 +7,7 @@
 /* Builds the candidate between the two regions identified by their unique
  * IDs and their respective normals.
  */
-Candidate::Candidate(Region ** regions, int region1, int region2)
+Candidate::Candidate(std::vector<Region *> &regions, int region1, int region2)
 {
     this->regions = regions;
     this->region1 = region1;
@@ -25,4 +25,5 @@ double Candidate::getScore() const
     double score = acos(dotp);
     //std::cout << score << std::endl;
     return score;
+    return 0;
 }

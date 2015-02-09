@@ -3,11 +3,12 @@
 
 #include <algorithm>
 #include <set>
+#include <unordered_set>
 #include <vector>
 #include <iostream>
 
 #include "region.h"
-#include "candidate.h"
+//#include "candidate.h"
 
 
 //#define THRESHOLD 1.571 // half pi (quarter circle)
@@ -16,9 +17,10 @@
 
 void mergeRegions(std::vector<float2> normals)
 {
-    // build the regions table
+    // build the regions table, assigning each region a unique id
     const int num_parts = normals.size();
-    Region * regions[num_parts];
+    std::vector<Region *> regions;
+    regions.resize(num_parts);
     for(int i=0; i<num_parts; i++)
         regions[i] = new Region(normals[i], i);
 
@@ -29,30 +31,41 @@ void mergeRegions(std::vector<float2> normals)
     if(num_parts > 1)
         queue.insert(Candidate(regions, num_parts-1, 0));
 
-    // housekeeping: keep track of indices we can delete later
-    std::vector<int> merged_indices;
+    // housekeeping: keep track of indices that are no longer active
+    std::unordered_set<int> merged_indices;
 
-    // now run the algorithm
+    // now run the merging loop
+    int next_id = num_parts;
     std::set<Candidate>::iterator it;
     while(!queue.empty())
     {
         it = queue.begin();
         Candidate best = *(it);
-        // if best.region1 in merged or best.region2 in merged,
-        //  continue
+
+        // search merged indices to see if this candidate is valid
+        if(merged_indices.find(best.region1) != merged_indices.end() ||
+           merged_indices.find(best.region2) != merged_indices.end())
+        {
+            queue.erase(it);
+            continue;
+        }
+
+        // if next best score is within threshold, merge those regions
         if(best.getScore() < THRESHOLD)
         {
-            regions[best.region1]->merge(regions[best.region2]);
-            regions[best.region2] = regions[best.region1];
-            merged_indices.push_back(best.region2);
+            Region *merged = regions[best.region1]->merge(
+                regions[best.region2], next_id++);
+            merged_indices.insert(best.region1);
+            merged_indices.insert(best.region2);
             std::cout << "Merged " << best.region2 << " with "
                       << best.region1 << std::endl;
-            // merged = new Region(region1, region2, next id);
+            // TODO
             // for all neighbors of merged:
             //  queue.insert(Candidate(merged, neighbor);
             // seen.push_back(region1.id);
             // seen.push_back(region2.id);
         }
+        // otherwise, there's nothing more to add
         else {
             std::cout << "Failed: " << best.getScore() << std::endl;
             break;
@@ -60,6 +73,7 @@ void mergeRegions(std::vector<float2> normals)
         queue.erase(it);
     }
 
+    /*
     // remove the regions that were merged to other regions
     std::vector<Region *> remaining_regions;
     remaining_regions.assign(regions, regions + num_parts);
@@ -74,5 +88,5 @@ void mergeRegions(std::vector<float2> normals)
     for(int i=0; i<remaining_regions.size(); i++)
     {
         std::cout << "idx = " << remaining_regions[i]->getId() << std::endl;
-    }
+    }*/
 }

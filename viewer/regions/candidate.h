@@ -6,6 +6,8 @@
 #define CANDIDATE_H
 
 
+#include <vector>
+
 #include "../../opencl/vec_cpp.h"
 #include "region.h"
 
@@ -17,12 +19,12 @@ class Candidate {
     int region2;
 
   private:
-    Region ** regions;
+    std::vector<Region *> regions;
 
   public:
 
     // Initialize the regions by IDs and computes their score by their normals.
-    Candidate(Region ** regions, int region1, int region2);
+    Candidate(std::vector<Region *> &regions, int region1, int region2);
 
     // Returns the current score of this candidate pair.
     double getScore() const;

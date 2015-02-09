@@ -13,17 +13,18 @@ class Region {
     int unique_id;
 
   public:
-    Region(float2 normal, int id) {
+    Region(float2 normal, int id, int num_parts = 1) {
         average_norm = normal;
-        num_regions = 1;
+        num_regions = num_parts;
         unique_id = id;
     }
 
-    void merge(Region *other) {
+    Region * merge(Region *other, int new_id) {
         float2 weighted_average = getNormal() * numRegions();
         weighted_average += other->getNormal() * other->numRegions();
-        num_regions += other->numRegions();
         average_norm = weighted_average / num_regions;
+        int num_parts = numRegions() + other->numRegions();
+        return new Region(average_norm, new_id, num_parts);
     }
 
     float2 getNormal() {
