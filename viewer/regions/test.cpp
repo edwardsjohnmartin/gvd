@@ -8,10 +8,10 @@ using namespace std;
 
 int main()
 {
-    set<Candidate> s;
     float2 a = make_float2(0, 1);
     float2 b = make_float2(0.5, 0.866);
     float2 c = make_float2(1, 0);
+    set<Candidate> s;
     s.insert(Candidate(1, 2, b, c));
     s.insert(Candidate(0, 1, a, b));
     s.insert(Candidate(0, 2, a, c));
