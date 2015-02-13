@@ -52,7 +52,6 @@ std::vector<Region> mergeRegions(std::vector<float2> normals)
                            regions[regions.size()-1].angleTo(regions[0])));
 
     std::unordered_set<int> merged;
-    int next_id = regions.size();
 
     // Run the merging algorithm loop.
     std::set<Candidate>::iterator it;
@@ -76,8 +75,21 @@ std::vector<Region> mergeRegions(std::vector<float2> normals)
 
         // If this candidate is valid, merge the two regions and add new
         // candidates for all of the region's neighbors.
-        Region newRegion = regions[best.region1].merge(regions[best.region2],
-                                                       next_id++);
+        Region new_region = regions[best.region1].merge(regions[best.region2],
+                                                        regions.size());
+
+        int left_neighbor = regions[best.region1].getLeftNeighbor();
+        int right_neighbor = regions[best.region2].getRightNeighbor();
+
+        queue.insert(Candidate(left_neighbor, new_region.getId(),
+                               regions[left_neighbor].angleTo(new_region)));
+        queue.insert(Candidate(new_region.getId(), right_neighbor,
+                               new_region.angleTo(regions[right_neighbor])));
+
+        new_region.setNeighbors(left_neighbor, right_neighbor);
+
+        // Add the old regions to the merged pile, and add the new region.
+        regions.push_back(new_region);
         merged.insert(best.region1);
         merged.insert(best.region2);
     }

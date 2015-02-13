@@ -99,3 +99,21 @@ int Region::getId()
 {
     return unique_id;
 }
+
+
+/* Getter: left neighbor id
+ * Returns the id of this region's assigned left neighbor.
+ */
+int Region::getLeftNeighbor()
+{
+    return left_neighbor;
+}
+
+
+/* Getter: right neighbor id
+ * Returns the id of this region's assigned right neighbor.
+ */
+int Region::getRightNeighbor()
+{
+    return right_neighbor;
+}

@@ -30,6 +30,8 @@ class Region {
     float2 getNormal();
     int getNumVerts();
     int getId();
+    int getLeftNeighbor();
+    int getRightNeighbor();
 };
 
 
