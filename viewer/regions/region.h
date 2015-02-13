@@ -22,6 +22,7 @@ class Region {
     void addVerts(const std::vector<int> &verts);
 
     Region merge(Region &other, int new_id);
+    double angleTo(Region &other);
 
     float2 getNormal();
     int getNumVerts();

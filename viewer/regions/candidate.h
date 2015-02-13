@@ -6,34 +6,22 @@
 #define CANDIDATE_H
 
 
-#include <vector>
-
-#include "../../opencl/vec_cpp.h"
-#include "region.h"
-
-
 class Candidate {
 
-  public:
+  private:
     int region1;
     int region2;
-
-  private:
-    std::vector<Region *> regions;
+    double score;
 
   public:
-
-    // Initialize the regions by IDs and computes their score by their normals.
-    Candidate(std::vector<Region *> &regions, int region1, int region2);
-
-    // Returns the current score of this candidate pair.
-    double getScore() const;
+    Candidate(int region1, int region2, double score)
+       : region1(region1), region2(region2), score(score) { }
 
     // Compares the score of this object with the other object.
     // Returns true if this score is lower than the other score.
     bool operator < (const Candidate &other) const
     {
-        return this->getScore() < other.getScore();
+        return score < other.score;
     }
 
 };

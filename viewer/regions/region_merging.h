@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include "region.h"
-//#include "candidate.h"
+#include "candidate.h"
 
 
 //#define THRESHOLD 1.571 // half pi (quarter circle)
@@ -33,5 +33,24 @@ std::vector<Region> mergeRegions(std::vector<float2> normals)
     if (num_verts < 2)
         return regions;
     
+    // Build the queue of candidates.
+    std::set<Candidate> queue;
+    for(int i = 0; i < regions.size()-1; i++)
+    {
+        queue.insert(Candidate(regions[i].getId(), regions[i+1].getId(),
+                               regions[i].angleTo(regions[i+1])));
+    }
+    queue.insert(Candidate(regions[regions.size()-1].getId(),
+                           regions[0].getId(),
+                           regions[regions.size()-1].angleTo(regions[0])));
+
+    // Run the merging algorithm loop.
+    std::unordered_set<int> merged;
+    int next_id = regions.size();
+    while(!queue.empty())
+    {
+        //
+    }
+
     return regions;
 }

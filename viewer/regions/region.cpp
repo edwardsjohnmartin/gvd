@@ -31,6 +31,17 @@ void Region::addVerts(const std::vector<int> &verts)
 }
 
 
+/* Returns the angle between this region and the other region, using the
+ * two regions' normals.
+ */
+double Region::angleTo(Region &other)
+{
+    double dotp = average_normal.x * other.average_normal.x
+                + average_normal.y * other.average_normal.y;
+    return acos(dotp);
+}
+
+
 /* Combines this region with the other region, assigning it the average normal
  * between the two regions (weighted appropriately by number of vertices),
  * and adds the vertices from both regions into the new one.
