@@ -66,6 +66,13 @@ std::vector<Region> mergeRegions(std::vector<float2> normals)
         // If the best candidate's angle (score) exceeds the threshold, stop.
         if(best.score > THRESHOLD)
             break;
+
+        // If this candidate is valid, merge the two regions and add new
+        // candidates for all of the region's neighbors.
+        Region newRegion = regions[best.region1].merge(regions[best.region2],
+                                                       next_id++);
+        merged.insert(best.region1);
+        merged.insert(best.region2);
     }
 
     return regions;
