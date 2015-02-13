@@ -11,6 +11,8 @@ Region::Region(float2 normal, int id)
 {
     average_normal = normal;
     unique_id = id;
+    left_neighbor = id;
+    right_neighbor = id;
 }
 
 
@@ -28,6 +30,16 @@ void Region::addVertex(int vert_id)
 void Region::addVerts(const std::vector<int> &verts)
 {
     vertices.insert(vertices.end(), verts.begin(), verts.end());
+}
+
+
+/* Sets the left and right neighbors of this region for easier
+ * neighbor searching later.
+ */
+void Region::setNeighbors(int left_neighbor, int right_neighbor)
+{
+    this->left_neighbor = left_neighbor;
+    this->right_neighbor = right_neighbor;
 }
 
 

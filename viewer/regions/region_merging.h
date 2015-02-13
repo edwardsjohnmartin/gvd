@@ -24,16 +24,23 @@ std::vector<Region> mergeRegions(std::vector<float2> normals)
     regions.reserve(num_verts);
     for(int vert_id = 0; vert_id < num_verts; vert_id++)
     {
-        regions.push_back(Region(normals[vert_id], vert_id));
-        regions[vert_id].addVertex(vert_id);
+        Region region = Region(normals[vert_id], vert_id);
+        region.addVertex(vert_id);
+        int left_neighbor = (vert_id > 0) ? (vert_id - 1) : (num_verts - 1);
+        int right_neighbor = (vert_id < num_verts - 1) ? (vert_id + 1) : 0;
+        region.setNeighbors(left_neighbor, right_neighbor);
+        regions.push_back(region);
     }
 
     // If only one or two vertices, done. Return the list as is.
     // TODO - necessary?
     if(num_verts < 2)
         return regions;
+        return regions;
     
-    // Build the queue of candidates.
+    // Build the queue of candidates. Candidates are built with the assumption
+    // that the regions are ordered left to right. This allows for more
+    // efficient neighbor search later on.
     std::set<Candidate> queue;
     for(int i = 0; i < regions.size()-1; i++)
     {
