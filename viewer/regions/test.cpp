@@ -26,7 +26,19 @@ void test_merge_algorithm()
     normals.push_back(make_float2(-0.5, -0.866));
     normals.push_back(make_float2(0, -1));
     normals.push_back(make_float2(0.5, -0.866));
-    mergeRegions(normals);
+    vector<Region> regions = mergeRegions(normals);
+    for(vector<Region>::iterator it = regions.begin();
+        it != regions.end(); it++)
+    {
+        vector<int> verts = it->getVerts();
+        cout << "Region " << it->getId() << ": ";
+        for(vector<int>::iterator it2 = verts.begin();
+            it2 != verts.end(); it2++)
+        {
+            cout << (*it2) << ", ";
+        }
+        cout << endl;
+    }
 }
 
 

@@ -29,6 +29,7 @@ class Region {
 
     float2 getNormal();
     int getNumVerts();
+    std::vector<int> getVerts();
     int getId();
     int getLeftNeighbor();
     int getRightNeighbor();

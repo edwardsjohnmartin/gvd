@@ -11,8 +11,8 @@
 #include "candidate.h"
 
 
-//#define THRESHOLD 1.571 // half pi (quarter circle)
-#define THRESHOLD 0.7854 // quarter pi (either circle)
+#define THRESHOLD 1.571 // half pi (quarter circle)
+//#define THRESHOLD 0.7854 // quarter pi (either circle)
 
 
 std::vector<Region> mergeRegions(std::vector<float2> normals)
@@ -35,7 +35,6 @@ std::vector<Region> mergeRegions(std::vector<float2> normals)
     // If only one or two vertices, done. Return the list as is.
     // TODO - necessary?
     if(num_verts < 2)
-        return regions;
         return regions;
     
     // Build the queue of candidates. Candidates are built with the assumption
@@ -70,13 +69,14 @@ std::vector<Region> mergeRegions(std::vector<float2> normals)
         }
 
         // If the best candidate's angle (score) exceeds the threshold, stop.
-        if(best.score > THRESHOLD)
-            break;
+        if(best.score > THRESHOLD) { std::cout << "done: " << best.score << std::endl;
+            break;}
 
         // If this candidate is valid, merge the two regions and add new
         // candidates for all of the region's neighbors.
         Region new_region = regions[best.region1].merge(regions[best.region2],
                                                         regions.size());
+        std::cout << "Merged regions " << best.region1 << " and " << best.region2 << std::endl;
 
         int left_neighbor = regions[best.region1].getLeftNeighbor();
         int right_neighbor = regions[best.region2].getRightNeighbor();
@@ -85,6 +85,8 @@ std::vector<Region> mergeRegions(std::vector<float2> normals)
                                regions[left_neighbor].angleTo(new_region)));
         queue.insert(Candidate(new_region.getId(), right_neighbor,
                                new_region.angleTo(regions[right_neighbor])));
+        std::cout << "New scores: " << regions[left_neighbor].angleTo(new_region)
+                  << ", " << new_region.angleTo(regions[right_neighbor]) << std::endl;
 
         new_region.setNeighbors(left_neighbor, right_neighbor);
 

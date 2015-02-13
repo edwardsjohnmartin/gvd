@@ -92,6 +92,14 @@ int Region::getNumVerts()
 }
 
 
+/* Getter: returns the list of all the region's containing vertices.
+ */
+std::vector<int> Region::getVerts()
+{
+    return vertices;
+}
+
+
 /* Getter: unique id
  * Returns the unique id of this region.
  */
