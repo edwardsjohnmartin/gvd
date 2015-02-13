@@ -6,14 +6,13 @@
 #define CANDIDATE_H
 
 
-class Candidate {
+struct Candidate {
 
-  private:
     int region1;
     int region2;
     double score;
 
-  public:
+    // Constructor: assigns the two regions and their score (angle)..
     Candidate(int region1, int region2, double score)
        : region1(region1), region2(region2), score(score) { }
 

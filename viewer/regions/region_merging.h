@@ -30,7 +30,7 @@ std::vector<Region> mergeRegions(std::vector<float2> normals)
 
     // If only one or two vertices, done. Return the list as is.
     // TODO - necessary?
-    if (num_verts < 2)
+    if(num_verts < 2)
         return regions;
     
     // Build the queue of candidates.
@@ -44,12 +44,28 @@ std::vector<Region> mergeRegions(std::vector<float2> normals)
                            regions[0].getId(),
                            regions[regions.size()-1].angleTo(regions[0])));
 
-    // Run the merging algorithm loop.
     std::unordered_set<int> merged;
     int next_id = regions.size();
+
+    // Run the merging algorithm loop.
+    std::set<Candidate>::iterator it;
     while(!queue.empty())
     {
-        //
+        // Pop the top of the queue.
+        it = queue.begin();
+        Candidate best = *(it);
+        queue.erase(it);
+
+        // If either region of this candidate was already merged, skip it.
+        if(merged.find(best.region1) != merged.end() ||
+           merged.find(best.region2) != merged.end())
+        {
+            continue;
+        }
+
+        // If the best candidate's angle (score) exceeds the threshold, stop.
+        if(best.score > THRESHOLD)
+            break;
     }
 
     return regions;
