@@ -51,16 +51,16 @@ std::vector<Region> mergeRegions(std::vector<float2> normals)
                            regions[0].getId(),
                            regions[regions.size()-1].angleTo(regions[0])));
 
+    // Keep track of merged regions.
     std::unordered_set<int> merged;
 
     // Run the merging algorithm loop.
-    std::set<Candidate>::iterator it;
     while(!queue.empty())
     {
         // Pop the top of the queue.
-        it = queue.begin();
-        Candidate best = *(it);
-        queue.erase(it);
+        std::set<Candidate>::iterator top = queue.begin();
+        Candidate best = *(top);
+        queue.erase(top);
 
         // If either region of this candidate was already merged, skip it.
         if(merged.find(best.region1) != merged.end() ||
@@ -92,6 +92,16 @@ std::vector<Region> mergeRegions(std::vector<float2> normals)
         regions.push_back(new_region);
         merged.insert(best.region1);
         merged.insert(best.region2);
+    }
+
+    // Remove all regions that have been merged to other regions.
+    std::vector<Region>::iterator region_itr = regions.begin();
+    while(region_itr != regions.end())
+    {
+        if(merged.find(region_itr->getId()) != merged.end())
+            region_itr = regions.erase(region_itr);
+        else
+            region_itr++;
     }
 
     return regions;
