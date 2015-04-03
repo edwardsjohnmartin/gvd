@@ -17,9 +17,6 @@
 
 #include "../../opencl/vec_cpp.h"
 
-#include <iostream>
-
-
 
 /** class InverseGaussMap
  * Defines the inverse Gauss map object with constant-time bin functions and
@@ -45,7 +42,6 @@ template<int D> class InverseGaussMap
         float theta = acos(x);
         if(y < 0)
             theta += M_PI;
-        std::cout << "Angle: " << theta << std::endl;
         return getBinFromAngle(theta, resolution);
     }
 
@@ -59,8 +55,6 @@ template<int D> class InverseGaussMap
         float phi = atan2(y, x);
         int x_bin = getBinFromAngle(theta, resolution_sqrt);
         int y_bin = getBinFromAngle(phi, resolution_sqrt);
-        std::cout << theta << " -> " << x_bin << std::endl;
-        std::cout << phi << " -> " << y_bin << std::endl;
         return (y_bin * resolution_sqrt) + x_bin;
     }
 
