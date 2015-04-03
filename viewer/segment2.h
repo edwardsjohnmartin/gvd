@@ -97,6 +97,7 @@ class GVDViewer2 : public GL2D {
   void DrawGVD() const;
   void DrawPath() const;
   void DrawVoronoi() const;
+  void DrawNormals(const std::vector<float2> &verts, bool connect) const;
   bool DrawVertexID(const int vi, const int2& p) const;
   void DrawVertexIDs();
   bool DrawVertexLabel(const int vi, const int2& p) const;
