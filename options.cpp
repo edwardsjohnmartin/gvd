@@ -26,6 +26,9 @@ bool OctreeOptions::ProcessArg(int& i, char** argv) {
   } else if (strcmp(argv[i], "--no-buffer") == 0) {
     o.make_buffer = false;
     ++i;
+  } else if (strcmp(argv[i], "-h") == 0) {
+    o.help = true;
+    ++i;
   } else if (strcmp(argv[i], "--gpu") == 0) {
     o.gpu = true;
     ++i;

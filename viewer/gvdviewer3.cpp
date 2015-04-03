@@ -1126,6 +1126,7 @@ void GVDViewer3::HelpString(const string msg, const int i) const {
 void GVDViewer3::PrintHelp() const {
   int i = 0;
   HelpString("h - toggle help", i++);
+  HelpString("w - write GVD mesh to gvd-*.obj", i++);
   if (show_help) {
     HelpString("View", i++);
     HelpString("  m - toggle GVD", i++);
@@ -1144,6 +1145,8 @@ void GVDViewer3::PrintHelp() const {
     HelpString("  Shift+left drag - strafe", i++);
     HelpString("  Ctrl+left drag - zoom", i++);
     HelpString("  Alt+left click - GVD distance from objects", i++);
+    HelpString("  c/C - Adjust near clip plane", i++);
+    HelpString("  u/U - Adjust far clip plane", i++);
     HelpString("  t - reset view", i++);
     HelpString("  T - save current view", i++);
     HelpString("  H - toggle advanced help", i++);
@@ -1155,15 +1158,15 @@ void GVDViewer3::PrintHelp() const {
   } else if (show_advanced_help) {
     HelpString("H - toggle advanced help", i++);
     HelpString("View", i++);
-    HelpString("  C/c - increment/decrement near clipping plane", i++);
-    HelpString("  U/u - increment/decrement far clipping plane", i++);
+    // HelpString("  C/c - increment/decrement near clipping plane", i++);
+    // HelpString("  U/u - increment/decrement far clipping plane", i++);
     HelpString("  P - toggle min path", i++);
     HelpString("  s - simple screenshot", i++);
     HelpString("  S - screenshot", i++);
     HelpString("  y - rotate 360 degrees with screenshots", i++);
     HelpString("  R/r - increment/decrement reduce factor", i++);
     HelpString("GVD computation", i++);
-    HelpString("  w/W - increment/decrement ambiguous max level", i++);
+    HelpString("  b/B - increment/decrement ambiguous max level", i++);
   }
 }
 
@@ -1510,18 +1513,55 @@ void GVDViewer3::ReadTransformations() {
 
 void PrintKeyCommands();
 
+void PrintUsage() {
+  cout << "gvd-viewer2 / gvd-viewer3" << endl;
+  cout << "A 2- and 3-Dimensional Generalized Voronoi Diagram approximator\n";
+  cout << "Version 1.0\n";
+  cout << endl;
+  cout << "Copyright 2015 by John Martin Edwards\n";
+  cout << "Please send bugs and comments to edwardsjohnmartin@gmail.com\n";
+  cout << endl;
+  cout << "There is no warranty.\n";
+  cout << endl;
+  cout << "gvd-viewerx constructs a quadtree/octree that resolves between "
+      "objects,\n";
+  cout << "propagates a distance transform over the octree vertices, then "
+      "builds a GVD\n";
+  cout << "approximation using the labels and distances on the vertices. For "
+      "more\n";
+  cout << "information, please see:\n";
+  cout << endl;
+  cout << "http://sci.utah.edu/~jedwards/research/gvd/index.html\n";
+
+  cout << endl;
+  cout << "Usage: ./gvd-viewer3 [-l maxlevel] [filenames.obj]" << endl;
+  cout << "  -l maxlevel        - Limit octree to maxlevel+1 levels" << endl;
+  // cout << "  -x              - default to not draw GVD" << endl;
+  // cout << "  -f              - get object filenames from file" << endl;
+  // cout << "  --cp            - corner indices on gpu" << endl;
+  // cout << "  --init-wave-cpu - disable gpu wave initialization" << endl;
+  // cout << "  --test-gpu      - various tests to ensure that gpu" << endl
+       // << "                    implementations are working" << endl;
+  cout << endl;
+  cout << endl;
+  cout <<
+      "If you use gvd-viewerx, I would love to hear from you. A short\n"
+      "email to edwardsjohnmartin@gmail.com would be greatly appreciated.\n"
+      "This is also the email to use to submit bug reports and feature\n"
+      "requests." << endl;
+  cout << endl;
+  cout << "If you use gvd-viewerx for a publication, please cite" << endl;
+  cout << endl;
+  cout <<
+      "   John Edwards et al, \"Approximating the Generalized Voronoi Diagram\n"
+      "   of closely spaced objects,\" in Computer Graphics Forum, 2015."
+       << endl;
+  cout << endl;
+}
+
 int GVDViewer3::ProcessArgs(int argc, char** argv) {
   if (argc < 2) {
-    cout << endl;
-    cout << "Usage: ./octree3 [-l maxlevel] [-s screenshotBasename] -x "
-         << "[filenames.obj | -f filename]" << endl;
-    cout << "  -x              - default to not draw GVD" << endl;
-    cout << "  -f              - get object filenames from file" << endl;
-    cout << "  --cp            - corner indices on gpu" << endl;
-    cout << "  --init-wave-cpu - disable gpu wave initialization" << endl;
-    cout << "  --test-gpu      - various tests to ensure that gpu" << endl
-         << "                    implementations are working" << endl;
-    cout << endl;
+    PrintUsage();
     exit(0);
   }
 
@@ -1557,6 +1597,11 @@ int GVDViewer3::ProcessArgs(int argc, char** argv) {
       ++i;
       stop = false;
     } 
+  }
+
+  if (o.help) {
+    PrintUsage();
+    exit(0);
   }
 
   vector<string> filenames;
@@ -2176,12 +2221,15 @@ void GVDViewer3::Keyboard(unsigned char key, int x, int y) {
       GenerateSurface(o);
       break;
     case 'w':
+      WriteGvdMesh();
+      break;
+    case 'b':
       o.ambiguous_max_level++;
       cout << "Max ambiguous subdivision level = "
            << o.ambiguous_max_level << endl;
       GenerateSurface(o);
       break;
-    case 'W':
+    case 'B':
       o.ambiguous_max_level--;
       cout << "Max ambiguous subdivision level = "
            << o.ambiguous_max_level << endl;
@@ -2191,10 +2239,10 @@ void GVDViewer3::Keyboard(unsigned char key, int x, int y) {
       o.full_subdivide = !o.full_subdivide;
       GenerateSurface(o);
       break;
-    case 'B':
-      o.make_buffer = !o.make_buffer;
-      GenerateSurface(o);
-      break;
+    // case 'B':
+    //   o.make_buffer = !o.make_buffer;
+    //   GenerateSurface(o);
+    //   break;
     case 'e':
       _explode_mode = (_explode_mode+1)%7;
       cout << "Explode mode = " << _explode_mode << endl;

@@ -249,7 +249,7 @@ void GVDViewer2::ReadMesh(const string& filename) {
 void GVDViewer2::WritePolygons() const {
   for (int i = 0; i < polygons.size(); ++i) {
     stringstream ss;
-    ss << "poly" << (i+1) << ".dat";
+    ss << "poly-" << (i+1) << ".dat";
     ofstream out(ss.str().c_str());
     const vector<float2>& polygon = polygons[i];
     for (int j = 0; j < polygon.size(); ++j) {
@@ -261,7 +261,64 @@ void GVDViewer2::WritePolygons() const {
   cout << "Wrote objects" << endl;
 }
 
-void GVDViewer2::ProcessArgs(int argc, char** argv) {
+class WriteGVDVisitor {
+ public:
+  WriteGVDVisitor(std::ostream& out) : _out(out) {}
+
+  void operator()(int ai, const double2& a,
+                  int bi, const double2& b) {
+    _out << a << " " << b << endl;
+  }
+ private:
+  std::ostream& _out;
+};
+
+void GVDViewer2::WriteGvdMesh() const {
+  ofstream out("gvd.dat");
+  gvd_graph.VisitEdges(WriteGVDVisitor(out));
+  cout << "Wrote mesh" << endl;
+}
+
+void PrintUsage() {
+  cout << "gvd-viewer2 / gvd-viewer3" << endl;
+  cout << "A 2- and 3-Dimensional Generalized Voronoi Diagram approximator\n";
+  cout << "Version 1.0\n";
+  cout << endl;
+  cout << "Copyright 2015 by John Martin Edwards\n";
+  cout << "Please send bugs and comments to edwardsjohnmartin@gmail.com\n";
+  cout << endl;
+  cout << "There is no warranty.\n";
+  cout << endl;
+  cout << "gvd-viewerx constructs a quadtree/octree that resolves between "
+      "objects,\n";
+  cout << "propagates a distance transform over the octree vertices, then "
+      "builds a GVD\n";
+  cout << "approximation using the labels and distances on the vertices. For "
+      "more\n";
+  cout << "information, please see:\n";
+  cout << endl;
+  cout << "http://sci.utah.edu/~jedwards/research/gvd/index.html\n";
+
+  cout << endl;
+  cout << "Usage: ./gvd-viewer2 [-l maxlevel] [filenames.dat]" << endl;
+  cout << "  -l maxlevel        - Limit octree to maxlevel+1 levels" << endl;
+  cout << endl;
+  cout <<
+      "If you use gvd-viewerx, I would love to hear from you. A short\n"
+      "email to edwardsjohnmartin@gmail.com would be greatly appreciated.\n"
+      "This is also the email to use to submit bug reports and feature\n"
+      "requests." << endl;
+  cout << endl;
+  cout << "If you use gvd-viewerx for a publication, please cite" << endl;
+  cout << endl;
+  cout <<
+      "   John Edwards et al, \"Approximating the Generalized Voronoi Diagram\n"
+      "   of closely spaced objects,\" in Computer Graphics Forum, 2015."
+       << endl;
+  cout << endl;
+}
+
+int GVDViewer2::ProcessArgs(int argc, char** argv) {
   int i = 1;
   // if (argc > 1) {
   bool stop = false;
@@ -270,6 +327,10 @@ void GVDViewer2::ProcessArgs(int argc, char** argv) {
     if (o.ProcessArg(i, argv)) {
       stop = false;
     }
+  }
+  if (o.help) {
+    PrintUsage();
+    exit(0);
   }
   for (; i < argc; ++i) {
     string filename(argv[i]);
@@ -285,6 +346,8 @@ void GVDViewer2::ProcessArgs(int argc, char** argv) {
   PrintCommands();
   cout << "Number of objects: " << polygons.size() << endl;
   cout << "Number of polygon edges: " << num_edges << endl;
+
+  return 0;
 }
 
 void GVDViewer2::PrintCommands() const {
@@ -342,6 +405,9 @@ void GVDViewer2::Keyboard(unsigned char key, int x, int y) {
       win_obj = BB(make_float2(-r, -1), make_float2(r, 1));
       break;
     }
+    case 'w':
+      WriteGvdMesh();
+      break;
     case 'W':
       WritePolygons();
       break;
@@ -533,8 +599,14 @@ void GVDViewer2::Mouse(int button, int state, int x, int y) {
       if (glutGetModifiers() == GLUT_ACTIVE_CTRL) {
         rubberband_start = Win2Obj(make_float2(x, y));
         rubberband_mode = true;
-      } else if (glutGetModifiers() == GLUT_ACTIVE_SHIFT) {
-        SetStartSearch(x, y);
+      // } else if (glutGetModifiers() == GLUT_ACTIVE_SHIFT) {
+      //   SetStartSearch(x, y);
+      } else if (entry_mode == 2 && glutGetModifiers() == GLUT_ACTIVE_SHIFT) {
+        AddPoint(x, y);
+        verts.push_back(verts[0]);
+        MakePolygon();
+        dirty = true;
+        glutPostRedisplay();
       } else {
         AddPoint(x, y);
         glutPostRedisplay();
@@ -1355,6 +1427,7 @@ void GVDViewer2::PrintHelp() const {
     HelpString("  z - clear last polygon drawn", i++);
     HelpString("  c - clear all polygons", i++);
     HelpString("  e - entry mode", i++); // ????
+    HelpString("  W - write polygons to poly-*.dat", i++);
     HelpString("GVD computation", i++);
     HelpString("  f/d - increment/decrement max octree level", i++);
     HelpString("  V - toggle full subdivide", i++);
@@ -1370,7 +1443,6 @@ void GVDViewer2::PrintHelp() const {
     HelpString("  Alt+O/o - increase/decrease octree color", i++); // show_path
     HelpString("  H - toggle advanced help", i++);
     HelpString("misc", i++);
-    HelpString("W - write polygons", i++);
     HelpString("g - polygon mode", i++); // polygon_mode
     HelpString("s/S - increment/decrement ambiguous max level", i++);
     HelpString("j/k - increment/decrement max vertex distance", i++);

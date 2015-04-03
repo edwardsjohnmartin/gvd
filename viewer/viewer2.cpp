@@ -197,7 +197,8 @@ int main(int argc, char** argv) {
   glutPassiveMotionFunc(PassiveMouseMotion);
   glutReshapeFunc(Reshape);
 
-  scene->ProcessArgs(argc, argv);
+  const int ret = scene->ProcessArgs(argc, argv);
+  if (ret != 0) return ret;
 
   Init();
   glutMainLoop();

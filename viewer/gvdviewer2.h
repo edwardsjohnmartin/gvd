@@ -33,8 +33,9 @@ class GVDViewer2 : public GL2D {
 
   void ReadMesh(const std::string& filename);
   void WritePolygons() const;
+  void WriteGvdMesh() const;
 
-  virtual void ProcessArgs(int argc, char** argv);
+  virtual int ProcessArgs(int argc, char** argv);
   virtual void Mouse(int button, int state, int x, int y);
   virtual void MouseMotion(int x, int y);
   virtual void PassiveMouseMotion(int x, int y);

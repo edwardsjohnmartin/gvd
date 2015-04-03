@@ -35,7 +35,7 @@ class GL2D : public Scene {
   // virtual void Reshape(const int2& w,
   //                      const float2& world_min, const float2& world_max);
 
-  virtual void ProcessArgs(int argc, char** argv) {}
+  virtual int ProcessArgs(int argc, char** argv) {return 0;}
   virtual void Init() const;
   virtual void Mouse(int button, int state, int x, int y) {}
   virtual void MouseMotion(int x, int y) {}

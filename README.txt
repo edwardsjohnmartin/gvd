@@ -36,3 +36,34 @@ WITH THE AUTHOR.  (If you are not directly supplying this code to a
 customer, and you are instead telling them how they can obtain it for
 free, then you are not required to make any arrangement with me.)
 
+------------------------------------------------------------------------------
+
+BUILD INSTRUCTIONS
+
+  > mkdir build
+  > cd build
+  > cmake ..
+  > make
+
+EXECUTION EXAMPLES
+
+To run the 2D GVD viewer in interactive mode, use
+  > ./gvd-viewer2
+In the blank window click and drag to create polygons.
+
+To run the 2D GVD viewer on pre-determined polygons, use
+  > ./gvd-viewer2 -l 8 ../data2/test[5-8].dat
+This creates the GVD on a sample dataset. Each .dat file is a list of vertex
+coordinates of the polygon.
+
+To run the 3D GVD viewer on pre-determined polyhedra, use
+  > ./gvd-viewer3 -l 8 ../data3/simple*.obj
+This creates the GVD on a sample dataset. Currently the GVD viewer supports
+polyhedra input only in .obj format.
+
+To write the computed GVD, press 'w'.
+
+OPENCL
+
+gvd-viewerx has an OpenCL acceleration option. Before building, use ccmake
+or a CMake GUI interface to set the build variable OPENCL_ACCEL to ON.

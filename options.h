@@ -29,9 +29,10 @@ struct OctreeOptions {
         report_statistics(report_statistics_),
         gpu(false),
         opencl_log(false), cell_of_interest(-1), level_of_interest(-1),
-        bb_scale(1), center(-1),
-        restricted_surface(false),
-        verts_alloc_factor(3) {
+    bb_scale(1), center(-1),
+    restricted_surface(false),
+    verts_alloc_factor(3), 
+    help(false) {
     ReadOptionsFile();
   }
 
@@ -88,6 +89,7 @@ struct OctreeOptions {
   int center;
   bool restricted_surface;
   int verts_alloc_factor;
+  bool help;
   std::map<std::string, std::string> key2value;
 };
 
