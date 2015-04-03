@@ -16,6 +16,7 @@
 #include <math.h>
 
 #include "../../opencl/vec_cpp.h"
+#include <iostream>
 
 
 /** class InverseGaussMap
@@ -51,10 +52,15 @@ template<int DIM> class InverseGaussMap
     int getBin3D(float x, float y, float z)
     {
         assert(DIM == 3);
-        float theta = acos(z);
-        float phi = atan2(y, x);
+        float theta = acos(x);
+        float phi = acos(y);
+        if(y < 0)
+            theta += M_PI;
+        if(z < 0)
+            phi += M_PI;
         int x_bin = getBinFromAngle(theta, resolution_sqrt);
         int y_bin = getBinFromAngle(phi, resolution_sqrt);
+        std::cout << x_bin << " / " << y_bin << std::endl;
         return (y_bin * resolution_sqrt) + x_bin;
     }
 

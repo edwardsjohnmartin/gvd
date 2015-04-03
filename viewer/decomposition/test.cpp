@@ -43,22 +43,22 @@ v.x = -0.986519; v.y = 0.053459; v.z = -0.191855;
 }
 int main()
 {
-    InverseGaussMap<2> g1(16);
-    InverseGaussMap<3> g2(16);
+    InverseGaussMap<2> g1(4);
+    InverseGaussMap<3> g2(100);
 
     float2 x;
-    x.x = 1;
-    x.y = 0;
+    x.x = 0;
+    x.y = -1;
     //cout << g1.getBin(x) << endl;
 
     float3 y;
-    y.x = -1;
+    y.x = 0;
     y.y = 0;
-    y.z = 0;
+    y.z = -1;
     float norm = sqrt(y.x*y.x+y.y*y.y+y.z*y.z);
     y.x /= norm;
     y.y /= norm;
     y.z /= norm;
-    cout << g2.getBin(y) << endl;
+    //cout << g2.getBin(y) << endl;
     test();
 }
