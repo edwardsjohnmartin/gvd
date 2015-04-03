@@ -1,6 +1,5 @@
 #include "inverse_gauss_map.h"
 
-#include <assert.h>
 #include <math.h>
 
 #include <iostream>
@@ -37,16 +36,13 @@ void InverseGaussMap::setResolution(int resolution)
 }
 
 
-/**
- * Returns the bin number (depending on 2D or 3D binning).
- */
-int InverseGaussMap::getBin(int normal)
+int InverseGaussMap::getBin2D(float x, float y)
 {
     return 0;
 }
 
 
-int InverseGaussMap::getBin2D(int normal)
+int InverseGaussMap::getBin3D(float x, float y, float z)
 {
     return 0;
 }
@@ -56,6 +52,7 @@ int InverseGaussMap::getBin2D(int normal)
  * Returns the integer binning of the angle in between 0 and k (exclusive),
  * provided the angle is between 0 and 2 Pi. If angle is larger than 2 Pi or
  * smaller than 0, the resulting bin will be converted to the correct value.
+ * Assumes k is correctly larger than 0.
  */
 int InverseGaussMap::getBinFromAngle(float theta, int k)
 {
@@ -63,6 +60,5 @@ int InverseGaussMap::getBinFromAngle(float theta, int k)
     bin = bin % k;
     if(bin < 0)
         bin += 4;
-    cout << theta << " -> " << bin << endl;
     return bin;
 }
