@@ -41,7 +41,7 @@ template<int D> class InverseGaussMap
      */
     int getBin2D(float x, float y)
     {
-        assert(D == 2);
+        //assert(D == 2);
         float theta = acos(x);
         if(y < 0)
             theta += M_PI;
@@ -55,10 +55,12 @@ template<int D> class InverseGaussMap
     int getBin3D(float x, float y, float z)
     {
         assert(D == 3);
-        float theta = 0;
-        float lambda = 0;
+        float theta = acos(z);
+        float phi = atan2(y, x);
         int x_bin = getBinFromAngle(theta, resolution_sqrt);
-        int y_bin = getBinFromAngle(lambda, resolution_sqrt);
+        int y_bin = getBinFromAngle(phi, resolution_sqrt);
+        std::cout << theta << " -> " << x_bin << std::endl;
+        std::cout << phi << " -> " << y_bin << std::endl;
         return (y_bin * resolution_sqrt) + x_bin;
     }
 
