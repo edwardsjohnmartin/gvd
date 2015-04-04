@@ -1,3 +1,17 @@
+/*******************************************************
+ ** Generalized Voronoi Diagram Project               **
+ ** Copyright (c) 2015 John Martin Edwards            **
+ ** Scientific Computing and Imaging Institute        **
+ ** 72 S Central Campus Drive, Room 3750              **
+ ** Salt Lake City, UT 84112                          **
+ **                                                   **
+ ** For information about this project contact        **
+ ** John Edwards at                                   **
+ **    edwardsjohnmartin@gmail.com                    **
+ ** or visit                                          **
+ **    sci.utah.edu/~jedwards/research/gvd/index.html **
+ *******************************************************/
+
 #include <algorithm>
 #include <cstring>
 #include <fstream>
@@ -25,6 +39,9 @@ bool OctreeOptions::ProcessArg(int& i, char** argv) {
     ++i;
   } else if (strcmp(argv[i], "--no-buffer") == 0) {
     o.make_buffer = false;
+    ++i;
+  } else if (strcmp(argv[i], "-h") == 0) {
+    o.help = true;
     ++i;
   } else if (strcmp(argv[i], "--gpu") == 0) {
     o.gpu = true;

@@ -1,3 +1,17 @@
+/*******************************************************
+ ** Generalized Voronoi Diagram Project               **
+ ** Copyright (c) 2015 John Martin Edwards            **
+ ** Scientific Computing and Imaging Institute        **
+ ** 72 S Central Campus Drive, Room 3750              **
+ ** Salt Lake City, UT 84112                          **
+ **                                                   **
+ ** For information about this project contact        **
+ ** John Edwards at                                   **
+ **    edwardsjohnmartin@gmail.com                    **
+ ** or visit                                          **
+ **    sci.utah.edu/~jedwards/research/gvd/index.html **
+ *******************************************************/
+
 #ifndef __OPTIONS_H__
 #define __OPTIONS_H__
 
@@ -29,9 +43,10 @@ struct OctreeOptions {
         report_statistics(report_statistics_),
         gpu(false),
         opencl_log(false), cell_of_interest(-1), level_of_interest(-1),
-        bb_scale(1), center(-1),
-        restricted_surface(false),
-        verts_alloc_factor(3) {
+    bb_scale(1), center(-1),
+    restricted_surface(false),
+    verts_alloc_factor(3), 
+    help(false) {
     ReadOptionsFile();
   }
 
@@ -88,6 +103,7 @@ struct OctreeOptions {
   int center;
   bool restricted_surface;
   int verts_alloc_factor;
+  bool help;
   std::map<std::string, std::string> key2value;
 };
 

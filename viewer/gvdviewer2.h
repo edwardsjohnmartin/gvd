@@ -1,3 +1,17 @@
+/*******************************************************
+ ** Generalized Voronoi Diagram Project               **
+ ** Copyright (c) 2015 John Martin Edwards            **
+ ** Scientific Computing and Imaging Institute        **
+ ** 72 S Central Campus Drive, Room 3750              **
+ ** Salt Lake City, UT 84112                          **
+ **                                                   **
+ ** For information about this project contact        **
+ ** John Edwards at                                   **
+ **    edwardsjohnmartin@gmail.com                    **
+ ** or visit                                          **
+ **    sci.utah.edu/~jedwards/research/gvd/index.html **
+ *******************************************************/
+
 #ifndef __GVDViewer2_H__
 #define __GVDViewer2_H__
 
@@ -33,8 +47,9 @@ class GVDViewer2 : public GL2D {
 
   void ReadMesh(const std::string& filename);
   void WritePolygons() const;
+  void WriteGvdMesh() const;
 
-  virtual void ProcessArgs(int argc, char** argv);
+  virtual int ProcessArgs(int argc, char** argv);
   virtual void Mouse(int button, int state, int x, int y);
   virtual void MouseMotion(int x, int y);
   virtual void PassiveMouseMotion(int x, int y);
