@@ -6,7 +6,7 @@ using namespace std;
 
 
 void test() {
-    InverseGaussMap<3> g2(16);
+    InverseGaussMap<3> g2(1000);
     float3 v;
 v.x = -0.200825; v.y = 1.034244; v.z = 0.003236;
     cout << g2.getBin(v) << endl;
@@ -44,7 +44,7 @@ v.x = -0.986519; v.y = 0.053459; v.z = -0.191855;
 int main()
 {
     InverseGaussMap<2> g1(4);
-    InverseGaussMap<3> g2(100);
+    InverseGaussMap<3> g2(16);
 
     float2 x;
     x.x = 0;
