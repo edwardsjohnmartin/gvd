@@ -69,7 +69,7 @@ template<int DIM> class InverseGaussMap
         int bin = (int)floor((theta / (2*M_PI)) * k);
         bin = bin % k;
         if(bin < 0)
-            bin += 4;
+            bin += k;
         return bin;
     }
 
