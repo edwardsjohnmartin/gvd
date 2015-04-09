@@ -51,8 +51,8 @@ template<int DIM> class InverseGaussMap
     int getBin3D(float x, float y, float z)
     {
         assert(DIM == 3);
-        float theta = acos(z);
-        float phi = atan2(y, x);
+        float theta = atan2(y, x);
+        float phi = atan2(z, sqrt(x*x + y*y));
         int x_bin = getBinFromAngle(theta, resolution_sqrt);
         int y_bin = getBinFromAngle(phi, resolution_sqrt);
         return (y_bin * resolution_sqrt) + x_bin;
