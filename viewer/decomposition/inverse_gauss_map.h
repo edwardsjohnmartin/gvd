@@ -24,7 +24,8 @@
  * or 3 dimensions only). If D is invalid, the object will throw an assertion
  * error during construction.
  */
-template<int DIM> class InverseGaussMap
+template<int DIM>
+class InverseGaussMap
 {
 
   private:
@@ -107,7 +108,8 @@ template<int DIM> class InverseGaussMap
      * Returns the bin for the correct dimension by calling the appropriate
      * 2D or 3D bin function.
      */
-    int getBin(MyVec<float, DIM> normal) {
+    int getBin(MyVec<float, DIM> normal)
+    {
         if(DIM == 2)
             return getBin2D(normal.x, normal.y);
         else
