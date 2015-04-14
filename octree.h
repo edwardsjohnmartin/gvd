@@ -822,7 +822,11 @@ VertexNetwork BuildOctree(
     const std::vector<std::vector<Face> >& all_faces,
     const BoundingBox<floatn>& bb,
     const OctreeOptions& o);
-
+VertexNetwork BuildExtendedOctree(
+    const std::vector<std::vector<floatn> >& all_vertices,
+    const std::vector<std::vector<Face> >& all_faces,
+    const BoundingBox<floatn>& bb,
+    const OctreeOptions& o);
 }
 
 class LabelPair {

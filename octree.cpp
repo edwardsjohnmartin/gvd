@@ -1044,6 +1044,13 @@ VertexNetwork BuildOctree(
   // return make_mvertex_network(vertices);
   return vertices;
 }
+VertexNetwork BuildExtendedOctree(
+    const vector<vector<floatn> >& label2gverts,
+    const vector<vector<Face> >& label2faces,
+    const BoundingBox<floatn>& bb,
+    const OctreeOptions& o) {
+    return BuildOctree(label2gverts, label2faces, bb, o);
+}
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------

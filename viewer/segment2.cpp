@@ -1030,7 +1030,8 @@ void GVDViewer2::BuildOctree() {
 
   vertices.Clear();
   // Build the octree
-  vertices = oct::BuildOctree(all_vertices, all_edges, bb, o);
+  // EXTENDED_HERE
+  vertices = oct::BuildExtendedOctree(all_vertices, all_edges, bb, o);
   if (o.timings)
     cout << "vertices size = " << vertices.size() << endl;
 
