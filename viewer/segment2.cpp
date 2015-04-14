@@ -500,7 +500,7 @@ void GVDViewer2::WritePolygons() const {
   cout << "Wrote objects" << endl;
 }
 
-void GVDViewer2::ProcessArgs(int argc, char** argv) {
+int GVDViewer2::ProcessArgs(int argc, char** argv) {
   int i = 1;
   // if (argc > 1) {
   bool stop = false;
@@ -524,6 +524,7 @@ void GVDViewer2::ProcessArgs(int argc, char** argv) {
   PrintCommands();
   cout << "Number of objects: " << polygons.size() << endl;
   cout << "Number of polygon edges: " << num_edges << endl;
+  return 0;
 }
 
 void GVDViewer2::PrintCommands() const {
