@@ -1316,7 +1316,8 @@ void GVDViewer2::DrawVoronoi() const {
 }
 
 void GVDViewer2::DrawNormals(const vector<float2> &verts, bool connect) const {
-  int count = (int)verts.size();
+  const int count = (int)verts.size();
+  const float normal_size = 0.025;
 
   // do nothing if there are no lines to be drawn
   if (count < 2) return;
@@ -1332,14 +1333,16 @@ void GVDViewer2::DrawNormals(const vector<float2> &verts, bool connect) const {
   
   //std::cout << first_index << ", " << second_index << std::endl;
 
-  float2 v_prev = verts[first_index];
+  float2 v_prev = verts[first_index] - verts[second_index];
   float2 n_prev = make_float2(-v_prev.y, v_prev.x);
+  n_prev = n_prev / length(n_prev);
   for (int i = second_index; i < count - 1; ++i) {
     float2 v_next = verts[i] - verts[i+1];
     float2 n_next = make_float2(-v_next.y, v_next.x);
+    n_next = n_next / length(n_next);
     float2 n = (n_prev + n_next) / 2;
-    n = n / length(n);
-    n = n * 0.25;
+    //n = n / length(n);
+    n = n * normal_size;
     glVertex2fv(verts[i].s);
     glVertex2fv((verts[i] + n).s);
     v_prev = v_next;
