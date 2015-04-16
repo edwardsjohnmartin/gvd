@@ -1330,18 +1330,19 @@ void GVDViewer2::DrawNormals(const vector<float2> &verts, bool connect) const {
   int first_index = (connect ? count - 2 : 0);
   // next index is 0 or 1, depending on first vertex
   int second_index = (connect ? 0 : 1);
-  
-  //std::cout << first_index << ", " << second_index << std::endl;
 
+  // compute the normal of the first line segment (v0 to v1)
   float2 v_prev = verts[first_index] - verts[second_index];
   float2 n_prev = make_float2(-v_prev.y, v_prev.x);
   n_prev = n_prev / length(n_prev);
+
   for (int i = second_index; i < count - 1; ++i) {
+    // compute the normal of the next line segment
     float2 v_next = verts[i] - verts[i+1];
     float2 n_next = make_float2(-v_next.y, v_next.x);
     n_next = n_next / length(n_next);
+    // normal of the vertex is average of the next and prev line normals
     float2 n = (n_prev + n_next) / 2;
-    //n = n / length(n);
     n = n * normal_size;
     glVertex2fv(verts[i].s);
     glVertex2fv((verts[i] + n).s);
