@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <iomanip>
+#include <iostream>
 
 #include "./triangle_cpp.h"
 #include "./octree.h"
@@ -799,6 +800,7 @@ void BuildOctreeCpu(
     VertexNetwork& vertices,
     const OctreeOptions& o) {
   static const int D = DIM;
+  std::cout << "DEBUG: " << "BuildOctreeCpu called (3)." << std::endl;
 
   // const int* corner_vertices = vertices.GetCorners(0);
 
@@ -940,6 +942,7 @@ VertexNetwork BuildOctree(
     const BoundingBox<floatn>& bb,
     const OctreeOptions& o) {
   static const int D = DIM;
+  std::cout << "DEBUG: " << "BuildOctree called (2)." << std::endl;
   if (label2faces.size() != label2gverts.size()) return VertexNetwork();
   if (label2faces.empty()) return VertexNetwork();
   if (label2faces[0].empty()) return VertexNetwork();
@@ -1030,6 +1033,7 @@ VertexNetwork BuildOctree(
   }
 
   if (o.gpu) {
+    std::cout << "DEBUG: " << "GPU Version (2)." << std::endl;
     GpuTest(lgeometries, geom_vertices, bb, vertices, o);
 
     MVertexNetwork mvertices = make_mvertex_network();
@@ -1038,6 +1042,7 @@ VertexNetwork BuildOctree(
         NumVertices(mvertices), mvertices.vertices.get(),
         NumCPoints(mvertices), mvertices.cpoints.get());
   } else {
+    std::cout << "DEBUG: " << "CPU Version (2)." << std::endl;
     BuildOctreeCpu(lgeometries, geom_vertices, bb, vertices, o);
   }
 
@@ -1049,7 +1054,16 @@ VertexNetwork BuildExtendedOctree(
     const vector<vector<Face> >& label2faces,
     const BoundingBox<floatn>& bb,
     const OctreeOptions& o) {
-    return BuildOctree(label2gverts, label2faces, bb, o);
+  std::cout << "DEBUG: " << "BuildExtendedOctree called (1)." << std::endl;
+  VertexNetwork vn = BuildOctree(label2gverts, label2faces, bb, o);
+  /*int last = (int)vn.size() - 1;
+  std::cout << "Index: " << last << std::endl;
+  std::cout << "Label: " << vn.Label(last) << std::endl;
+  //std::cout << "Level: " << vn.CellLevel(last) << std::endl;
+  std::cout << "Dist:  " << vn.Dist(last) << std::endl;
+  intn pos = vn.Position(last);
+  std::cout << "Pos:   " << pos.x << ", " << pos.y << std::endl;*/
+  return vn;
 }
 
 //------------------------------------------------------------------------------

@@ -460,6 +460,8 @@ GVDViewer2::GVDViewer2(const int win_width, const int win_height)
   max_dist_oct = 0;
   max_dist_obj = 0;
   o = oct::OctreeOptions::For2D();
+  //o.full_subdivide = true; /* TODO - added */
+  //o.max_level = 10; /* TODO - added */
   entry_mode = 0;
   octree_color = make_double3(0.7, 0.7, 0.7);
 }
