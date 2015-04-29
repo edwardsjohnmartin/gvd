@@ -817,7 +817,7 @@ std::vector<std::vector<int> > ComputeBase2Incident(
 // Given polylines or triangles, build an octree.
 //------------------------------------------------------------------------------
 // ManagedVertexNetwork BuildOctree(
-VertexNetwork BuildOctree(
+VertexNetwork BuildOctree( // TODO - why are these named differently than in the cpp file?
     const std::vector<std::vector<floatn> >& all_vertices,
     const std::vector<std::vector<Face> >& all_faces,
     const BoundingBox<floatn>& bb,
@@ -828,6 +828,10 @@ VertexNetwork BuildExtendedOctree(
     const BoundingBox<floatn>& bb,
     const OctreeOptions& o);
 }
+std::vector<oct::LabeledGeometry> GenerateLabeledGeometries(
+    const vector<vector<floatn> >& label2gverts,
+    const vector<vector<Face> >& label2faces,
+    const BoundingBox<floatn>& bb);
 
 class LabelPair {
  public:

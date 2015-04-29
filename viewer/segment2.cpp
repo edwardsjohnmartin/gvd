@@ -52,6 +52,7 @@
 #include "../vector2.h"
 #include "../gvd.h"
 #include "../graph.h"
+#include "../vectorn.h"
 
 #ifdef SINGLE
 #define REAL float
@@ -460,8 +461,6 @@ GVDViewer2::GVDViewer2(const int win_width, const int win_height)
   max_dist_oct = 0;
   max_dist_obj = 0;
   o = oct::OctreeOptions::For2D();
-  //o.full_subdivide = true; /* TODO - added */
-  //o.max_level = 10; /* TODO - added */
   entry_mode = 0;
   octree_color = make_double3(0.7, 0.7, 0.7);
 }
@@ -1102,6 +1101,60 @@ void GVDViewer2::DrawOctree() const {
   glBegin(GL_LINES);
   oct::VisitEdges<2>(vertices, DrawEdgeCallback(this));
   glEnd();
+
+
+  // TODO - since this wasn't implemented in a standalone function in an
+  // object, I'm just copy-pasting this code because it would break the
+  // entire code structure if I moved it.
+  /*const int D = 2;
+  std::vector<LabeledGeometry> lgeometries;
+  shared_array<intn> gverts(new intn[num_gverts]);
+  shared_array<int> gvert_offsets(new int[num_labels]);
+  GeomVertices geom_vertices = {
+    num_gverts, gverts.get(), label2gverts.size(), gvert_offsets.get() };
+  int geom_vert_idx = 0;
+  for (int j = 0; j < label2gverts.size(); ++j) {
+    gvert_offsets[j] = geom_vert_idx;
+    const std::vector<floatn>& fvertices = label2gverts[j];
+    const int n = fvertices.size();
+    for (int i = 0; i < n; ++i) {
+      intn p = make_intn(0);
+      for (int k = 0; k < D; ++k) {
+        const double d =
+          (kWidth-1) * ((fvertices[i].s[k] - bb.min().s[k]) / dwidth);
+        int v = static_cast<int>(d+0.5);
+        if (v < 0) {
+          cerr << "Coordinate in dimension " << k << " is less than zero.  d = "
+               << d << " v = " << v << endl;
+          cerr << "  fvertices[i][k] = " << fvertices[i].s[k]
+               << " bb.min()[k] = " << bb.min().s[k] << endl;
+          cerr << "  dwidth = " << dwidth << " kwidth = " << kWidth << endl;
+          v = 0;
+        }
+        p.s[k] = v;
+      }
+    gverts[geom_vert_idx++] = p;
+    // cout << "Adding geometry vertex: " << p << endl;
+    }
+    if (n > 0) {
+//#ifdef OCT3D
+//      LabeledGeometry lg(label2faces[j], j);
+//#else
+      int2* lgverts = get_geom_vertices(j, geom_vertices);
+      LabeledGeometry lg(lgverts, label2faces[j], j);
+//#endif
+      lgeometries.push_back(lg);
+    }
+  }
+
+
+  // get all leaves
+  for (int i = 0; i < vertices.size(); ++i) {
+    if (vertices.IsBase(i)) {
+      // octree cell represented by vertex i is a leaf
+      cout << "Leaf cell is at level " << static_cast<int>(vertices.CellLevel(i)) << endl;
+    }
+  }*/
 }
 
 void DrawGVDVisitor(int ai, const double2& a,
