@@ -155,6 +155,7 @@ class GVDViewer2 : public GL2D {
   BoundingBox<float2> bb;
 
   oct::VertexNetwork vertices;
+  std::vector<oct::LabeledGeometry> lgeometries;
   bool dirty;
   Graph<2> gvd_graph;
 

@@ -811,6 +811,12 @@ template <int D>
 std::vector<std::vector<int> > ComputeBase2Incident(
     const VertexNetwork& vertices);
 
+// Because nothing is object oriented here, this hack lets return two items. Hacky... really, really hacky.
+struct BuildOctreeRetval {
+  std::vector<oct::LabeledGeometry> lgeometries;
+  oct::VertexNetwork vertices;
+};
+
 //------------------------------------------------------------------------------
 // BuildOctree
 //
@@ -821,17 +827,14 @@ VertexNetwork BuildOctree( // TODO - why are these named differently than in the
     const std::vector<std::vector<floatn> >& all_vertices,
     const std::vector<std::vector<Face> >& all_faces,
     const BoundingBox<floatn>& bb,
-    const OctreeOptions& o);
-VertexNetwork BuildExtendedOctree(
+    const OctreeOptions& o,
+    BuildOctreeRetval* retval = 0);
+BuildOctreeRetval BuildExtendedOctree(
     const std::vector<std::vector<floatn> >& all_vertices,
     const std::vector<std::vector<Face> >& all_faces,
     const BoundingBox<floatn>& bb,
     const OctreeOptions& o);
 }
-std::vector<oct::LabeledGeometry> GenerateLabeledGeometries(
-    const vector<vector<floatn> >& label2gverts,
-    const vector<vector<Face> >& label2faces,
-    const BoundingBox<floatn>& bb);
 
 class LabelPair {
  public:
