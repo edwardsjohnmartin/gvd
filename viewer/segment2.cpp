@@ -30,6 +30,7 @@
 #include "./segment2.h"
 #include "../shared_ptr.h"
 #include "./pngio.h"
+#include "./decomposition/inverse_gauss_map.h"
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -1111,6 +1112,7 @@ void GVDViewer2::DrawOctree() const {
   glEnd();
 }
 
+InverseGaussMap<2> gaussMap(4);
 void GVDViewer2::DrawEdgeCells() const {
   const int num_verts = vertices.size();
   const int num_geoms = base2geometries.size();
@@ -1121,13 +1123,13 @@ void GVDViewer2::DrawEdgeCells() const {
   //  cout << "NOT EQUAL" << endl;
 
   // Find all leaf nodes (base vertices) and color them
-  glColor3f(1, 1, 0);
   for (int i = 0; i < vertices.size(); ++i) {
     if (vertices.IsBase(i) && i < num_geoms) {
       // Each item in "geoms" is a single object inside this cell
       std::vector<oct::LabeledGeometry> geoms = base2geometries[i];
       if (geoms.size() > 0) {
-        // for each object, bin all the edges in this cell.
+        // get all normals (and lengths) for every single geometry edge that
+        // intersects this leaf node
         std::vector<std::pair<float2, float> > normals;
         float total_len = 0;
         for (int j = 0; j < geoms.size(); j++) {
@@ -1144,11 +1146,9 @@ void GVDViewer2::DrawEdgeCells() const {
             total_len += len;
             n = n / len;
             normals.push_back(make_pair(n, len));
-            //cout << n.x << ", " << n.y << endl;
           }
-          //cout << "  Label: " << geoms[j].GetLabel() << "; "
-          //     << "Size: " << geoms[j].size() << endl;
         }
+        // compute the average normal for this octree cell
         float2 average_normal = make_float2(0, 0);
         for (int j = 0; j < normals.size(); j++) {
           float2 n = normals[j].first;
@@ -1156,8 +1156,17 @@ void GVDViewer2::DrawEdgeCells() const {
           if (weight > 0)
             average_normal += n * weight;
         }
-        cout << average_normal.x << ", " << average_normal.y << endl;
-        // Fill in the cell
+
+        // Fill in the cell in accordance to the binning of this cell
+        int bin = gaussMap.getBin(average_normal);
+        if (bin == 0)
+          glColor3f(1, 1, 0);
+        else if (bin == 1)
+          glColor3f(1, 0.5, 0.1);
+        else if (bin == 2)
+          glColor3f(1, 1, 0);
+        else
+          glColor3f(0, 1, 1);
         const int* corners = vertices.GetCorners(i);
         glBegin(GL_POLYGON);
         int indices[4] = {0, 1, 3, 2};

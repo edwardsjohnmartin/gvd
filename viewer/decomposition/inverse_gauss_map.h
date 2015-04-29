@@ -24,7 +24,7 @@
  * or 3 dimensions only). If D is invalid, the object will throw an assertion
  * error during construction.
  */
-template<int DIM>
+template<int DIMENSION>
 class InverseGaussMap
 {
 
@@ -39,7 +39,7 @@ class InverseGaussMap
      */
     int getBin2D(float x, float y)
     {
-        assert(DIM == 2);
+        assert(DIMENSION == 2);
         float theta = acos(x);
         if(y < 0)
             theta += M_PI;
@@ -51,7 +51,7 @@ class InverseGaussMap
      */
     int getBin3D(float x, float y, float z)
     {
-        assert(DIM == 3);
+        assert(DIMENSION == 3);
         float theta = atan2(y, x);
         float phi = atan2(z, sqrt(x*x + y*y));
         int x_bin = getBinFromAngle(theta, resolution_sqrt);
@@ -84,7 +84,7 @@ class InverseGaussMap
      */
     InverseGaussMap(int resolution)
     {
-        assert(DIM == 2 || DIM == 3);
+        assert(DIMENSION == 2 || DIMENSION == 3);
         setResolution(resolution);
     }
 
@@ -96,7 +96,7 @@ class InverseGaussMap
     void setResolution(int resolution)
     {
         assert(resolution > 0);
-        if(DIM == 3)
+        if(DIMENSION == 3)
         {
             resolution_sqrt = (int)ceil(pow(resolution, 0.5));
             resolution = resolution_sqrt * resolution_sqrt;
@@ -108,9 +108,9 @@ class InverseGaussMap
      * Returns the bin for the correct dimension by calling the appropriate
      * 2D or 3D bin function.
      */
-    int getBin(MyVec<float, DIM> normal)
+    int getBin(MyVec<float, DIMENSION> normal)
     {
-        if(DIM == 2)
+        if(DIMENSION == 2)
             return getBin2D(normal.x, normal.y);
         else
             return getBin3D(normal.x, normal.y, normal.z);
