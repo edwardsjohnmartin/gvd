@@ -1100,29 +1100,7 @@ bool GVDViewer2::DrawEdge(const int vi, const int n_vi,
 }
 
 void GVDViewer2::DrawOctree() const {
-  // get all leaves
-  glColor3f(1, 1, 0);
-  int nverts = vertices.size();
-  int ngeoms = base2geometries.size();
-  for (int i = 0; i < vertices.size(); ++i) {
-    if (vertices.IsBase(i) && nverts == ngeoms) {
-      std::vector<oct::LabeledGeometry> gverts = base2geometries[i];
-      if (gverts.size() > 0) {
-      const int* corners = vertices.GetCorners(i);
-      //cout << "Vertex: " << i << endl;
-      glBegin(GL_POLYGON);
-      int indices[4] = {0, 1, 3, 2};
-      for(int j = 0; j < 4; j++) {
-        int idx = indices[j];
-        int corner = corners[idx];
-        intn pos = vertices.Position(corner);
-        float2 fpos = Oct2Obj(pos);
-        glVertex2f(fpos.x, fpos.y);
-      }
-      glEnd();
-      }
-    }
-  }
+  DrawEdgeCells();
 
   glLineWidth(1.0);
   // glColor3f(0.7, 0.7, 0.7);
@@ -1131,6 +1109,50 @@ void GVDViewer2::DrawOctree() const {
   glBegin(GL_LINES);
   oct::VisitEdges<2>(vertices, DrawEdgeCallback(this));
   glEnd();
+}
+
+void GVDViewer2::DrawEdgeCells() const {
+  const int num_verts = vertices.size();
+  const int num_geoms = base2geometries.size();
+  if (num_verts == 0 || num_geoms == 0)
+    return;
+
+  //if (num_verts != num_geoms)
+  //  cout << "NOT EQUAL" << endl;
+
+  // Find all leaf nodes (base vertices) and color them
+  glColor3f(1, 1, 0);
+  for (int i = 0; i < vertices.size(); ++i) {
+    if (vertices.IsBase(i) && i < num_geoms) {
+      // Each item in "geoms" is a single object inside this cell
+      std::vector<oct::LabeledGeometry> geoms = base2geometries[i];
+      if (geoms.size() > 0) {
+        // for each object, bin all the edges in this cell.
+        for (int j = 0; j < geoms.size(); j++) {
+          std::vector<Edge> edges = geoms[j].GetEdges();
+          for (int k = 0; k < edges.size(); k++) {
+            //cout << edges[i].s[0] << endl;
+            edges[i].s[1];
+          }
+          //cout << "  Label: " << geoms[j].GetLabel() << "; "
+          //     << "Size: " << geoms[j].size() << endl;
+        }
+        // Fill in the cell
+        const int* corners = vertices.GetCorners(i);
+        glBegin(GL_POLYGON);
+        int indices[4] = {0, 1, 3, 2};
+        for(int j = 0; j < 4; j++) {
+          int idx = indices[j];
+          int corner = corners[idx];
+          intn pos = vertices.Position(corner);
+          float2 fpos = Oct2Obj(pos);
+          glVertex2f(fpos.x, fpos.y);
+        }
+        glEnd();
+      }
+    }
+  }
+
 }
 
 void DrawGVDVisitor(int ai, const double2& a,

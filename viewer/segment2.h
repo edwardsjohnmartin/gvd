@@ -94,6 +94,7 @@ class GVDViewer2 : public GL2D {
                 // const oct::Direction<2>& d) const;
                 const oct::Direction& d) const;
   void DrawOctree() const;
+  void DrawEdgeCells() const;
   void DrawGVD() const;
   void DrawPath() const;
   void DrawVoronoi() const;
