@@ -791,7 +791,7 @@ void DisplayLevelHistogram(const VertexNetwork& vertices,
 // BuildOctreeCpu
 //------------------------------------------------------------------------------
 // template <typename LabeledGeometry>
-void BuildOctreeCpu(
+std::vector<std::vector<LabeledGeometry> > BuildOctreeCpu(
     // const vector<vector<floatn> >& all_vertices,
     const vector<LabeledGeometry>& geometries,
     GeomVertices& geom_vertices,
@@ -899,6 +899,7 @@ void BuildOctreeCpu(
     // DisplayLevelHistogram(vertices, o);
     cout << "Number of octree vertices: " << vertices.size() << endl;
   }
+  return base2geometries;
 }
 
 std::vector<std::vector<LabeledGeometry> > test_base2geometries;
@@ -1040,7 +1041,10 @@ VertexNetwork BuildOctree(
         NumVertices(mvertices), mvertices.vertices.get(),
         NumCPoints(mvertices), mvertices.cpoints.get());
   } else {
-    BuildOctreeCpu(lgeometries, geom_vertices, bb, vertices, o);
+    std::vector<std::vector<LabeledGeometry> > base2geometries =
+        BuildOctreeCpu(lgeometries, geom_vertices, bb, vertices, o);
+    if (retval)
+      retval->base2geometries = base2geometries;
   }
 
   // if lgeom_retval struct is passed in, add lgeometries to it

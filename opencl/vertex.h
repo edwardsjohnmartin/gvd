@@ -33,7 +33,7 @@ typedef struct {
   // levels (distances) to the neighbors
   level_t neighbor_level[2*DIM];
   int _closest_point;
-  int corners[1<<DIM];
+  int corners[1<<DIM]; // NOTE: this doesn't make the code faster or readable
 } Vertex;
 
 //------------------------------------------------------------

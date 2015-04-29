@@ -461,6 +461,10 @@ GVDViewer2::GVDViewer2(const int win_width, const int win_height)
   max_dist_oct = 0;
   max_dist_obj = 0;
   o = oct::OctreeOptions::For2D();
+  // TODO - these were adjusted manually
+  o.max_level = 5;
+  o.full_subdivide = true;
+  // -----------------------------------
   entry_mode = 0;
   octree_color = make_double3(0.7, 0.7, 0.7);
 }
@@ -1033,7 +1037,8 @@ void GVDViewer2::BuildOctree() {
   // Build the octree: use new function to get all return values
   oct::BuildOctreeRetval retval = oct::BuildExtendedOctree(all_vertices, all_edges, bb, o);
   vertices = retval.vertices;
-  lgeometries = retval.lgeometries;
+  lgeometries = retval.lgeometries; // TODO - not needed anymore?
+  base2geometries = retval.base2geometries;
   if (o.timings)
     cout << "vertices size = " << vertices.size() << endl;
 
@@ -1095,6 +1100,30 @@ bool GVDViewer2::DrawEdge(const int vi, const int n_vi,
 }
 
 void GVDViewer2::DrawOctree() const {
+  // get all leaves
+  glColor3f(1, 1, 0);
+  int nverts = vertices.size();
+  int ngeoms = base2geometries.size();
+  for (int i = 0; i < vertices.size(); ++i) {
+    if (vertices.IsBase(i) && nverts == ngeoms) {
+      std::vector<oct::LabeledGeometry> gverts = base2geometries[i];
+      if (gverts.size() > 0) {
+      const int* corners = vertices.GetCorners(i);
+      //cout << "Vertex: " << i << endl;
+      glBegin(GL_POLYGON);
+      int indices[4] = {0, 1, 3, 2};
+      for(int j = 0; j < 4; j++) {
+        int idx = indices[j];
+        int corner = corners[idx];
+        intn pos = vertices.Position(corner);
+        float2 fpos = Oct2Obj(pos);
+        glVertex2f(fpos.x, fpos.y);
+      }
+      glEnd();
+      }
+    }
+  }
+
   glLineWidth(1.0);
   // glColor3f(0.7, 0.7, 0.7);
   glColor3dv(octree_color.s);
@@ -1102,15 +1131,6 @@ void GVDViewer2::DrawOctree() const {
   glBegin(GL_LINES);
   oct::VisitEdges<2>(vertices, DrawEdgeCallback(this));
   glEnd();
-
-
-  // get all leaves
-  /*for (int i = 0; i < vertices.size(); ++i) {
-    if (vertices.IsBase(i)) {
-      // octree cell represented by vertex i is a leaf
-      cout << "Leaf cell is at level " << static_cast<int>(vertices.CellLevel(i)) << endl;
-    }
-  }*/
 }
 
 void DrawGVDVisitor(int ai, const double2& a,
