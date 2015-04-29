@@ -1128,15 +1128,35 @@ void GVDViewer2::DrawEdgeCells() const {
       std::vector<oct::LabeledGeometry> geoms = base2geometries[i];
       if (geoms.size() > 0) {
         // for each object, bin all the edges in this cell.
+        std::vector<std::pair<float2, float> > normals;
+        float total_len = 0;
         for (int j = 0; j < geoms.size(); j++) {
           std::vector<Edge> edges = geoms[j].GetEdges();
+          int2* verts = geoms[j].GetVertices();
           for (int k = 0; k < edges.size(); k++) {
-            //cout << edges[i].s[0] << endl;
-            edges[i].s[1];
+            int2 vi1 = verts[edges[k].s[0]];
+            int2 vi2 = verts[edges[k].s[1]];
+            float2 v1 = Oct2Obj(vi1);
+            float2 v2 = Oct2Obj(vi2);
+            float2 v = v2 - v1;
+            float2 n = make_float2(-v.y, v.x);
+            float len = length(n);
+            total_len += len;
+            n = n / len;
+            normals.push_back(make_pair(n, len));
+            //cout << n.x << ", " << n.y << endl;
           }
           //cout << "  Label: " << geoms[j].GetLabel() << "; "
           //     << "Size: " << geoms[j].size() << endl;
         }
+        float2 average_normal = make_float2(0, 0);
+        for (int j = 0; j < normals.size(); j++) {
+          float2 n = normals[j].first;
+          float weight = normals[j].second / total_len;
+          if (weight > 0)
+            average_normal += n * weight;
+        }
+        cout << average_normal.x << ", " << average_normal.y << endl;
         // Fill in the cell
         const int* corners = vertices.GetCorners(i);
         glBegin(GL_POLYGON);
