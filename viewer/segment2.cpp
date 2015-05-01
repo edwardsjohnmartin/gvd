@@ -1116,6 +1116,7 @@ InverseGaussMap<2> gaussMap(4);
 void GVDViewer2::DrawEdgeCells() const {
   const int num_verts = vertices.size();
   const int num_geoms = base2geometries.size();
+  const float normal_size = 0.05;//0.025;
   if (num_verts == 0 || num_geoms == 0)
     return;
 
@@ -1146,6 +1147,17 @@ void GVDViewer2::DrawEdgeCells() const {
             total_len += len;
             n = n / len;
             normals.push_back(make_pair(n, len));
+
+            // draw the normals on each edge piece
+            float2 v1v2 = v1 + v2;
+            float2 center = make_float2(v1v2.x/2, v1v2.y/2);
+            float x_scale = n.x * normal_size;
+            float y_scale = n.y * normal_size;
+            glColor3f(0, 1, 0);
+            glBegin(GL_LINES);
+            glVertex2f(center.x, center.y);
+            glVertex2f(center.x + x_scale, center.y + y_scale);
+            glEnd();
           }
         }
         // compute the average normal for this octree cell
@@ -1160,14 +1172,26 @@ void GVDViewer2::DrawEdgeCells() const {
 
         // Fill in the cell in accordance to the binning of this cell
         int bin = gaussMap.getBin(average_normal);
-        if (bin == 0)
+        //cout << bin << endl;
+        int mid = gaussMap.getResolution()/2;
+        float diff = abs(bin - mid) / (float)mid;
+        float red = 1.0;
+        float blu = 1.0;
+        if (bin >= mid)
+            red -= diff;
+        if (bin < mid)
+            blu -= diff;
+        float grn = diff;
+        //cout << red << ", " << grn << " " << blu << endl;
+        glColor3f(red, grn, blu);
+        /*if (bin == 0)
           glColor3f(1, 1, 0);
         else if (bin == 1)
           glColor3f(1, 0.5, 0.1);
         else if (bin == 2)
           glColor3f(1, 1, 0);
         else
-          glColor3f(0, 1, 1);
+          glColor3f(0, 1, 1);*/
         const int* corners = vertices.GetCorners(i);
         glBegin(GL_POLYGON);
         int indices[4] = {0, 1, 3, 2};
@@ -1815,10 +1839,10 @@ void GVDViewer2::Display() {
   }
   glEnd();
 
-  DrawNormals(verts, false);
+  /*DrawNormals(verts, false);
   for (int i = 0; i < polygons.size(); ++i) {
     DrawNormals(polygons[i], true);
-  }
+  }*/
 
   // Draw other stuff
   if (show_gvd) {

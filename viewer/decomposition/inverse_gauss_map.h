@@ -105,6 +105,14 @@ class InverseGaussMap
     }
 
     /**
+     * Returns the resulution (number of bins).
+     */
+    int getResolution()
+    {
+        return resolution;
+    }
+
+    /**
      * Returns the bin for the correct dimension by calling the appropriate
      * 2D or 3D bin function.
      */
