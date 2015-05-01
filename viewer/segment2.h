@@ -96,7 +96,7 @@ class GVDViewer2 : public GL2D {
                 // const oct::Direction<2>& d) const;
                 const oct::Direction& d) const;
   void DrawOctree() const;
-  void DrawEdgeCells(const std::vector<std::pair<int, int> >& bins) const;
+  void DrawCellBins(const std::vector<std::pair<int, int> >& bins) const;
   void DrawInverseGaussMap() const;
   void DrawGVD() const;
   void DrawPath() const;
@@ -156,6 +156,7 @@ class GVDViewer2 : public GL2D {
   int gaussMapResolution;
   float3 GetBinColor(int bin) const;
   bool show_gaussmap;
+  bool show_cell_bins;
   std::vector<std::pair<int, int> > ComputeVertexBinning() const;
 
   float2 mouse_obj;

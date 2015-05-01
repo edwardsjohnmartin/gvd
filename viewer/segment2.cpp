@@ -444,6 +444,7 @@ GVDViewer2::GVDViewer2(const int win_width, const int win_height)
   gaussMapResolution = 4;
   gaussMap.setResolution(gaussMapResolution);
   show_gaussmap = false;
+  show_cell_bins = false;
 
   dirty = false;
 
@@ -623,6 +624,9 @@ void GVDViewer2::Keyboard(unsigned char key, int x, int y) {
       break;
     case 'G':
       show_gaussmap = !show_gaussmap;
+      break;
+    case 'b':
+      show_cell_bins = !show_cell_bins;
       break;
     case 's':
       o.ambiguous_max_level++;
@@ -1116,19 +1120,6 @@ bool GVDViewer2::DrawEdge(const int vi, const int n_vi,
 }
 
 void GVDViewer2::DrawOctree() const {
-  vector<pair<int, int> > bins = ComputeVertexBinning();
-  DrawEdgeCells(bins);
-
-  /*// TODO - temporary hack
-  vector<oct::GeomPoint> closest_points = vertices.GetClosestPoints();
-  for (int i=0; i<relabels.size(); i++)
-    closest_points[relabels[i].first].l = relabels[i].second;
-  oct::VertexNetwork vertices2(
-    vertices.NumVertices(),
-    &(vertices.GetVertices()[0]),
-    vertices.NumClosestPoints(),
-    &closest_points[0]);*/
-
   glLineWidth(1.0);
   // glColor3f(0.7, 0.7, 0.7);
   glColor3dv(octree_color.s);
@@ -1231,7 +1222,7 @@ vector<pair<int, int> > GVDViewer2::ComputeVertexBinning() const {
  * Draws color to fill the octree cells that contain any edges (geometry)
  * inside of them.
  */
-void GVDViewer2::DrawEdgeCells(const vector<pair<int, int> >& bins) const {
+void GVDViewer2::DrawCellBins(const vector<pair<int, int> >& bins) const {
   for (int i = 0; i < bins.size(); i++) {
     // Fill in the cell color according to the binning.
     int vi = bins[i].first;
@@ -1843,6 +1834,7 @@ void GVDViewer2::PrintHelp() const {
     HelpString("  B - toggle buffer", i++);
     HelpString("Inverse Gauss Map control", i++);
     HelpString("  +/- - increment/decrement gauss map resolution", i++);
+    HelpString("  b - toggle show/hide the cell bin colors", i++);
     HelpString("  G - toggle show/hide the gauss map visualization", i++);
     // HelpString("C - ???", i++);
     HelpString("q - quit", i++);
@@ -1901,6 +1893,20 @@ void GVDViewer2::Display() {
   if (show_distance_field > 0) {
     DrawDistanceField();
   }
+
+  vector<pair<int, int> > bins = ComputeVertexBinning();
+  if (show_cell_bins)
+    DrawCellBins(bins);
+
+  /*// TODO - temporary hack
+  vector<oct::GeomPoint> closest_points = vertices.GetClosestPoints();
+  for (int i=0; i<relabels.size(); i++)
+    closest_points[relabels[i].first].l = relabels[i].second;
+  oct::VertexNetwork vertices2(
+    vertices.NumVertices(),
+    &(vertices.GetVertices()[0]),
+    vertices.NumClosestPoints(),
+    &closest_points[0]);*/
 
   // draw octree
   // glColor3f(0.0, 0.0, 0.0);
