@@ -1134,10 +1134,10 @@ void GVDViewer2::DrawEdgeCells() const {
         float total_len = 0;
         for (int j = 0; j < geoms.size(); j++) {
           std::vector<Edge> edges = geoms[j].GetEdges();
-          int2* verts = geoms[j].GetVertices();
+          std::vector<oct::SATData2> axes = geoms[j].GetAxes();
           for (int k = 0; k < edges.size(); k++) {
-            int2 vi1 = verts[edges[k].s[0]];
-            int2 vi2 = verts[edges[k].s[1]];
+            int2 vi1 = axes[k][0];
+            int2 vi2 = axes[k][1];
             float2 v1 = Oct2Obj(vi1);
             float2 v2 = Oct2Obj(vi2);
             float2 v = v2 - v1;
@@ -1149,6 +1149,7 @@ void GVDViewer2::DrawEdgeCells() const {
           }
         }
         // compute the average normal for this octree cell
+        total_len = 1 * normals.size();
         float2 average_normal = make_float2(0, 0);
         for (int j = 0; j < normals.size(); j++) {
           float2 n = normals[j].first;
