@@ -448,7 +448,7 @@ GVDViewer2::GVDViewer2(const int win_width, const int win_height)
 
   show_help = false;
   show_advanced_help = false;
-  show_octree = false;
+  show_octree = true;
   show_vertex_labels = false;
   show_cell_vertices = false;
   show_vertex_distance = false;
@@ -1749,6 +1749,8 @@ void GVDViewer2::PrintHelp() const {
     HelpString("  f/d - increment/decrement max octree level", i++);
     HelpString("  V - toggle full subdivide", i++);
     HelpString("  B - toggle buffer", i++);
+    HelpString("Inverse Gauss Map control", i++);
+    HelpString("  +/- - increment/decrement gauss map resolution", i++);
     // HelpString("C - ???", i++);
     HelpString("q - quit", i++);
     // HelpString("", i++);
