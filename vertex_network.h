@@ -406,6 +406,17 @@ class VertexNetwork {
     return count;
   }
 
+  // TODO - temporary?
+  int NumVertices() const {
+    return _vertices.size();
+  }
+  std::vector<Vertex> GetVertices() const {
+    return _vertices;
+  }
+  std::vector<GeomPoint> GetClosestPoints() const {
+    return _closest_points;
+  }
+
  private:
   //------------------------------------------------------------
   // private modifiers

@@ -1054,7 +1054,6 @@ void GVDViewer2::BuildOctree() {
   // Build the octree: use new function to get all return values
   oct::BuildOctreeRetval retval = oct::BuildExtendedOctree(all_vertices, all_edges, bb, o);
   vertices = retval.vertices;
-  lgeometries = retval.lgeometries; // TODO - not needed anymore?
   base2geometries = retval.base2geometries;
   if (o.timings)
     cout << "vertices size = " << vertices.size() << endl;
@@ -1117,7 +1116,7 @@ bool GVDViewer2::DrawEdge(const int vi, const int n_vi,
 }
 
 void GVDViewer2::DrawOctree() const {
-  DrawEdgeCells();
+  DrawEdgeCells(ComputeVertexBinning());
 
   glLineWidth(1.0);
   // glColor3f(0.7, 0.7, 0.7);
@@ -1148,29 +1147,31 @@ float3 GVDViewer2::GetBinColor(int bin) const {
 
 
 /**
- * Draws color to fill the octree cells that contain any edges (geometry)
- * inside of them.
+ * Computes the binning for every leaf vertex that contains one or more
+ * geometry edges. The bins, along with the associated vertex indices,
+ * are returned. Vertices without an assignment are not relabeled.
  */
-void GVDViewer2::DrawEdgeCells() const {
+vector<pair<int, int> > GVDViewer2::ComputeVertexBinning() const {
   const int num_verts = vertices.size();
   const int num_geoms = base2geometries.size();
-  const float normal_size = 0.05;//0.025;
+
+  vector<pair<int, int> > bins;
   if (num_verts == 0 || num_geoms == 0)
-    return;
+    return bins;
 
   // Find all leaf nodes (base vertices) and color them
   for (int i = 0; i < vertices.size(); ++i) {
     if (vertices.IsBase(i) && i < num_geoms) {
       // Each item in "geoms" is a single object inside this cell
-      std::vector<oct::LabeledGeometry> geoms = base2geometries[i];
+      vector<oct::LabeledGeometry> geoms = base2geometries[i];
       if (geoms.size() > 0) {
         // get all normals (and lengths) for every single geometry edge that
         // intersects this leaf node
-        std::vector<std::pair<float2, float> > normals;
+        vector<pair<float2, float> > normals;
         float total_len = 0;
         for (int j = 0; j < geoms.size(); j++) {
-          std::vector<Edge> edges = geoms[j].GetEdges();
-          std::vector<oct::SATData2> axes = geoms[j].GetAxes();
+          vector<Edge> edges = geoms[j].GetEdges();
+          vector<oct::SATData2> axes = geoms[j].GetAxes();
           for (int k = 0; k < edges.size(); k++) {
             // compute the normal and scale of this edge piece
             int2 vi1 = axes[k][0];
@@ -1183,11 +1184,12 @@ void GVDViewer2::DrawEdgeCells() const {
             total_len += len;
             n = n / len;
             normals.push_back(make_pair(n, len));
-            // draw the normal on the edge piece
+
+            // draw the normal on the edge piece (debug)
             float2 v1v2 = v1 + v2;
             float2 center = make_float2(v1v2.x/2, v1v2.y/2);
-            float x_scale = n.x * normal_size;
-            float y_scale = n.y * normal_size;
+            float x_scale = n.x * 0.05;
+            float y_scale = n.y * 0.05;
             glColor3f(0, 1, 0);
             glBegin(GL_LINES);
             glVertex2f(center.x, center.y);
@@ -1204,25 +1206,49 @@ void GVDViewer2::DrawEdgeCells() const {
           if (weight > 0)
             average_normal += n * weight;
         }
-
-        // Fill in the cell color according to the binning.
+        // save new vertex label
         int bin = gaussMap.getBin(average_normal);
-        float3 color = GetBinColor(bin);
-        glColor3f(color.x, color.y, color.z);
-        const int* corners = vertices.GetCorners(i);
-        glBegin(GL_POLYGON);
-        int indices[4] = {0, 1, 3, 2};
-        for(int j = 0; j < 4; j++) {
-          int idx = indices[j];
-          int corner = corners[idx];
-          intn pos = vertices.Position(corner);
-          float2 fpos = Oct2Obj(pos);
-          glVertex2f(fpos.x, fpos.y);
-        }
-        glEnd();
+        bins.push_back(make_pair(i, bin));
       }
     }
   }
+  return bins;
+}
+
+
+/**
+ * Draws color to fill the octree cells that contain any edges (geometry)
+ * inside of them.
+ */
+void GVDViewer2::DrawEdgeCells(const vector<pair<int, int> >& bins) const {
+  for (int i = 0; i < bins.size(); i++) {
+    // Fill in the cell color according to the binning.
+    int vi = bins[i].first;
+    int bin = bins[i].second;
+    float3 color = GetBinColor(bin);
+    glColor3f(color.x, color.y, color.z);
+    const int* corners = vertices.GetCorners(vi);
+    glBegin(GL_POLYGON);
+    int indices[4] = {0, 1, 3, 2}; // ordering to make a square
+    for(int j = 0; j < 4; j++) {
+      int idx = indices[j];
+      int corner = corners[idx];
+      intn pos = vertices.Position(corner);
+      float2 fpos = Oct2Obj(pos);
+      glVertex2f(fpos.x, fpos.y);
+    }
+    glEnd();
+  }
+
+  /*// TODO - temporary hack
+  vector<oct::GeomPoint> closest_points = vertices.GetClosestPoints();
+  for (int i=0; i<relabels.size(); i++)
+    closest_points[relabels[i].first].l = relabels[i].second;
+  oct::VertexNetwork vertices2(
+    vertices.NumVertices(),
+    &(vertices.GetVertices()[0]),
+    vertices.NumClosestPoints(),
+    &closest_points[0]);*/
 }
 
 

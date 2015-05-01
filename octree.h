@@ -813,7 +813,6 @@ std::vector<std::vector<int> > ComputeBase2Incident(
 
 // Because nothing is object oriented here, this hack lets return two items. Hacky... really, really hacky.
 struct BuildOctreeRetval {
-  std::vector<oct::LabeledGeometry> lgeometries;
   std::vector<std::vector<oct::LabeledGeometry> > base2geometries;
   oct::VertexNetwork vertices;
 };

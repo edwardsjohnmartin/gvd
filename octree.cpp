@@ -1047,9 +1047,6 @@ VertexNetwork BuildOctree(
       retval->base2geometries = base2geometries;
   }
 
-  // if lgeom_retval struct is passed in, add lgeometries to it
-  if (retval)
-    retval->lgeometries = lgeometries;
   // return make_mvertex_network(vertices);
   return vertices;
 }
