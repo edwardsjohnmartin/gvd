@@ -14,6 +14,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <iostream>
 
 #include "../../opencl/vec_cpp.h"
 
@@ -40,9 +41,9 @@ class InverseGaussMap
     int getBin2D(float x, float y) const
     {
         assert(DIMENSION == 2);
-        float theta = acos(x);
-        if(y < 0)
-            theta += M_PI;
+        float theta = atan2(y, x);
+        if (theta < 0)
+            theta += 2*M_PI;
         return getBinFromAngle(theta, resolution);
     }
 
@@ -52,6 +53,7 @@ class InverseGaussMap
     int getBin3D(float x, float y, float z) const
     {
         assert(DIMENSION == 3);
+        // TODO - algorithm for finding angles might be wrong?
         float theta = atan2(y, x);
         float phi = atan2(z, sqrt(x*x + y*y));
         int x_bin = getBinFromAngle(theta, resolution_sqrt);
