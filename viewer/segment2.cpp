@@ -614,14 +614,12 @@ void GVDViewer2::Keyboard(unsigned char key, int x, int y) {
     case '+':
       gaussMapResolution++;
       gaussMap.setResolution(gaussMapResolution);
-      cout << "Inverse Gauss Map resolution = " << gaussMapResolution << endl;
       break;
     case '-':
       gaussMapResolution--;
       if(gaussMapResolution < 1)
         gaussMapResolution = 1;
       gaussMap.setResolution(gaussMapResolution);
-      cout << "Inverse Gauss Map resolution = " << gaussMapResolution << endl;
       break;
     case 'G':
       show_gaussmap = !show_gaussmap;
@@ -1269,6 +1267,10 @@ void GVDViewer2::DrawInverseGaussMap() const {
     glVertex2d(x, y);
   }
   glEnd();
+
+  // draw the number of bins (resolution) over the map
+  BitmapString(num_bins, Win2Obj(make_float2(center.x, center.y)),
+               kCenterJustify, kCenterJustify);
 }
 
 void DrawGVDVisitor(int ai, const double2& a,
@@ -1768,6 +1770,11 @@ void GVDViewer2::PrintStatistics() const {
     BitmapString(ss.str(), Win2Obj(make_float2(2, window_height-19)),
                  kLeftJustify, kBottomJustify);
   } {
+    stringstream ss;
+    ss << "Gauss map resolution: " << gaussMap.getResolution();
+    BitmapString(ss.str(), Win2Obj(make_float2(2, window_height-36)),
+                 kLeftJustify, kBottomJustify);
+  } {
     const int2 mouse_oct = convert_int2(Obj2Oct(mouse_obj));
     stringstream ss;
     // ss << mouse_oct;
@@ -1809,6 +1816,7 @@ void GVDViewer2::PrintHelp() const {
     HelpString("  B - toggle buffer", i++);
     HelpString("Inverse Gauss Map control", i++);
     HelpString("  +/- - increment/decrement gauss map resolution", i++);
+    HelpString("  G - toggle show/hide the gauss map visualization", i++);
     // HelpString("C - ???", i++);
     HelpString("q - quit", i++);
     // HelpString("", i++);
