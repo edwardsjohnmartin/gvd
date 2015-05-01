@@ -37,7 +37,7 @@ class InverseGaussMap
     /**
      * Returns the bin number for a 2D circular Gauss map.
      */
-    int getBin2D(float x, float y)
+    int getBin2D(float x, float y) const
     {
         assert(DIMENSION == 2);
         float theta = acos(x);
@@ -49,7 +49,7 @@ class InverseGaussMap
     /**
      * Returns the bin number for a 3D spherical Gauss map.
      */
-    int getBin3D(float x, float y, float z)
+    int getBin3D(float x, float y, float z) const
     {
         assert(DIMENSION == 3);
         float theta = atan2(y, x);
@@ -65,7 +65,7 @@ class InverseGaussMap
      * or smaller than 0, the resulting bin will be converted to the correct
      * value. Assumes k is correctly larger than 0.
      */
-    int getBinFromAngle(float theta, int k)
+    int getBinFromAngle(float theta, int k) const
     {
         int bin = (int)floor((theta / (2*M_PI)) * k);
         bin = bin % k;
@@ -82,7 +82,7 @@ class InverseGaussMap
      * and set up the initial resolution. Dimension must be 2 or 3, and
      * resolution must be greater than 0.
      */
-    InverseGaussMap(int resolution)
+    InverseGaussMap(int resolution = 4)
     {
         assert(DIMENSION == 2 || DIMENSION == 3);
         setResolution(resolution);
@@ -107,7 +107,7 @@ class InverseGaussMap
     /**
      * Returns the resulution (number of bins).
      */
-    int getResolution()
+    int getResolution() const
     {
         return resolution;
     }
@@ -116,7 +116,7 @@ class InverseGaussMap
      * Returns the bin for the correct dimension by calling the appropriate
      * 2D or 3D bin function.
      */
-    int getBin(MyVec<float, DIMENSION> normal)
+    int getBin(MyVec<float, DIMENSION> normal) const
     {
         if(DIMENSION == 2)
             return getBin2D(normal.x, normal.y);

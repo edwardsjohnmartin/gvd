@@ -30,7 +30,6 @@
 #include "./segment2.h"
 #include "../shared_ptr.h"
 #include "./pngio.h"
-#include "./decomposition/inverse_gauss_map.h"
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -441,6 +440,9 @@ const float3 GVDViewer2::red = make_float3(1, 0, 0);
 GVDViewer2::GVDViewer2(const int win_width, const int win_height)
     : GL2D(win_width, win_height) {
   mouse_active = false;
+
+  gaussMapResolution = 4;
+  gaussMap.setResolution(gaussMapResolution);
 
   dirty = false;
 
@@ -1112,7 +1114,6 @@ void GVDViewer2::DrawOctree() const {
   glEnd();
 }
 
-InverseGaussMap<2> gaussMap(4);
 void GVDViewer2::DrawEdgeCells() const {
   const int num_verts = vertices.size();
   const int num_geoms = base2geometries.size();
@@ -1137,6 +1138,7 @@ void GVDViewer2::DrawEdgeCells() const {
           std::vector<Edge> edges = geoms[j].GetEdges();
           std::vector<oct::SATData2> axes = geoms[j].GetAxes();
           for (int k = 0; k < edges.size(); k++) {
+            // compute the normal and scale of this edge piece
             int2 vi1 = axes[k][0];
             int2 vi2 = axes[k][1];
             float2 v1 = Oct2Obj(vi1);
@@ -1147,8 +1149,7 @@ void GVDViewer2::DrawEdgeCells() const {
             total_len += len;
             n = n / len;
             normals.push_back(make_pair(n, len));
-
-            // draw the normals on each edge piece
+            // draw the normal on the edge piece
             float2 v1v2 = v1 + v2;
             float2 center = make_float2(v1v2.x/2, v1v2.y/2);
             float x_scale = n.x * normal_size;
@@ -1170,9 +1171,8 @@ void GVDViewer2::DrawEdgeCells() const {
             average_normal += n * weight;
         }
 
-        // Fill in the cell in accordance to the binning of this cell
+        // Automatically choose a color for this bin.
         int bin = gaussMap.getBin(average_normal);
-        //cout << bin << endl;
         int mid = gaussMap.getResolution()/2;
         float diff = abs(bin - mid) / (float)mid;
         float red = 1.0;
@@ -1182,16 +1182,9 @@ void GVDViewer2::DrawEdgeCells() const {
         if (bin < mid)
             blu -= diff;
         float grn = diff;
-        //cout << red << ", " << grn << " " << blu << endl;
         glColor3f(red, grn, blu);
-        /*if (bin == 0)
-          glColor3f(1, 1, 0);
-        else if (bin == 1)
-          glColor3f(1, 0.5, 0.1);
-        else if (bin == 2)
-          glColor3f(1, 1, 0);
-        else
-          glColor3f(0, 1, 1);*/
+
+        // fill in the cell color according to the binning
         const int* corners = vertices.GetCorners(i);
         glBegin(GL_POLYGON);
         int indices[4] = {0, 1, 3, 2};
@@ -1206,7 +1199,6 @@ void GVDViewer2::DrawEdgeCells() const {
       }
     }
   }
-
 }
 
 void DrawGVDVisitor(int ai, const double2& a,

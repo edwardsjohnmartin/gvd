@@ -29,6 +29,8 @@
 #include "../octree.h"
 #include "../graph.h"
 
+#include "./decomposition/inverse_gauss_map.h"
+
 class GVDViewer2 : public GL2D {
  public:
   typedef oct::Timer Timer;
@@ -148,6 +150,10 @@ class GVDViewer2 : public GL2D {
   void HelpString(const std::string msg, const int i) const;
 
  private:
+  // Gauss map parameters
+  InverseGaussMap<2> gaussMap;
+  int gaussMapResolution;
+
   float2 mouse_obj;
   bool mouse_active;
 
