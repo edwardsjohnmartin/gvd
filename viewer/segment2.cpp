@@ -610,6 +610,18 @@ void GVDViewer2::Keyboard(unsigned char key, int x, int y) {
       cout << "Max octree level = " << static_cast<int>(o.max_level) << endl;
       dirty = true;
       break;
+    case '+':
+      gaussMapResolution++;
+      gaussMap.setResolution(gaussMapResolution);
+      cout << "Inverse Gauss Map resolution = " << gaussMapResolution << endl;
+      break;
+    case '-':
+      gaussMapResolution--;
+      if(gaussMapResolution < 1)
+        gaussMapResolution = 1;
+      gaussMap.setResolution(gaussMapResolution);
+      cout << "Inverse Gauss Map resolution = " << gaussMapResolution << endl;
+      break;
     case 's':
       o.ambiguous_max_level++;
       cout << "Max GVD subdivision level = "
