@@ -1116,7 +1116,18 @@ bool GVDViewer2::DrawEdge(const int vi, const int n_vi,
 }
 
 void GVDViewer2::DrawOctree() const {
-  DrawEdgeCells(ComputeVertexBinning());
+  vector<pair<int, int> > bins = ComputeVertexBinning();
+  DrawEdgeCells(bins);
+
+  /*// TODO - temporary hack
+  vector<oct::GeomPoint> closest_points = vertices.GetClosestPoints();
+  for (int i=0; i<relabels.size(); i++)
+    closest_points[relabels[i].first].l = relabels[i].second;
+  oct::VertexNetwork vertices2(
+    vertices.NumVertices(),
+    &(vertices.GetVertices()[0]),
+    vertices.NumClosestPoints(),
+    &closest_points[0]);*/
 
   glLineWidth(1.0);
   // glColor3f(0.7, 0.7, 0.7);
@@ -1226,7 +1237,7 @@ void GVDViewer2::DrawEdgeCells(const vector<pair<int, int> >& bins) const {
     int vi = bins[i].first;
     int bin = bins[i].second;
     float3 color = GetBinColor(bin);
-    glColor3f(color.x, color.y, color.z);
+    glColor4f(color.x, color.y, color.z, 0.75);
     const int* corners = vertices.GetCorners(vi);
     glBegin(GL_POLYGON);
     int indices[4] = {0, 1, 3, 2}; // ordering to make a square
@@ -1239,16 +1250,6 @@ void GVDViewer2::DrawEdgeCells(const vector<pair<int, int> >& bins) const {
     }
     glEnd();
   }
-
-  /*// TODO - temporary hack
-  vector<oct::GeomPoint> closest_points = vertices.GetClosestPoints();
-  for (int i=0; i<relabels.size(); i++)
-    closest_points[relabels[i].first].l = relabels[i].second;
-  oct::VertexNetwork vertices2(
-    vertices.NumVertices(),
-    &(vertices.GetVertices()[0]),
-    vertices.NumClosestPoints(),
-    &closest_points[0]);*/
 }
 
 
@@ -1269,7 +1270,7 @@ void GVDViewer2::DrawInverseGaussMap() const {
   float seg_size = 2 * M_PI / (segs_per_bin * num_bins);
   for (int bin=0; bin<num_bins; bin++) {
     float3 color = GetBinColor(bin);
-    glColor3f(color.x, color.y, color.z);
+    glColor4f(color.x, color.y, color.z, 0.75);
     glBegin(GL_POLYGON);
     glVertex2d(center.x, center.y);
     for (int i=0; i<segs_per_bin + 1; i++) {
