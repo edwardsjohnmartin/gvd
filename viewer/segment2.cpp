@@ -443,6 +443,7 @@ GVDViewer2::GVDViewer2(const int win_width, const int win_height)
 
   gaussMapResolution = 4;
   gaussMap.setResolution(gaussMapResolution);
+  show_gaussmap = false;
 
   dirty = false;
 
@@ -621,6 +622,9 @@ void GVDViewer2::Keyboard(unsigned char key, int x, int y) {
         gaussMapResolution = 1;
       gaussMap.setResolution(gaussMapResolution);
       cout << "Inverse Gauss Map resolution = " << gaussMapResolution << endl;
+      break;
+    case 'G':
+      show_gaussmap = !show_gaussmap;
       break;
     case 's':
       o.ambiguous_max_level++;
@@ -1126,15 +1130,35 @@ void GVDViewer2::DrawOctree() const {
   glEnd();
 }
 
+
+/**
+ * Based on the provided bin, returns a bright color, automatically
+ * selected based on the maximum bin (resolution) of the Gauss Map.
+ */
+float3 GVDViewer2::GetBinColor(int bin) const {
+  int mid = gaussMap.getResolution()/2;
+  float diff = abs(bin - mid) / (float)mid;
+  float red = 1.0;
+  float blu = 1.0;
+  if (bin >= mid)
+    red -= diff;
+  if (bin < mid)
+    blu -= diff;
+  float grn = diff;
+  return make_float3(red, grn, blu);
+}
+
+
+/**
+ * Draws color to fill the octree cells that contain any edges (geometry)
+ * inside of them.
+ */
 void GVDViewer2::DrawEdgeCells() const {
   const int num_verts = vertices.size();
   const int num_geoms = base2geometries.size();
   const float normal_size = 0.05;//0.025;
   if (num_verts == 0 || num_geoms == 0)
     return;
-
-  //if (num_verts != num_geoms)
-  //  cout << "NOT EQUAL" << endl;
 
   // Find all leaf nodes (base vertices) and color them
   for (int i = 0; i < vertices.size(); ++i) {
@@ -1183,20 +1207,10 @@ void GVDViewer2::DrawEdgeCells() const {
             average_normal += n * weight;
         }
 
-        // Automatically choose a color for this bin.
+        // Fill in the cell color according to the binning.
         int bin = gaussMap.getBin(average_normal);
-        int mid = gaussMap.getResolution()/2;
-        float diff = abs(bin - mid) / (float)mid;
-        float red = 1.0;
-        float blu = 1.0;
-        if (bin >= mid)
-            red -= diff;
-        if (bin < mid)
-            blu -= diff;
-        float grn = diff;
-        glColor3f(red, grn, blu);
-
-        // fill in the cell color according to the binning
+        float3 color = GetBinColor(bin);
+        glColor3f(color.x, color.y, color.z);
         const int* corners = vertices.GetCorners(i);
         glBegin(GL_POLYGON);
         int indices[4] = {0, 1, 3, 2};
@@ -1211,6 +1225,50 @@ void GVDViewer2::DrawEdgeCells() const {
       }
     }
   }
+}
+
+
+/**
+ * Draws the 2D gauss map as a circle on the screen, with each bin (angle
+ * position) filled with the appropriate binning color.
+ */
+void GVDViewer2::DrawInverseGaussMap() const {
+  const float2 center = make_float2(0.85, 0.75);
+  const float radius = 0.15;
+  const int num_segments = 40;
+
+  // draw each segment of a circle colored by its bin color
+  int num_bins = gaussMap.getResolution();
+  int segs_per_bin = num_segments / num_bins;
+  if (segs_per_bin < 2)
+    segs_per_bin = 2;
+  float seg_size = 2 * M_PI / (segs_per_bin * num_bins);
+  for (int bin=0; bin<num_bins; bin++) {
+    float3 color = GetBinColor(bin);
+    glColor3f(color.x, color.y, color.z);
+    glBegin(GL_POLYGON);
+    glVertex2d(center.x, center.y);
+    for (int i=0; i<segs_per_bin + 1; i++) {
+      float angle = ((bin*segs_per_bin)+i)*seg_size;
+      float x = center.x + radius*cos(angle);
+      float y = center.y + radius*sin(angle);
+      glVertex2d(x, y);
+    }
+    glVertex2d(center.x, center.y);
+    glEnd();
+  }
+
+  // draw a black circle around the whole thing
+  seg_size = 2 * M_PI / num_segments;
+  glColor3f(0, 0, 0);
+  glBegin(GL_LINE_LOOP);
+  for (int i=0; i<num_segments; i++) {
+    float angle = i*seg_size;
+    float x = center.x + radius*cos(angle);
+    float y = center.y + radius*sin(angle);
+    glVertex2d(x, y);
+  }
+  glEnd();
 }
 
 void DrawGVDVisitor(int ai, const double2& a,
@@ -1813,9 +1871,10 @@ void GVDViewer2::Display() {
   // glColor3f(0.0, 0.0, 0.0);
   glColor3f(0.7, 0.7, 0.7);
   glLineWidth(1.0);
-  if (show_octree) {
+  if (show_octree)
     DrawOctree();
-  }
+  if (show_gaussmap)
+    DrawInverseGaussMap();
 
   if (polygon_mode > 0) {
     glColor3f(0.9, 0.9, 0.9);

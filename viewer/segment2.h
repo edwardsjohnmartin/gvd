@@ -97,6 +97,7 @@ class GVDViewer2 : public GL2D {
                 const oct::Direction& d) const;
   void DrawOctree() const;
   void DrawEdgeCells() const;
+  void DrawInverseGaussMap() const;
   void DrawGVD() const;
   void DrawPath() const;
   void DrawVoronoi() const;
@@ -153,6 +154,8 @@ class GVDViewer2 : public GL2D {
   // Gauss map parameters
   InverseGaussMap<2> gaussMap;
   int gaussMapResolution;
+  float3 GetBinColor(int bin) const;
+  bool show_gaussmap;
 
   float2 mouse_obj;
   bool mouse_active;
