@@ -156,6 +156,7 @@ class GVDViewer2 : public GL2D {
   int gaussMapResolution;
   float3 GetBinColor(int bin) const;
   bool show_gaussmap;
+  bool show_normals;
   bool show_cell_bins;
   std::vector<std::pair<int, int> > ComputeVertexBinning() const;
 

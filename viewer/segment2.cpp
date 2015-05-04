@@ -444,6 +444,7 @@ GVDViewer2::GVDViewer2(const int win_width, const int win_height)
   gaussMapResolution = 4;
   gaussMap.setResolution(gaussMapResolution);
   show_gaussmap = false;
+  show_normals = false;
   show_cell_bins = false;
 
   dirty = false;
@@ -627,6 +628,9 @@ void GVDViewer2::Keyboard(unsigned char key, int x, int y) {
       break;
     case 'b':
       show_cell_bins = !show_cell_bins;
+      break;
+    case 'n':
+      show_normals = !show_normals;
       break;
     case 's':
       o.ambiguous_max_level++;
@@ -1188,15 +1192,17 @@ vector<pair<int, int> > GVDViewer2::ComputeVertexBinning() const {
             normals.push_back(make_pair(n, len));
 
             // draw the normal on the edge piece (debug)
-            float2 v1v2 = v1 + v2;
-            float2 center = make_float2(v1v2.x/2, v1v2.y/2);
-            float x_scale = n.x * 0.05;
-            float y_scale = n.y * 0.05;
-            glColor3f(0, 1, 0);
-            glBegin(GL_LINES);
-            glVertex2f(center.x, center.y);
-            glVertex2f(center.x + x_scale, center.y + y_scale);
-            glEnd();
+            if (show_normals) {
+              float2 v1v2 = v1 + v2;
+              float2 center = make_float2(v1v2.x/2, v1v2.y/2);
+              float x_scale = n.x * 0.05;
+              float y_scale = n.y * 0.05;
+              glColor3f(0, 1, 0);
+              glBegin(GL_LINES);
+              glVertex2f(center.x, center.y);
+              glVertex2f(center.x + x_scale, center.y + y_scale);
+              glEnd();
+            }
           }
         }
         // compute the average normal for this octree cell
@@ -1835,6 +1841,7 @@ void GVDViewer2::PrintHelp() const {
     HelpString("Inverse Gauss Map control", i++);
     HelpString("  +/- - increment/decrement gauss map resolution", i++);
     HelpString("  b - toggle show/hide the cell bin colors", i++);
+    HelpString("  n - toggle show/hide the object edge normals", i++);
     HelpString("  G - toggle show/hide the gauss map visualization", i++);
     // HelpString("C - ???", i++);
     HelpString("q - quit", i++);
