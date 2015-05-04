@@ -160,7 +160,8 @@ class GVDViewer2 : public GL2D {
   bool show_normals;
   bool show_cell_bins;
   map<int, int> ComputeVertexBinning() const;
-  std::vector<std::vector<float2> > RefinePolygons(const std::map<int, int>& bins) const;
+  void RefinePolygons(const std::map<int, int>& bins);
+  std::vector<std::vector<float2> > refined_polygons;
 
   float2 mouse_obj;
   bool mouse_active;

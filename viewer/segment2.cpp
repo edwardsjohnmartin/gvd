@@ -1032,12 +1032,12 @@ void GVDViewer2::BuildOctree(bool refine) {
 
   vector<vector<float2> > temp_polygons;
   if (refine) {
-     // TODO
-     cout << "Refining!" << endl;
-     return;
+     temp_polygons.insert(temp_polygons.end(),
+        refined_polygons.begin(), refined_polygons.end());
   }
   else {
-    temp_polygons.insert(temp_polygons.end(), polygons.begin(), polygons.end());
+    temp_polygons.insert(temp_polygons.end(),
+        polygons.begin(), polygons.end());
     if (!verts.empty()) {
       temp_polygons.push_back(verts);
     }
@@ -1242,7 +1242,7 @@ map<int, int> GVDViewer2::ComputeVertexBinning() const {
  * computation of the octree. This will generate the GVD as well as the medial
  * axis within each individual polygon.
  */
-vector<vector<float2> > GVDViewer2::RefinePolygons(const map<int, int>& bins) const {
+void GVDViewer2::RefinePolygons(const map<int, int>& bins) {
 
   // TODO - temporary (need to SERIOUSLY rewrite this)
   vector<vector<int> > closest_verts;
@@ -1270,7 +1270,7 @@ vector<vector<float2> > GVDViewer2::RefinePolygons(const map<int, int>& bins) co
     }
   }
 
-  vector<vector<float2> > refined_polygons;
+  refined_polygons.clear();
   for (int i = 0; i < polygons.size(); i++) {
     for (int j = 0; j < polygons[i].size(); j++) {
       int vi = closest_verts[i][j]; //TODO
@@ -1291,7 +1291,6 @@ vector<vector<float2> > GVDViewer2::RefinePolygons(const map<int, int>& bins) co
       refined_polygons.push_back(micro_object);
     }
   }
-  return refined_polygons;
 }
 
 
@@ -1977,7 +1976,8 @@ void GVDViewer2::Display() {
   if (show_cell_bins)
     DrawCellBins(bins);
 
-  vector<vector<float2> > refined_polygons = RefinePolygons(bins);
+  RefinePolygons(bins);
+  //BuildOctree(true);
 
   // draw octree
   // glColor3f(0.0, 0.0, 0.0);
