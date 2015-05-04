@@ -1165,6 +1165,9 @@ map<int, int> GVDViewer2::ComputeVertexBinning() const {
   if (num_verts == 0 || num_geoms == 0)
     return bins;
 
+  if (show_normals)
+    glColor3f(0, 1, 0);
+
   // Find all leaf nodes (base vertices) and color them
   for (int vi = 0; vi < vertices.size(); vi++) {
     if (vertices.IsBase(vi) && vi < num_geoms) {
@@ -1197,7 +1200,6 @@ map<int, int> GVDViewer2::ComputeVertexBinning() const {
               float2 center = make_float2(v1v2.x/2, v1v2.y/2);
               float x_scale = n.x * 0.025;
               float y_scale = n.y * 0.025;
-              glColor3f(0, 1, 0);
               glBegin(GL_LINES);
               glVertex2f(center.x, center.y);
               glVertex2f(center.x + x_scale, center.y + y_scale);
@@ -1232,17 +1234,60 @@ map<int, int> GVDViewer2::ComputeVertexBinning() const {
  * axis within each individual polygon.
  */
 void GVDViewer2::RefinePolygons(const map<int, int>& bins) const {
+
+  // TODO - temporary (need to SERIOUSLY rewrite this)
+  vector<vector<int> > closest_verts;
+  for (int i = 0; i < polygons.size(); i++) {
+    closest_verts.push_back(vector<int>());
+    for (int j = 0; j < polygons[i].size(); j++) {
+      int closest = -1;
+      float closest_d2 = 0;
+      for (int vi = 0; vi < vertices.size(); vi++) {
+        if (bins.find(vi) != bins.end()) {
+          const int* corners = vertices.GetCorners(vi);
+          int base_corner = corners[0];
+          intn pos = vertices.Position(base_corner);
+          float2 fpos = Oct2Obj(pos);
+          float x_dist = fpos.x - polygons[i][j].x;
+          float y_dist = fpos.y - polygons[i][j].y;
+          float dist2 = x_dist*x_dist + y_dist*y_dist;
+          if (dist2 < closest_d2 || closest == -1) {
+            closest = vi;
+            closest_d2 = dist2;
+          }
+        }
+      }
+      closest_verts[i].push_back(closest);
+    }
+  }
+
   vector<vector<float2> > refined_polygons;
   for (int i = 0; i < polygons.size(); i++) {
     for (int j = 0; j < polygons[i].size(); j++) {
-      int vi = 0; //TODO the octree leaf polygons[i][j] is in
-      int bin = bins.at(vi);
+      //TODO the octree leaf polygons[i][j] is in
+      int vi = closest_verts[i][j];
+      int bin;
+      try {
+        int bin = bins.at(vi);
+      }
+      catch (const std::out_of_range& oor) {
+        cerr << "OOR: " << vi << ", i=" << i << ", j=" << j << " of " << polygons[i].size() << endl;
+        break;
+      }
       vector<float2> micro_object;
       micro_object.push_back(polygons[i][j]);
       j++;
       while (j < polygons[i].size()) {
-        vi = 0; //TODO the octree leaf polygons[i][j] is in
-        int bin_next = bins.at(vi);
+        vi = closest_verts[i][j]; //TODO
+        int bin_next;
+        try {
+          bin_next = bins.at(vi);
+        }
+        catch (const std::out_of_range& oor) {
+          j++;
+          cerr << "OOR: " << i << " (" << j << ")" << endl;
+          continue;
+        }
         if (bin_next == bin) {
           micro_object.push_back(polygons[i][j]);
           j++;
@@ -1938,15 +1983,7 @@ void GVDViewer2::Display() {
   if (show_cell_bins)
     DrawCellBins(bins);
 
-  /*// TODO - temporary hack
-  vector<oct::GeomPoint> closest_points = vertices.GetClosestPoints();
-  for (int i=0; i<relabels.size(); i++)
-    closest_points[relabels[i].first].l = relabels[i].second;
-  oct::VertexNetwork vertices2(
-    vertices.NumVertices(),
-    &(vertices.GetVertices()[0]),
-    vertices.NumClosestPoints(),
-    &closest_points[0]);*/
+  RefinePolygons(bins);
 
   // draw octree
   // glColor3f(0.0, 0.0, 0.0);
