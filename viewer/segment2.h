@@ -16,6 +16,7 @@
 #define __Segment2_H__
 
 #include <vector>
+#include <map>
 
 #include "../opencl/defs.h"
 #include "../opencl/vec.h"
@@ -96,7 +97,7 @@ class GVDViewer2 : public GL2D {
                 // const oct::Direction<2>& d) const;
                 const oct::Direction& d) const;
   void DrawOctree() const;
-  void DrawCellBins(const std::vector<std::pair<int, int> >& bins) const;
+  void DrawCellBins(const std::map<int, int>& bins) const;
   void DrawInverseGaussMap() const;
   void DrawGVD() const;
   void DrawPath() const;
@@ -158,7 +159,8 @@ class GVDViewer2 : public GL2D {
   bool show_gaussmap;
   bool show_normals;
   bool show_cell_bins;
-  std::vector<std::pair<int, int> > ComputeVertexBinning() const;
+  map<int, int> ComputeVertexBinning() const;
+  void RefineOctree(std::vector<std::pair<int, int> > bins) const;
 
   float2 mouse_obj;
   bool mouse_active;

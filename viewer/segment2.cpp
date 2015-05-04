@@ -1157,11 +1157,11 @@ float3 GVDViewer2::GetBinColor(int bin) const {
  * geometry edges. The bins, along with the associated vertex indices,
  * are returned. Vertices without an assignment are not relabeled.
  */
-vector<pair<int, int> > GVDViewer2::ComputeVertexBinning() const {
+map<int, int> GVDViewer2::ComputeVertexBinning() const {
   const int num_verts = vertices.size();
   const int num_geoms = base2geometries.size();
 
-  vector<pair<int, int> > bins;
+  map<int, int> bins;
   if (num_verts == 0 || num_geoms == 0)
     return bins;
 
@@ -1216,7 +1216,7 @@ vector<pair<int, int> > GVDViewer2::ComputeVertexBinning() const {
         }
         // save new vertex label
         int bin = gaussMap.getBin(average_normal);
-        bins.push_back(make_pair(vi, bin));
+        bins[vi] = bin;
       }
     }
   }
@@ -1224,15 +1224,58 @@ vector<pair<int, int> > GVDViewer2::ComputeVertexBinning() const {
 }
 
 
+void GVDViewer2::RefineOctree(vector<pair<int, int> > bins) const {
+  vector<vector<float2> > refined_polygons;
+  for (int i = 0; i < polygons.size(); i++) {
+    for (int j = 0; j < polygons[i].size(); j++) {
+      int vi = 0; //TODO the octree leaf polygons[i][j] is in
+      int bin = 0; //TODO bins[vi] <= bins should be a map!
+      vector<float2> micro_object;
+      micro_object.push_back(polygons[i][j]);
+      j++;
+      while (j < polygons[i].size()) {
+        vi = 0; //TODO the octree leaf polygons[i][j] is in
+        int bin_next = 0; //TODO bins[vi];
+        if (bin_next == bin) {
+          micro_object.push_back(polygons[i][j]);
+          j++;
+        }
+        else
+          break;
+      }
+      refined_polygons.push_back(micro_object);
+    }
+  }
+
+  vector<vector<float2> > temp_polygons(polygons);
+  if (!verts.empty()) {
+    temp_polygons.push_back(verts);
+  }
+  vector<vector<float2> > all_vertices(temp_polygons.size());
+  vector<vector<Edge> > all_edges(temp_polygons.size());
+  for (int i = 0; i < temp_polygons.size(); ++i) {
+    const vector<float2>& polygon = temp_polygons[i];
+    all_vertices[i] = polygon;
+    for (int j = 0; j < polygon.size()-1; ++j) {
+      all_edges[i].push_back(make_edge(j, j+1));
+      // cout << "Adding edge " << i << ": (" << polygon[j]
+      //      << "), (" << polygon[j+1] << ")"
+      //      << endl;
+    }
+  }
+}
+
+
 /**
  * Draws color to fill the octree cells that contain any edges (geometry)
  * inside of them.
  */
-void GVDViewer2::DrawCellBins(const vector<pair<int, int> >& bins) const {
-  for (int i = 0; i < bins.size(); i++) {
+void GVDViewer2::DrawCellBins(const map<int, int>& bins) const {
+  map<int, int>::const_iterator it;
+  for (it = bins.begin(); it != bins.end(); it++) {
     // Fill in the cell color according to the binning.
-    int vi = bins[i].first;
-    int bin = bins[i].second;
+    int vi = it->first;
+    int bin = it->second;
     float3 color = GetBinColor(bin);
     glColor4f(color.x, color.y, color.z, 0.75);
     const int* corners = vertices.GetCorners(vi);
@@ -1901,7 +1944,7 @@ void GVDViewer2::Display() {
     DrawDistanceField();
   }
 
-  vector<pair<int, int> > bins = ComputeVertexBinning();
+  map<int, int> bins = ComputeVertexBinning();
   if (show_cell_bins)
     DrawCellBins(bins);
 
