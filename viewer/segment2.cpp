@@ -1224,18 +1224,25 @@ map<int, int> GVDViewer2::ComputeVertexBinning() const {
 }
 
 
-void GVDViewer2::RefineOctree(vector<pair<int, int> > bins) const {
+/**
+ * Refines the geometry objects (polygons) into micro-objects based on the
+ * assigned binning of the octree leaf that contains each polygon vertex.
+ * Each micro-object is then set as a new polygon to be used in the refinement
+ * computation of the octree. This will generate the GVD as well as the medial
+ * axis within each individual polygon.
+ */
+void GVDViewer2::RefinePolygons(const map<int, int>& bins) const {
   vector<vector<float2> > refined_polygons;
   for (int i = 0; i < polygons.size(); i++) {
     for (int j = 0; j < polygons[i].size(); j++) {
       int vi = 0; //TODO the octree leaf polygons[i][j] is in
-      int bin = 0; //TODO bins[vi] <= bins should be a map!
+      int bin = bins.at(vi);
       vector<float2> micro_object;
       micro_object.push_back(polygons[i][j]);
       j++;
       while (j < polygons[i].size()) {
         vi = 0; //TODO the octree leaf polygons[i][j] is in
-        int bin_next = 0; //TODO bins[vi];
+        int bin_next = bins.at(vi);
         if (bin_next == bin) {
           micro_object.push_back(polygons[i][j]);
           j++;
@@ -1244,23 +1251,6 @@ void GVDViewer2::RefineOctree(vector<pair<int, int> > bins) const {
           break;
       }
       refined_polygons.push_back(micro_object);
-    }
-  }
-
-  vector<vector<float2> > temp_polygons(polygons);
-  if (!verts.empty()) {
-    temp_polygons.push_back(verts);
-  }
-  vector<vector<float2> > all_vertices(temp_polygons.size());
-  vector<vector<Edge> > all_edges(temp_polygons.size());
-  for (int i = 0; i < temp_polygons.size(); ++i) {
-    const vector<float2>& polygon = temp_polygons[i];
-    all_vertices[i] = polygon;
-    for (int j = 0; j < polygon.size()-1; ++j) {
-      all_edges[i].push_back(make_edge(j, j+1));
-      // cout << "Adding edge " << i << ": (" << polygon[j]
-      //      << "), (" << polygon[j+1] << ")"
-      //      << endl;
     }
   }
 }

@@ -160,7 +160,7 @@ class GVDViewer2 : public GL2D {
   bool show_normals;
   bool show_cell_bins;
   map<int, int> ComputeVertexBinning() const;
-  void RefineOctree(std::vector<std::pair<int, int> > bins) const;
+  void RefinePolygons(const std::map<int, int>& bins) const;
 
   float2 mouse_obj;
   bool mouse_active;
