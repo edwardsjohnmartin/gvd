@@ -88,7 +88,7 @@ class GVDViewer2 : public GL2D {
   //     const int3& base_point, const index_t level,
   //     const index_t max_level, const bool complete);
   bool StoreVertexLocation(const int vi, const int2& p);
-  void BuildOctree();
+  void BuildOctree(bool refine = false);
   void glSquare(GLfloat x, GLfloat y, GLfloat w) const;
   void glSquare(const float2& p, GLfloat w) const;
   void glSquareWinWidth(const float2& p, GLfloat w) const;
@@ -160,7 +160,7 @@ class GVDViewer2 : public GL2D {
   bool show_normals;
   bool show_cell_bins;
   map<int, int> ComputeVertexBinning() const;
-  void RefinePolygons(const std::map<int, int>& bins) const;
+  std::vector<std::vector<float2> > RefinePolygons(const std::map<int, int>& bins) const;
 
   float2 mouse_obj;
   bool mouse_active;

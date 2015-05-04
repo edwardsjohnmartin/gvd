@@ -1020,7 +1020,7 @@ void DefaultCallback(const int3& base_point,
                      const bool complete) {
 }
 
-void GVDViewer2::BuildOctree() {
+void GVDViewer2::BuildOctree(bool refine) {
   //------------------
   // Initialize OpenCL
   //------------------
@@ -1030,10 +1030,19 @@ void GVDViewer2::BuildOctree() {
   }
 #endif
 
- vector<vector<float2> > temp_polygons(polygons);
-  if (!verts.empty()) {
-    temp_polygons.push_back(verts);
+  vector<vector<float2> > temp_polygons;
+  if (refine) {
+     // TODO
+     cout << "Refining!" << endl;
+     return;
   }
+  else {
+    temp_polygons.insert(temp_polygons.end(), polygons.begin(), polygons.end());
+    if (!verts.empty()) {
+      temp_polygons.push_back(verts);
+    }
+  }
+
   vector<vector<float2> > all_vertices(temp_polygons.size());
   vector<vector<Edge> > all_edges(temp_polygons.size());
   for (int i = 0; i < temp_polygons.size(); ++i) {
@@ -1233,7 +1242,7 @@ map<int, int> GVDViewer2::ComputeVertexBinning() const {
  * computation of the octree. This will generate the GVD as well as the medial
  * axis within each individual polygon.
  */
-void GVDViewer2::RefinePolygons(const map<int, int>& bins) const {
+vector<vector<float2> > GVDViewer2::RefinePolygons(const map<int, int>& bins) const {
 
   // TODO - temporary (need to SERIOUSLY rewrite this)
   vector<vector<int> > closest_verts;
@@ -1264,30 +1273,14 @@ void GVDViewer2::RefinePolygons(const map<int, int>& bins) const {
   vector<vector<float2> > refined_polygons;
   for (int i = 0; i < polygons.size(); i++) {
     for (int j = 0; j < polygons[i].size(); j++) {
-      //TODO the octree leaf polygons[i][j] is in
-      int vi = closest_verts[i][j];
-      int bin;
-      try {
-        int bin = bins.at(vi);
-      }
-      catch (const std::out_of_range& oor) {
-        cerr << "OOR: " << vi << ", i=" << i << ", j=" << j << " of " << polygons[i].size() << endl;
-        break;
-      }
+      int vi = closest_verts[i][j]; //TODO
+      int bin = bins.at(vi);
       vector<float2> micro_object;
       micro_object.push_back(polygons[i][j]);
       j++;
       while (j < polygons[i].size()) {
         vi = closest_verts[i][j]; //TODO
-        int bin_next;
-        try {
-          bin_next = bins.at(vi);
-        }
-        catch (const std::out_of_range& oor) {
-          j++;
-          cerr << "OOR: " << i << " (" << j << ")" << endl;
-          continue;
-        }
+        int bin_next = bins.at(vi);
         if (bin_next == bin) {
           micro_object.push_back(polygons[i][j]);
           j++;
@@ -1298,6 +1291,7 @@ void GVDViewer2::RefinePolygons(const map<int, int>& bins) const {
       refined_polygons.push_back(micro_object);
     }
   }
+  return refined_polygons;
 }
 
 
@@ -1983,7 +1977,7 @@ void GVDViewer2::Display() {
   if (show_cell_bins)
     DrawCellBins(bins);
 
-  RefinePolygons(bins);
+  vector<vector<float2> > refined_polygons = RefinePolygons(bins);
 
   // draw octree
   // glColor3f(0.0, 0.0, 0.0);
