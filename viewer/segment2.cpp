@@ -1166,10 +1166,10 @@ vector<pair<int, int> > GVDViewer2::ComputeVertexBinning() const {
     return bins;
 
   // Find all leaf nodes (base vertices) and color them
-  for (int i = 0; i < vertices.size(); ++i) {
-    if (vertices.IsBase(i) && i < num_geoms) {
+  for (int vi = 0; vi < vertices.size(); vi++) {
+    if (vertices.IsBase(vi) && vi < num_geoms) {
       // Each item in "geoms" is a single object inside this cell
-      vector<oct::LabeledGeometry> geoms = base2geometries[i];
+      vector<oct::LabeledGeometry> geoms = base2geometries[vi];
       if (geoms.size() > 0) {
         // get all normals (and lengths) for every single geometry edge that
         // intersects this leaf node
@@ -1195,8 +1195,8 @@ vector<pair<int, int> > GVDViewer2::ComputeVertexBinning() const {
             if (show_normals) {
               float2 v1v2 = v1 + v2;
               float2 center = make_float2(v1v2.x/2, v1v2.y/2);
-              float x_scale = n.x * 0.05;
-              float y_scale = n.y * 0.05;
+              float x_scale = n.x * 0.025;
+              float y_scale = n.y * 0.025;
               glColor3f(0, 1, 0);
               glBegin(GL_LINES);
               glVertex2f(center.x, center.y);
@@ -1216,7 +1216,7 @@ vector<pair<int, int> > GVDViewer2::ComputeVertexBinning() const {
         }
         // save new vertex label
         int bin = gaussMap.getBin(average_normal);
-        bins.push_back(make_pair(i, bin));
+        bins.push_back(make_pair(vi, bin));
       }
     }
   }
