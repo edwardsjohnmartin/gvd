@@ -987,7 +987,7 @@ VertexNetwork BuildOctree(
   shared_array<intn> gverts(new intn[num_gverts]);
   shared_array<int> gvert_offsets(new int[num_labels]);
   GeomVertices geom_vertices = {
-      num_gverts, gverts.get(), label2gverts.size(), gvert_offsets.get() };
+      num_gverts, gverts.get(), static_cast<int>(label2gverts.size()), gvert_offsets.get() };
   int geom_vert_idx = 0;
   for (int j = 0; j < label2gverts.size(); ++j) {
     gvert_offsets[j] = geom_vert_idx;

@@ -28,6 +28,14 @@ SET(GVD2_SRCS
   ../jrs-triangle.c
 )
 
+SET(OCT2_SRCS
+  ../vector2.cpp
+  ./gl2d.cpp
+  ./octviewer2.cpp
+  ../jrs-triangle.c
+  ../karras.cpp
+)
+
 SET(GVD3_SRCS
   ../vector3.cpp
   ../tile3.cpp
@@ -53,7 +61,8 @@ ADD_DEFINITIONS(-DANSI_DECLARATORS -DTRILIBRARY)
 
 IF(APPLE)
   ADD_DEFINITIONS(-D__MAC__)
-  SET(CMAKE_CXX_FLAGS -Wno-deprecated-declarations)
+  #SET(CMAKE_CXX_FLAGS -Wno-deprecated-declarations)
+  #list(APPEND CMAKE_CXX_FLAGS -Wno-deprecated-declarations)
 ENDIF(APPLE)
 
 FIND_PACKAGE(OpenGL)
@@ -76,6 +85,10 @@ TARGET_LINK_LIBRARIES(gvd-viewer2 ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${JPEG_L
 ADD_EXECUTABLE(gvd-viewer3 ${SRCS} ${GVD3_SRCS} viewer3.cpp)
 set_target_properties (gvd-viewer3 PROPERTIES COMPILE_DEFINITIONS "OCT3D")
 TARGET_LINK_LIBRARIES(gvd-viewer3 ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${OPENCL_LIBRARY})
+
+ADD_EXECUTABLE(oct-viewer2 ${SRCS} ${OCT2_SRCS} oviewer2.cpp)
+set_target_properties (oct-viewer2 PROPERTIES COMPILE_DEFINITIONS "OCT2D")
+TARGET_LINK_LIBRARIES(oct-viewer2 ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${OPENCL_LIBRARY})
 
 #ADD_EXECUTABLE(segment2 ${SRCS} ${SEGMENT2_SRCS})
 #set_target_properties (segment2 PROPERTIES COMPILE_DEFINITIONS "OCT2D")

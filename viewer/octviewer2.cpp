@@ -93,6 +93,53 @@ T MeanValue(const float2& p, const vector<float2>& polygon,
   return c;
 }
 
+string glErrorString(const int error) {
+  switch (error) {
+    case GL_NO_ERROR:
+      return "GL_NO_ERROR";
+      break;
+    case GL_INVALID_ENUM:
+      return "GL_INVALID_ENUM";
+      break;
+    case GL_INVALID_VALUE:
+      return "GL_INVALID_VALUE";
+      break;
+    case GL_INVALID_OPERATION:
+      return "GL_INVALID_OPERATION";
+      break;
+    case GL_INVALID_FRAMEBUFFER_OPERATION:
+      return "GL_INVALID_FRAMEBUFFER_OPERATION";
+      break;
+    case GL_OUT_OF_MEMORY:
+      return "GL_OUT_OF_MEMORY";
+      break;
+    case GL_STACK_UNDERFLOW:
+      return "GL_STACK_UNDERFLOW";
+      break;
+    case GL_STACK_OVERFLOW:
+      return "GL_STACK_OVERFLOW";
+      break;
+  }
+}
+
+void CheckGlError(const string& str) {
+  GLenum err = glGetError();
+  while (err != GL_NO_ERROR) {
+    cout << "OpenGL error " << str.c_str() <<
+                    " : " << glErrorString(err);
+    err = glGetError();
+  }
+}
+
+void CheckGlError(const int i) {
+  GLenum err = glGetError();
+  while (err != GL_NO_ERROR) {
+    cout << "OpenGL error " << i <<
+                    " : " << glErrorString(err);
+    err = glGetError();
+  }
+}
+
 struct M2Callback {
   M2Callback(const OctViewer2* m2_) : m2(m2_) {}
   const OctViewer2* m2;
@@ -254,7 +301,7 @@ void OctViewer2::ReadMesh(const string& filename) {
       float2 v = make_float2(x, y);
       verts.push_back(v);
       bb(v);
-      bb = bb.CenteredSquare();
+      // bb = bb.CenteredSquare();
     }
     dirty = true;
   }
@@ -334,6 +381,92 @@ void PrintUsage() {
   cout << endl;
 }
 
+void OctViewer2::test(const int test) {
+  using namespace Karras;
+
+  points.clear();
+  vector<intn> qpoints;
+  Resln resln;
+  if (test == 0) {
+    resln = Resln(8);
+    qpoints.push_back(z2xyz(1, resln));
+    qpoints.push_back(z2xyz(2, resln));
+    qpoints.push_back(z2xyz(4, resln));
+    qpoints.push_back(z2xyz(5, resln));
+    qpoints.push_back(z2xyz(19, resln));
+    qpoints.push_back(z2xyz(24, resln));
+    qpoints.push_back(z2xyz(25, resln));
+    qpoints.push_back(z2xyz(30, resln));
+  } else if (test == 1) {
+    resln = Resln(4);
+    qpoints.push_back(z2xyz(0, resln));
+    qpoints.push_back(z2xyz(2, resln));
+    qpoints.push_back(z2xyz(7, resln));
+    qpoints.push_back(z2xyz(15, resln));
+    qpoints.push_back(z2xyz(15, resln));
+  } else if (test == 2) {
+    resln = Resln(8);
+    srand(0);
+    for (int i = 0; i < 10000; ++i) {
+      qpoints.push_back(z2xyz(rand()%resln.volume, resln));
+    }
+  } else if (test == 3) {
+    resln = Resln(128);
+    srand(0);
+    for (int i = 0; i < 10000; ++i) {
+      qpoints.push_back(z2xyz(rand()%resln.volume, resln));
+    }
+  } else if (test == 4) {
+    resln = Resln(1<<8);
+    points.push_back(make_floatn(0.204444, 0.0488889));
+    points.push_back(make_floatn(-0.417778, -0.177778));
+    points.push_back(make_floatn(-0.191111, -0.333333));
+    points.push_back(make_floatn(-0.364444, -0.417778));
+    points.push_back(make_floatn(-0.155556, -0.475556));
+    qpoints = Quantize(points, resln);
+  } else if (test == 5) {
+    resln = Resln(1<<8);
+    points.push_back(make_floatn(0.231111, 0.0977777));
+    points.push_back(make_floatn(-0.422222, -0.288889));
+    points.push_back(make_floatn(-0.288889, -0.142222));
+    points.push_back(make_floatn(-0.337778, 0.12));
+    points.push_back(make_floatn(-0.0311111, 0.155556));
+    qpoints = Quantize(points, resln);
+  }
+
+  cout << "Resln = (" << resln << ")" << endl;
+  vector<int> tmp;
+  for (const intn p : qpoints) {
+    cout << p << endl;
+    tmp.push_back(xyz2z(p, resln));
+  }
+  sort(tmp.begin(), tmp.end());
+  for (const int mp : tmp) {
+    // const int mp = xyz2z(p, resln);
+    const std::bitset<16> bmp(mp);
+    cout << std::setw(5) << mp << ", " << bmp << endl;
+  }
+
+  for (int i = 0; i < 1000; ++i) {
+    octree = Karras::BuildOctree(qpoints, resln, false);
+    if (octree.empty()) {
+      cout << "failure on iteration " << i << endl;
+      exit(0);
+    }
+  }
+
+  if (points.empty()) {
+    // We only tested with quantized points so it makes no sense to display
+    exit(0);
+  }
+  
+  bb = BoundingBox<float2>();
+  for (const floatn& p : points) {
+    bb(p);
+  }
+  // bb = bb.CenteredSquare();
+}
+
 int OctViewer2::ProcessArgs(int argc, char** argv) {
   int i = 1;
   // if (argc > 1) {
@@ -348,6 +481,12 @@ int OctViewer2::ProcessArgs(int argc, char** argv) {
     PrintUsage();
     exit(0);
   }
+
+  resln = Karras::Resln(1<<o.max_level);
+
+  if (o.test > -1)
+    test(o.test);
+
   for (; i < argc; ++i) {
     string filename(argv[i]);
     cout << filename << endl;
@@ -534,7 +673,7 @@ void OctViewer2::AddPoint(int x, int y) {
   float2 v = Win2Obj(make_float2(x, y));
   verts.push_back(v);
   bb(v);
-  bb = bb.CenteredSquare();
+  // bb = bb.CenteredSquare();
   dirty = true;
 }
 
@@ -658,11 +797,13 @@ void OctViewer2::Mouse(int button, int state, int x, int y) {
       } else {
         if (entry_mode < 2 && mouse_active) {
           mouse_active = false;
-          if (entry_mode == 0)
-            verts.push_back(verts[0]);
+          // todo replace this when moving back to polygons
+          // if (entry_mode == 0)
+          //   verts.push_back(verts[0]);
           MakePolygon();
-          dirty = true;
-          glutPostRedisplay();
+          // todo replace this when moving back to polygons
+          // dirty = true;
+          // glutPostRedisplay();
         }
       }
     }
@@ -708,18 +849,21 @@ void OctViewer2::PassiveMouseMotion(int x, int y) {
 
 float2 OctViewer2::Obj2Oct(const float2& v) const {
   const GLfloat bbw = bb.max_size();
-  return ((v-bb.min())/bbw) * (float)oct::kWidth;
+  // return ((v-bb.min())/bbw) * (float)oct::kWidth;
+  return ((v-bb.min())/bbw) * (float)resln.width;
 }
 
 float2 OctViewer2::Oct2Obj(const int2& v) const {
   const float2 vf = make_float2(v.s[0], v.s[1]);
   const GLfloat bbw = bb.max_size();
-  return (vf/kWidth)*bbw+bb.min();
+  // return (vf/kWidth)*bbw+bb.min();
+  return (vf/resln.width)*bbw+bb.min();
 }
 
 GLfloat OctViewer2::Oct2Obj(int dist) const {
   const GLfloat bbw = bb.max_size();
-  const GLfloat ow = kWidth;
+  // const GLfloat ow = kWidth;
+  const GLfloat ow = resln.width;
   return (dist/ow)*bbw;
 }
 
@@ -865,6 +1009,8 @@ void OctViewer2::BuildOctree() {
     vvertices.push_back(temp_polygons[i].back());
   }
 
+  points = vvertices;
+
   // Find bounding box of vertices
   // BoundingBox<float, 2> bb;
   bb = BoundingBox<float2>();
@@ -874,35 +1020,45 @@ void OctViewer2::BuildOctree() {
       bb(vertices[i]);
     }
   }
-  bb = bb.CenteredSquare();
+  // bb = bb.CenteredSquare();
 
-  ktest(vvertices);
+  // for (const floatn& p : points) {
+  //   cout << "(" << p << ") ";
+  // }
+  // cout << endl;
 
-  vertices.Clear();
-  // Build the octree
-  vertices = oct::BuildOctree(all_vertices, all_edges, bb, o);
-  if (o.timings)
-    cout << "vertices size = " << vertices.size() << endl;
-
-  if (vertices.NumCells() == 1) {
-    vertices.Clear();
+  vector<intn> qpoints = Karras::Quantize(points, resln);
+  if (qpoints.size() > 1) {
+    octree = Karras::BuildOctree(qpoints, resln, false);
   } else {
-    // Store the vertex locations
-    vertex_locations.resize(vertices.size());
-    vertex_circle.resize(vertices.size(), false);
-    oct::VisitVertices<2>(vertices, StoreVertexLocationCallback(this));
-
-    // Compute the maximum distance?
-    oct::VisitVertices<2>(
-        vertices, DFDistCallback(this, &max_dist_oct, &max_dist_obj));
-
-    // Compute the bisector
-    DrawGVDLinesCallback callback(this, o);
-    oct::VisitVertices<2>(vertices, callback);
-    gvd_graph = callback.GetGraph();
-
-    search_path.clear();
+    octree.clear();
   }
+
+  // vertices.Clear();
+  // // Build the octree
+  // vertices = oct::BuildOctree(all_vertices, all_edges, bb, o);
+  // if (o.timings)
+  //   cout << "vertices size = " << vertices.size() << endl;
+
+  // if (vertices.NumCells() == 1) {
+  //   vertices.Clear();
+  // } else {
+  //   // Store the vertex locations
+  //   vertex_locations.resize(vertices.size());
+  //   vertex_circle.resize(vertices.size(), false);
+  //   oct::VisitVertices<2>(vertices, StoreVertexLocationCallback(this));
+
+  //   // Compute the maximum distance?
+  //   oct::VisitVertices<2>(
+  //       vertices, DFDistCallback(this, &max_dist_oct, &max_dist_obj));
+
+  //   // Compute the bisector
+  //   DrawGVDLinesCallback callback(this, o);
+  //   oct::VisitVertices<2>(vertices, callback);
+  //   gvd_graph = callback.GetGraph();
+
+  //   search_path.clear();
+  // }
   
   //------------------
   // Cleanup OpenCL
@@ -927,6 +1083,10 @@ void OctViewer2::glSquare(const float2& p, GLfloat w) const {
   glSquare(p.s[0], p.s[1], w);
 }
 
+void OctViewer2::glSquareCentered(const float2& p, GLfloat w) const {
+  glSquare(p.s[0]-w/2, p.s[1]-w/2, w);
+}
+
 void OctViewer2::glSquareWinWidth(const float2& p, GLfloat w) const {
   const float2 q = p - Win2Obj(w/2);
   glSquare(q, Win2Obj(w));
@@ -941,14 +1101,44 @@ bool OctViewer2::DrawEdge(const int vi, const int n_vi,
   return true;
 }
 
+void OctViewer2::DrawNode(
+    const OctNode& node, const intn origin, const int length) const {
+  CheckGlError(1);
+
+  // cout << "Drawing node at " << Oct2Obj(origin)
+  //      << " - " << Oct2Obj(origin + make_int2(length, length))
+  //      << endl;
+  // glColor3f(0.7, 0.0, 0.0);
+  // glSquareCentered(Oct2Obj(origin), Win2Obj(10));
+  // glSquare(Oct2Obj(origin), Oct2Obj(length));
+
+  bool has_children = false;
+  for (int i = 0; i < 4; ++i) {
+    intn o = origin;
+    if (i % 2 == 1)
+      o += make_intn(length/2, 0);
+    if (i / 2 == 1)
+      o += make_intn(0, length/2);
+    if (!node.is_leaf(i)) {
+      DrawNode(octree[node[i]], o, length/2);
+      has_children = true;
+    } else {
+      glSquare(Oct2Obj(o), Oct2Obj(length/2));
+    }
+  }
+}
+
 void OctViewer2::DrawOctree() const {
+  // cout << "DrawOctree " << octree.size() << endl;
+
   glLineWidth(1.0);
-  // glColor3f(0.7, 0.7, 0.7);
   glColor3dv(octree_color.s);
 
-  glBegin(GL_LINES);
-  oct::VisitEdges<2>(vertices, DrawEdgeCallback(this));
-  glEnd();
+  if (!octree.empty()) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    DrawNode(octree[0], make_intn(0), resln.width);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  }
 }
 
 void DrawGVDVisitor(int ai, const double2& a,
@@ -1497,120 +1687,131 @@ void OctViewer2::Display() {
   // build octree
   if (dirty) {
     BuildOctree();
-    for (int i = 0; i < 6; ++i) {
-      tex_init[i] = false;
-    }
+
+    // for (int i = 0; i < 6; ++i) {
+    //   tex_init[i] = false;
+    // }
     dirty = false;
   }
 
-  if (show_distance_field > 0) {
-    DrawDistanceField();
+  // Draw octree
+  DrawOctree();
+
+  for (const floatn& p : points) {
+    // const double w = Oct2Obj(0.07*d) + Win2Obj(4);
+    // glSquare(Oct2Obj(p)-w/2, w);
+    glColor3f(0.0, 0.0, 0.7);
+    glSquareCentered(p, Win2Obj(4));
   }
 
-  // draw octree
-  // glColor3f(0.0, 0.0, 0.0);
-  glColor3f(0.7, 0.7, 0.7);
-  glLineWidth(1.0);
-  if (show_octree) {
-    DrawOctree();
-  }
+  // if (show_distance_field > 0) {
+  //   DrawDistanceField();
+  // }
 
-  if (polygon_mode > 0) {
-    glColor3f(0.9, 0.9, 0.9);
-    // draw the polygons
-    if (polygon_mode == 1) {
-      glLineWidth(2.0);
-    } else {
-      glLineWidth(2);
-    }
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    for (int j = 0; j < polygons.size(); ++j) {
-      if (polygon_mode == 1) {
-        SetColor(j, red);
-      }
-      glBegin(GL_LINE_STRIP);
-      for (int i = 0; i < polygons[j].size(); ++i) {
-        glVertex2fv(polygons[j][i].s);
-      }
-      glEnd();
-    }
-  }
+  // // draw octree
+  // // glColor3f(0.0, 0.0, 0.0);
+  // glColor3f(0.7, 0.7, 0.7);
+  // glLineWidth(1.0);
+  // if (show_octree) {
+  //   DrawOctree();
+  // }
 
-  SetColor(polygons.size(), red);
-  glBegin(GL_LINE_STRIP);
-  for (int i = 0; i < verts.size(); ++i) {
-    glVertex2fv(verts[i].s);
-  }
-  glEnd();
+  // if (polygon_mode > 0) {
+  //   glColor3f(0.9, 0.9, 0.9);
+  //   // draw the polygons
+  //   if (polygon_mode == 1) {
+  //     glLineWidth(2.0);
+  //   } else {
+  //     glLineWidth(2);
+  //   }
+  //   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  //   for (int j = 0; j < polygons.size(); ++j) {
+  //     if (polygon_mode == 1) {
+  //       SetColor(j, red);
+  //     }
+  //     glBegin(GL_LINE_STRIP);
+  //     for (int i = 0; i < polygons[j].size(); ++i) {
+  //       glVertex2fv(polygons[j][i].s);
+  //     }
+  //     glEnd();
+  //   }
+  // }
 
-  // Draw other stuff
-  if (show_gvd) {
-    DrawGVD();
-  }
-  if (show_path) {
-    DrawPath();
-  }
-  if (show_voronoi) {
-    DrawVoronoi();
-  }
-  if (show_vertex_ids) {
-    DrawVertexIDs();
-  }
-  if (show_closest_point_line) {
-    DrawVertexDistanceLines();
-  }
-  if (show_vertex_labels) {
-    DrawVertexLabels();
-  }
-  if (show_statistics) {
-    PrintStatistics();
-  }
-  PrintHelp();
+  // SetColor(polygons.size(), red);
+  // glBegin(GL_LINE_STRIP);
+  // for (int i = 0; i < verts.size(); ++i) {
+  //   glVertex2fv(verts[i].s);
+  // }
+  // glEnd();
 
-  // Debug circles
-  glLineWidth(1.0);
-  for (int vi = 0; vi < vertex_locations.size(); ++vi) {
-    if (vertex_circle[vi]) {
-      const float2& v = vertex_locations[vi];
-      const float2 cp = Oct2Obj(vertices.ClosestPoint(vi));
-      const float d = length(v-cp);
-      glColor3f(0, 0, 1);
-      glSquareWinWidth(v, 5);
-      glBegin(GL_LINE_LOOP);
-      for (int i = 0; i < 360; ++i) {
-        const float t = i*M_PI/180.0;
-        glVertex2fv((v + make_float2(d*cos(t), d*sin(t))).s);
-      }
-      glEnd();
-      glColor3f(0, 1, 0);
-      glBegin(GL_LINES);
-      glVertex2fv(v.s);
-      glVertex2fv(cp.s);
-      glEnd();
-    }
-  }
+  // // Draw other stuff
+  // if (show_gvd) {
+  //   DrawGVD();
+  // }
+  // if (show_path) {
+  //   DrawPath();
+  // }
+  // if (show_voronoi) {
+  //   DrawVoronoi();
+  // }
+  // if (show_vertex_ids) {
+  //   DrawVertexIDs();
+  // }
+  // if (show_closest_point_line) {
+  //   DrawVertexDistanceLines();
+  // }
+  // if (show_vertex_labels) {
+  //   DrawVertexLabels();
+  // }
+  // if (show_statistics) {
+  //   PrintStatistics();
+  // }
+  // PrintHelp();
 
-  glLineWidth(2.0);
-  vector<float2> up(middle_up);
-  if (middle_down.size() > middle_up.size()) {
-    up.push_back(mouse_obj);
-  }
-  // if (middle_down != float2()) {
-  for (int i = 0; i < middle_down.size(); ++i) {
-    glColor3f(0, .3, .3);
-    glBegin(GL_LINES);
-    glVertex2fv(middle_down[i].s);
-    glVertex2fv(up[i].s);
-    glEnd();
+  // // Debug circles
+  // glLineWidth(1.0);
+  // for (int vi = 0; vi < vertex_locations.size(); ++vi) {
+  //   if (vertex_circle[vi]) {
+  //     const float2& v = vertex_locations[vi];
+  //     const float2 cp = Oct2Obj(vertices.ClosestPoint(vi));
+  //     const float d = length(v-cp);
+  //     glColor3f(0, 0, 1);
+  //     glSquareWinWidth(v, 5);
+  //     glBegin(GL_LINE_LOOP);
+  //     for (int i = 0; i < 360; ++i) {
+  //       const float t = i*M_PI/180.0;
+  //       glVertex2fv((v + make_float2(d*cos(t), d*sin(t))).s);
+  //     }
+  //     glEnd();
+  //     glColor3f(0, 1, 0);
+  //     glBegin(GL_LINES);
+  //     glVertex2fv(v.s);
+  //     glVertex2fv(cp.s);
+  //     glEnd();
+  //   }
+  // }
 
-    const float d = length(up[i]-middle_down[i]);
-    glBegin(GL_LINE_LOOP);
-    for (int j = 0; j < 360; ++j) {
-      const float t = j*M_PI/180.0;
-      glVertex2fv((middle_down[i] + make_float2(d*cos(t), d*sin(t))).s);
-    }
-    glEnd();
-  }
+  // glLineWidth(2.0);
+  // vector<float2> up(middle_up);
+  // if (middle_down.size() > middle_up.size()) {
+  //   up.push_back(mouse_obj);
+  // }
+  // // if (middle_down != float2()) {
+  // for (int i = 0; i < middle_down.size(); ++i) {
+  //   glColor3f(0, .3, .3);
+  //   glBegin(GL_LINES);
+  //   glVertex2fv(middle_down[i].s);
+  //   glVertex2fv(up[i].s);
+  //   glEnd();
+
+  //   const float d = length(up[i]-middle_down[i]);
+  //   glBegin(GL_LINE_LOOP);
+  //   for (int j = 0; j < 360; ++j) {
+  //     const float t = j*M_PI/180.0;
+  //     glVertex2fv((middle_down[i] + make_float2(d*cos(t), d*sin(t))).s);
+  //   }
+  //   glEnd();
+  // }
 
   // Draw rubberband
   if (rubberband_start != float2() && rubberband_cur != float2()) {

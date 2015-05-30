@@ -28,6 +28,9 @@
 #include "./gl2d.h"
 #include "../octree.h"
 #include "../graph.h"
+#include "../karras.h"
+
+using Karras::OctNode;
 
 class OctViewer2 : public GL2D {
  public:
@@ -89,12 +92,14 @@ class OctViewer2 : public GL2D {
   void BuildOctree();
   void glSquare(GLfloat x, GLfloat y, GLfloat w) const;
   void glSquare(const float2& p, GLfloat w) const;
+  void glSquareCentered(const float2& p, GLfloat w) const;
   void glSquareWinWidth(const float2& p, GLfloat w) const;
   bool DrawEdge(const int vi, const int n_vi,
                 const int2& p, const int2& q,
                 // const oct::Direction<2>& d) const;
                 const oct::Direction& d) const;
   void DrawOctree() const;
+  void DrawNode(const OctNode& node, const intn origin, const int length) const;
   void DrawGVD() const;
   void DrawPath() const;
   void DrawVoronoi() const;
@@ -146,6 +151,8 @@ class OctViewer2 : public GL2D {
  private:
   void HelpString(const std::string msg, const int i) const;
 
+  void test(const int test);
+
  private:
   float2 mouse_obj;
   bool mouse_active;
@@ -192,6 +199,12 @@ class OctViewer2 : public GL2D {
   int entry_mode;
   std::vector<int> search_path;
   double3 octree_color;
+
+  // new
+  vector<OctNode> octree;
+  vector<floatn> points;
+  vector<intn> qpoints;
+  Karras::Resln resln;
 };
 
 #endif

@@ -188,35 +188,7 @@ void Reshape(int width, int height) {
   Init();
 }
 
-void test() {
-  vector<intn> vertices;
-  // // test 1
-  // vertices.push_back(z2xyz(1));
-  // vertices.push_back(z2xyz(2));
-  // vertices.push_back(z2xyz(4));
-  // vertices.push_back(z2xyz(5));
-  // vertices.push_back(z2xyz(19));
-  // vertices.push_back(z2xyz(24));
-  // vertices.push_back(z2xyz(25));
-  // vertices.push_back(z2xyz(30));
-
-  // test 2
-  vertices.push_back(z2xyz(0));
-  vertices.push_back(z2xyz(2));
-  vertices.push_back(z2xyz(7));
-  vertices.push_back(z2xyz(15));
-
-  for (const intn p : vertices) {
-    cout << p << endl;
-  }
-
-  ktest(vertices);
-  exit(0);
-}
-
 int main(int argc, char** argv) {
-  test();
-
   ifstream sizein("size.config");
   if (sizein) {
     sizein >> window_width >> window_height;
