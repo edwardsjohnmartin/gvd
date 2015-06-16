@@ -31,6 +31,7 @@
 #include "../graph.h"
 
 #include "../karras.h"
+#include "../OctreeUtils.h"
 
 #ifdef SINGLE
 #define REAL float
@@ -286,6 +287,8 @@ OctViewer2::OctViewer2(const int win_width, const int win_height)
   o = oct::OctreeOptions::For2D();
   entry_mode = 0;
   octree_color = make_double3(0.7, 0.7, 0.7);
+
+  fnode = 0;
 }
 
 void OctViewer2::ReadMesh(const string& filename) {
@@ -745,6 +748,14 @@ void OctViewer2::Zoom(const float2& target, const float zoom) {
   win_obj = centered;
 }
 
+void OctViewer2::Find(int x, int y) {
+  float2 fv = Obj2Oct(Win2Obj(make_float2(x, y)));
+  int2 v = make_intn(fv.s[0], fv.s[1]);
+  cout << "oct = " << v << endl;
+  fnode = Karras::FindNode(v, octree, resln);
+  cout << "FindNode = " << fnode << endl;
+}
+
 float2 rubberband_start = make_float2(0);
 float2 rubberband_cur = make_float2(0);
 bool rubberband_mode = false;
@@ -761,6 +772,9 @@ void OctViewer2::Mouse(int button, int state, int x, int y) {
         verts.push_back(verts[0]);
         MakePolygon();
         dirty = true;
+        glutPostRedisplay();
+      } else if (glutGetModifiers() == GLUT_ACTIVE_SHIFT) {
+        Find(x, y);
         glutPostRedisplay();
       } else {
         AddPoint(x, y);
@@ -996,7 +1010,8 @@ void OctViewer2::BuildOctree() {
   if (!verts.empty()) {
     temp_polygons.push_back(verts);
   }
-  vector<float2> vvertices;
+  // vector<float2> vvertices;
+  points.clear();
   vector<vector<float2> > all_vertices(temp_polygons.size());
   vector<vector<Edge> > all_edges(temp_polygons.size());
   for (int i = 0; i < temp_polygons.size(); ++i) {
@@ -1004,12 +1019,12 @@ void OctViewer2::BuildOctree() {
     all_vertices[i] = polygon;
     for (int j = 0; j < polygon.size()-1; ++j) {
       all_edges[i].push_back(make_edge(j, j+1));
-      vvertices.push_back(temp_polygons[i][j]);
+      points.push_back(temp_polygons[i][j]);
     }
-    vvertices.push_back(temp_polygons[i].back());
+    points.push_back(temp_polygons[i].back());
   }
 
-  points = vvertices;
+  // points = vvertices;
 
   // Find bounding box of vertices
   // BoundingBox<float, 2> bb;
@@ -1123,6 +1138,10 @@ void OctViewer2::DrawNode(
       DrawNode(octree[node[i]], o, length/2);
       has_children = true;
     } else {
+      if (&node == fnode)
+        glColor3d(1, 0, 0);
+      else
+        glColor3dv(octree_color.s);
       glSquare(Oct2Obj(o), Oct2Obj(length/2));
     }
   }
@@ -1716,33 +1735,33 @@ void OctViewer2::Display() {
   //   DrawOctree();
   // }
 
-  // if (polygon_mode > 0) {
-  //   glColor3f(0.9, 0.9, 0.9);
-  //   // draw the polygons
-  //   if (polygon_mode == 1) {
-  //     glLineWidth(2.0);
-  //   } else {
-  //     glLineWidth(2);
-  //   }
-  //   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  //   for (int j = 0; j < polygons.size(); ++j) {
-  //     if (polygon_mode == 1) {
-  //       SetColor(j, red);
-  //     }
-  //     glBegin(GL_LINE_STRIP);
-  //     for (int i = 0; i < polygons[j].size(); ++i) {
-  //       glVertex2fv(polygons[j][i].s);
-  //     }
-  //     glEnd();
-  //   }
-  // }
+  if (polygon_mode > 0) {
+    glColor3f(0.9, 0.9, 0.9);
+    // draw the polygons
+    if (polygon_mode == 1) {
+      glLineWidth(2.0);
+    } else {
+      glLineWidth(2);
+    }
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    for (int j = 0; j < polygons.size(); ++j) {
+      if (polygon_mode == 1) {
+        SetColor(j, red);
+      }
+      glBegin(GL_LINE_STRIP);
+      for (int i = 0; i < polygons[j].size(); ++i) {
+        glVertex2fv(polygons[j][i].s);
+      }
+      glEnd();
+    }
+  }
 
-  // SetColor(polygons.size(), red);
-  // glBegin(GL_LINE_STRIP);
-  // for (int i = 0; i < verts.size(); ++i) {
-  //   glVertex2fv(verts[i].s);
-  // }
-  // glEnd();
+  SetColor(polygons.size(), red);
+  glBegin(GL_LINE_STRIP);
+  for (int i = 0; i < verts.size(); ++i) {
+    glVertex2fv(verts[i].s);
+  }
+  glEnd();
 
   // // Draw other stuff
   // if (show_gvd) {

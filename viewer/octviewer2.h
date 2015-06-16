@@ -46,6 +46,8 @@ class OctViewer2 : public GL2D {
 
   void PrintCommands() const;
 
+  void Find(int x, int y);
+
   void AddPoint(int x, int y);
 
   void ReadMesh(const std::string& filename);
@@ -205,6 +207,7 @@ class OctViewer2 : public GL2D {
   vector<floatn> points;
   vector<intn> qpoints;
   Karras::Resln resln;
+  OctNode const* fnode;
 };
 
 #endif

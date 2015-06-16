@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 project (GVD)
 
 SET(SRCS
+  ../OctreeUtils.cpp
   ../opencl.cpp
   ../octree.cpp
   ../octree_gpu.cpp

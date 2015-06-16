@@ -101,6 +101,8 @@ struct BrtNode {
   // and return is [0b10, 0b01] = [2, 1].
   vector<int> oct_nodes() const {
     static const int mask = (DIM == 2) ? 3 : 7;
+    if (DIM > 3)
+      throw logic_error("BrtNode::oct_nodes not yet supported for D>3");
     const int bias = lcp_length % DIM;
     const int n = lcp_length / DIM;
     vector<int> ret(n);
@@ -222,19 +224,9 @@ vector<OctNode> BuildOctree(
     // Find the split position using binary search
     const int lcp_node = lcp_length(i, j);
 
-    // // debug 
-    // if (i == 2) {
-    //   cout << "i = " << i << endl;
-    //   cout << "d = " << d << endl;
-    //   cout << "l = " << l << endl;
-    //   cout << "j = " << j << endl;
-    //   cout << "lcp_node = " << lcp_node << endl;
-    // }
-
     const int s_cutoff = (d==-1) ? i - 1 : n - i - 2;
     int s = 0;
     for (int den = 2; den < 2*l; den *= 2) {
-      // todo FIXME! Not quite right yet
       const int t = static_cast<int>(ceil(l/(float)den));
       if (s + t <= s_cutoff) {
         if (lcp_length(i, i+(s+t)*d) > lcp_node) {
@@ -300,7 +292,7 @@ vector<OctNode> BuildOctree(
     }
   }
   // Second pass - calculate prefix sums
-  vector<int> prefix_sums(local_splits.size()+1);// = local_splits;
+  vector<int> prefix_sums(local_splits.size()+1);
   std::copy(local_splits.begin(), local_splits.end(), prefix_sums.begin()+1);
   prefix_sums[0] = 0;
   for (int i = 1; i < prefix_sums.size(); ++i) {
@@ -319,19 +311,6 @@ vector<OctNode> BuildOctree(
     cout << "# octree splits = " << splits << endl;
   }
 
-  if (splits == 0) {
-    cout << "Local splits:" << endl;
-    for (int i = 0; i < local_splits.size(); ++i) {
-      cout << local_splits[i] << " ";
-    }
-    cout << endl;
-    cout << "Prefix sums:" << endl;
-    for (int i = 0; i < prefix_sums.size(); ++i) {
-      cout << prefix_sums[i] << " ";
-    }
-    cout << endl;
-  }
-
   // Set parent for each octree node
   vector<OctNode> octree(splits);
   for (int brt_i = 1; brt_i < n-1; ++brt_i) {
@@ -345,11 +324,9 @@ vector<OctNode> BuildOctree(
       for (int j = 0; j < m-1; ++j) {
         const int oct_parent = oct_i+1;
         const int onode = onodes[onodes.size() - j - 1];
-        octree[oct_parent][onode] = oct_i;
+        octree[oct_parent].set_child(onode, oct_i);
         oct_i = oct_parent;
       }
-      if (brt_i == 896)
-        cout << "here" << endl;
       int brt_parent = I[brt_i].parent;
       while (local_splits[brt_parent] == 0) {
         brt_parent = I[brt_parent].parent;
@@ -368,7 +345,7 @@ vector<OctNode> BuildOctree(
           onodes[onodes.size() - m] >= 4) {
         throw logic_error("error 3");
       }
-      octree[oct_parent][onodes[onodes.size() - m]] = oct_i;
+      octree[oct_parent].set_child(onodes[onodes.size() - m], oct_i);
     }
   }
 
@@ -386,6 +363,7 @@ vector<OctNode> BuildOctree(
   return octree;
 }
 
+// Debug output
 void OutputOctreeNode(
     const int node, const std::vector<OctNode>& octree, vector<int> path) {
   for (int i = 0; i < 4; ++i) {
