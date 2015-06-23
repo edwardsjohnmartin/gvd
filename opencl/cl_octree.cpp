@@ -12,8 +12,10 @@
  **    sci.utah.edu/~jedwards/research/gvd/index.html **
  *******************************************************/
 
+#ifndef OPEN_CL
 #include <stdio.h>
 #include <limits.h>
+#endif
 
 #include "./cl_octree.h"
 #include "./distance3.h"

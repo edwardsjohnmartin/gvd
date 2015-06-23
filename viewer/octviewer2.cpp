@@ -287,8 +287,6 @@ OctViewer2::OctViewer2(const int win_width, const int win_height)
   o = oct::OctreeOptions::For2D();
   entry_mode = 0;
   octree_color = make_double3(0.7, 0.7, 0.7);
-
-  fnode = 0;
 }
 
 void OctViewer2::ReadMesh(const string& filename) {
@@ -749,11 +747,24 @@ void OctViewer2::Zoom(const float2& target, const float zoom) {
 }
 
 void OctViewer2::Find(int x, int y) {
-  float2 fv = Obj2Oct(Win2Obj(make_float2(x, y)));
-  int2 v = make_intn(fv.s[0], fv.s[1]);
-  cout << "oct = " << v << endl;
-  fnode = Karras::FindNode(v, octree, resln);
-  cout << "FindNode = " << fnode << endl;
+  floatn fv = Obj2Oct(Win2Obj(make_floatn(x, y)));
+  intn v = make_intn(fv.s[0], fv.s[1]);
+  fnode = Karras::FindLeaf(v, octree, resln);
+
+  seg_a = seg_b;
+  seg_b = v;
+  
+  intn a = seg_a;
+  intn b = seg_b;
+  if (b.x < a.x)
+    swap(a, b);
+  intn cur;
+  // do {
+  //   Karras::OctCell cell = Karras::FindLeaf(a, octree, resln);
+  //   local_intersections = FindIntersections(a, b, fnode, octree, resln);
+  //   // TODO
+  //   intersections.
+  // } while (!local_intersections.empty());
 }
 
 float2 rubberband_start = make_float2(0);
@@ -1000,11 +1011,13 @@ void OctViewer2::BuildOctree() {
   //------------------
   // Initialize OpenCL
   //------------------
-#ifdef __OPEN_CL_SUPPORT__
-  if (o.gpu) {
-    OpenCLInit(2, o, o.opencl_log);
-  }
-#endif
+// #ifdef __OPEN_CL_SUPPORT__
+//   static bool initialized = false;
+//   if (o.gpu && !initialized) {
+//     OpenCLInit(2, o, o.opencl_log);
+//     initialized = true;
+//   }
+// #endif
 
   vector<vector<float2> > temp_polygons(polygons);
   if (!verts.empty()) {
@@ -1078,11 +1091,11 @@ void OctViewer2::BuildOctree() {
   //------------------
   // Cleanup OpenCL
   //------------------
-#ifdef __OPEN_CL_SUPPORT__
-  if (o.gpu) {
-    OpenCLCleanup();
-  }
-#endif
+// #ifdef __OPEN_CL_SUPPORT__
+//   if (o.gpu) {
+//     OpenCLCleanup();
+//   }
+// #endif
 }
 
 void OctViewer2::glSquare(GLfloat x, GLfloat y, GLfloat w) const {
@@ -1120,14 +1133,6 @@ void OctViewer2::DrawNode(
     const OctNode& node, const intn origin, const int length) const {
   CheckGlError(1);
 
-  // cout << "Drawing node at " << Oct2Obj(origin)
-  //      << " - " << Oct2Obj(origin + make_int2(length, length))
-  //      << endl;
-  // glColor3f(0.7, 0.0, 0.0);
-  // glSquareCentered(Oct2Obj(origin), Win2Obj(10));
-  // glSquare(Oct2Obj(origin), Oct2Obj(length));
-
-  bool has_children = false;
   for (int i = 0; i < 4; ++i) {
     intn o = origin;
     if (i % 2 == 1)
@@ -1136,12 +1141,14 @@ void OctViewer2::DrawNode(
       o += make_intn(0, length/2);
     if (!node.is_leaf(i)) {
       DrawNode(octree[node[i]], o, length/2);
-      has_children = true;
     } else {
-      if (&node == fnode)
+      if (&node == fnode.get_parent() && i == fnode.get_octant()) {
+        glLineWidth(2);
         glColor3d(1, 0, 0);
-      else
+      } else {
+        glLineWidth(1);
         glColor3dv(octree_color.s);
+      }
       glSquare(Oct2Obj(o), Oct2Obj(length/2));
     }
   }
@@ -1158,6 +1165,19 @@ void OctViewer2::DrawOctree() const {
     DrawNode(octree[0], make_intn(0), resln.width);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
+
+  // Draw intersections
+  glColor3f(0.7, 0.0, 0.7);
+  for (const intn& i : intersections) {
+    glSquareCentered(Oct2Obj(i), Win2Obj(7));
+  }
+
+  // Draw line segment
+  glColor3f(0.7, 0.0, 0.7);
+  glBegin(GL_LINES);
+  glVertex3fv(Oct2Obj(seg_a).s);
+  glVertex3fv(Oct2Obj(seg_b).s);
+  glEnd();
 }
 
 void DrawGVDVisitor(int ai, const double2& a,

@@ -12,7 +12,9 @@
  **    sci.utah.edu/~jedwards/research/gvd/index.html **
  *******************************************************/
 
+#ifndef OPEN_CL
 #include <limits.h>
+#endif
 
 #include "./distance3.h"
 

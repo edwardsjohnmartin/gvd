@@ -174,8 +174,8 @@ shared_array<int> GetAmbiguousGpu(
   CheckError(error, "clEnqueueWriteBuffer");
 
   // Run the processing
-  size_t globalWorkSize[] = { N };
-  size_t globalWorkSize1[] = { 1 };
+  size_t globalWorkSize[] = { static_cast<size_t>(N) };
+  size_t globalWorkSize1[] = { static_cast<size_t>(1) };
   cl_event gpu_event;
   error = clEnqueueNDRangeKernel(
       queue_cl, kernel_ambiguous_orig, 1, nullptr, globalWorkSize,

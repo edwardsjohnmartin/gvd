@@ -71,6 +71,9 @@ class Gpu {
   Gpu();
   ~Gpu();
 
+  // Karras calls
+  void CreateMPoints(const int n);
+
   void CreateToSubdivide(int n);
   void CreateVertices(int n);
   void CreateCPoints(int n);
@@ -147,6 +150,11 @@ class Gpu {
   cl_command_queue queue;
 
   // Update constructor and destructor when adding a buffer.
+  
+  // Karras
+  cl_mem mpoints;
+  int mpoints_n;
+
   cl_mem to_subdivide;
   cl_mem vn_header;
   cl_mem vertices;

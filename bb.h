@@ -93,6 +93,13 @@ class BoundingBox {
     return true;
   }
 
+  bool in_half_open(const Point& p) const {
+    for (int i = 0; i < D; ++i) {
+      if (p.s[i] < _min.s[i] || p.s[i] >= _max.s[i]) return false;
+    }
+    return true;
+  }
+
   bool in_closed(const Point& p) const {
     for (int i = 0; i < D; ++i) {
       if (p.s[i] < _min.s[i] || p.s[i] > _max.s[i]) return false;

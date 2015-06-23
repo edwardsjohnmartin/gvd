@@ -29,6 +29,7 @@
 #include "../octree.h"
 #include "../graph.h"
 #include "../karras.h"
+#include "../OctreeUtils.h"
 
 using Karras::OctNode;
 
@@ -150,6 +151,8 @@ class OctViewer2 : public GL2D {
   oct::VertexNetwork& Vertices() { return vertices; }
   const oct::VertexNetwork& Vertices() const { return vertices; }
   
+  oct::OctreeOptions options() const { return o; }
+
  private:
   void HelpString(const std::string msg, const int i) const;
 
@@ -207,7 +210,9 @@ class OctViewer2 : public GL2D {
   vector<floatn> points;
   vector<intn> qpoints;
   Karras::Resln resln;
-  OctNode const* fnode;
+  Karras::OctCell fnode;
+  intn seg_a, seg_b;
+  vector<intn> intersections;
 };
 
 #endif

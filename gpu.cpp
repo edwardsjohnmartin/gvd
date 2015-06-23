@@ -21,7 +21,8 @@ using namespace std;
 NAMESPACE_OCT_BEGIN
 
 Gpu::Gpu()
-    : to_subdivide(0), vertices(0), vi2nbrs(0), cpoints(0), vi2geometries(0),
+    : mpoints(0),
+      to_subdivide(0), vertices(0), vi2nbrs(0), cpoints(0), vi2geometries(0),
       gvertices(0), goffsets(0),
       to_subdivide_n(0), vertices_n(0), cpoints_n(0), vi2geometries_n(0),
       gvertices_n(0), goffsets_n(0) {
@@ -94,6 +95,19 @@ void Gpu::CreateToSubdivide(int n) {
       context_cl, CL_MEM_READ_WRITE, sizeof(uchar) * to_subdivide_n,
       nullptr, &error);
   CheckError(error, "CreateToSubdivide");
+}
+
+void Gpu::CreateMPoints(const int n) {
+  if (mpoints)
+    clReleaseMemObject(mpoints);
+
+  mpoints_n = n;
+
+  int error;
+  mpoints = clCreateBuffer(
+      context_cl, CL_MEM_READ_ONLY, sizeof(int)*mpoints_n,
+      nullptr, &error);
+  CheckError(error, "CreateMPoints");
 }
 
 void Gpu::CreateVertices(int n) {
@@ -470,7 +484,7 @@ cl_event Gpu::EnqueueFindToSubdivide1(
   clSetKernelArg(k, 4, sizeof(cl_mem), &to_subdivide);
 
   int error;
-  size_t globalWorkSize[] = { num_vertices };
+  size_t globalWorkSize[] = { static_cast<size_t>(num_vertices) };
   cl_event gpu_event;
   error = clEnqueueNDRangeKernel(
       queue, k, 1, nullptr, globalWorkSize,
@@ -491,7 +505,7 @@ cl_event Gpu::EnqueueFindToSubdivide2(
     clSetKernelArg(k, ai++, sizeof(cl_mem), &vi2nbrs);
 
     int error;
-    size_t globalWorkSize[] = { num_vertices };
+    size_t globalWorkSize[] = { static_cast<size_t>(num_vertices) };
     error = clEnqueueNDRangeKernel(
         queue, k, 1, nullptr, globalWorkSize,
         nullptr, wait_events.size(), wait_events.get(), &vi2nbrs_event);
@@ -509,7 +523,7 @@ cl_event Gpu::EnqueueFindToSubdivide2(
   clSetKernelArg(k, ai++, sizeof(cl_mem), &changed);
 
   int error;
-  size_t globalWorkSize[] = { num_vertices };
+  size_t globalWorkSize[] = { static_cast<size_t>(num_vertices) };
   cl_event gpu_event;
   GpuEvents wait_events2(wait_events, vi2nbrs_event);
   error = clEnqueueNDRangeKernel(
@@ -700,7 +714,7 @@ GpuEvents Gpu::EnqueueSubdivideCell(
   }
 
   int error;
-  size_t globalWorkSize[] = { num_vertices };
+  size_t globalWorkSize[] = { static_cast<size_t>(num_vertices) };
   GpuEvents w_events = wait_events;
   GpuEvents events;
   for (int filter = 0; filter < (1<<DIM); ++filter) {
@@ -744,7 +758,7 @@ GpuEvents Gpu::EnqueueClipGeometries(
   clSetKernelArg(k, 8, sizeof(cl_mem), &goffsets);
 
   int error;
-  size_t globalWorkSize[] = { num_vertices };
+  size_t globalWorkSize[] = { static_cast<size_t>(num_vertices) };
   GpuEvents w_events = wait_events;
   GpuEvents events;
   for (int filter = 0; filter < (1<<DIM); ++filter) {
@@ -773,7 +787,7 @@ GpuEvents Gpu::EnqueueComputeNonEmptyVertexDistances(
   clSetKernelArg(k, 8, sizeof(cl_mem), &goffsets);
 
   int error;
-  size_t globalWorkSize[] = { num_vertices };
+  size_t globalWorkSize[] = { static_cast<size_t>(num_vertices) };
   GpuEvents w_events = wait_events;
   GpuEvents events;
   for (int filter = 0; filter < (1<<DIM); ++filter) {
@@ -798,7 +812,7 @@ cl_event Gpu::EnqueuePullDistances(
   clSetKernelArg(k, 3, sizeof(cl_mem), &changed);
 
   int error;
-  size_t globalWorkSize[] = { num_vertices };
+  size_t globalWorkSize[] = { static_cast<size_t>(num_vertices) };
   cl_event gpu_event;
   error = clEnqueueNDRangeKernel(
       queue, k, 1, nullptr, globalWorkSize,
@@ -819,7 +833,7 @@ cl_event Gpu::EnqueueFindAmbiguous(
   clSetKernelArg(k, 5, sizeof(cl_mem), &size);
 
   int error;
-  size_t globalWorkSize[] = { num_vertices };
+  size_t globalWorkSize[] = { static_cast<size_t>(num_vertices) };
   cl_event gpu_event;
   error = clEnqueueNDRangeKernel(
       queue, k, 1, nullptr, globalWorkSize,

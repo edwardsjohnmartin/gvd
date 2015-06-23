@@ -34,7 +34,8 @@ int kWindowWidth = 600;
 int kWindowHeight = 450;
 int window_width = kWindowWidth;
 int window_height = kWindowHeight;
-oct::shared_ptr<GL2D> scene;
+// oct::shared_ptr<GL2D> scene;
+oct::shared_ptr<OctViewer2> scene;
 int cur_idx = 0;
 
 void MyDisplay() {
@@ -67,6 +68,13 @@ void MyDisplay() {
 void Init() {
   glClearColor(1.0, 1.0, 1.0, 1.0);
   scene->Init();
+
+#ifdef __OPEN_CL_SUPPORT__
+  oct::OctreeOptions o = scene->options();
+  if (o.gpu) {
+    OpenCLInit(2, o, o.opencl_log);
+  }
+#endif
 
   // const float r = window_width / static_cast<float>(window_height);
   // glMatrixMode(GL_PROJECTION);
@@ -148,6 +156,11 @@ void Keyboard(unsigned char key, int x, int y) {
       glutPostRedisplay();
       break;
     case 'q':
+#ifdef __OPEN_CL_SUPPORT__
+      if (scene->options().gpu) {
+        OpenCLCleanup();
+      }
+#endif
       exit(EXIT_SUCCESS);
       break;
     default:

@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "./bb.h"
+#include "./gpu.h"
 
 using std::cout;
 using std::endl;
@@ -141,9 +142,8 @@ vector<intn> Quantize(const vector<floatn>& points, const Resln& resln) {
     return ret;
   }
 
-  // Quantize points to integers and morton codes
+  // Quantize points to integers
   vector<intn> qpoints(points.size());
-  // vector<int> mpoints(points.size());
   for (int i = 0; i < points.size(); ++i) {
     const floatn& p = points[i];
     intn q = make_intn(0);
@@ -162,7 +162,6 @@ vector<intn> Quantize(const vector<floatn>& points, const Resln& resln) {
       q.s[k] = v;
     }
     qpoints[i] = q;
-    // mpoints[i] = xyz2z(q);
   }
   
   return qpoints;
@@ -184,6 +183,10 @@ vector<OctNode> BuildOctree(
   std::vector<int>::iterator it;
   it = std::unique (mpoints.begin(), mpoints.end());
   mpoints.resize(std::distance(mpoints.begin(),it));
+
+  // Send mpoints to gpu
+  oct::Gpu gpu;
+  gpu.CreateMPoints(mpoints.size());
 
   const int n = mpoints.size();
   const LcpLength lcp_length(mpoints, resln);

@@ -10,8 +10,17 @@
 
 namespace Karras {
 
-OctNode const* FindNode(
+OctCell FindLeaf(
     const intn& p, const std::vector<OctNode>& octree, const Resln& resln);
+
+OctCell FindNeighbor(
+    const OctCell& cell, const int intersection,
+    const std::vector<OctNode>& octree, const Resln& resln);
+
+// Find intersections of the line segment ab with an octree cell.
+std::vector<intn> FindIntersections(
+    const intn& a, const intn& b, const OctCell& cell,
+    const std::vector<OctNode>& octree, const Resln& resln);
 
 } // namespace
 

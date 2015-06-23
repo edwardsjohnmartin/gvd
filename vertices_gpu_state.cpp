@@ -162,7 +162,7 @@ void VerticesGpuState<D>::Update() {
     CheckError(error, "clEnqueueWriteBuffer");
 
     // Enqueue the kernel job
-    size_t globalWorkSize[] = { N };
+    size_t globalWorkSize[] = { static_cast<size_t>(N) };
     cl_event gpu_event;
     error = clEnqueueNDRangeKernel(
         queue_cl, kernel_update_vertices, 1, nullptr, globalWorkSize,

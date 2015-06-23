@@ -12,7 +12,9 @@
  **    sci.utah.edu/~jedwards/research/gvd/index.html **
  *******************************************************/
 
+#ifndef OPEN_CL
 #include <stdio.h>
+#endif
 
 #include "./vertex.h"
 #include "./vec.h"

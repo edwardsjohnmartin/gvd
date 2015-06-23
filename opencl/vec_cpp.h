@@ -109,6 +109,8 @@ struct PointAndLabel {
 //------------------------------------------------------------
 
 // Construction
+
+// make_int3, make_float2, etc.
 #define MAKE_VECN(typen,type)                                         \
   inline typen make_##typen(type a=0, type b=0, type c=0, type d=0) {   \
     type arr[] = { a, b, c, d };                                        \
@@ -139,6 +141,40 @@ MAKE_VECN(doublen,double)
 // MAKE_VECN(doublen,double)
 // #endif
 
+// Makes a uniform vector, that is, one with identical values
+// in each dimension.
+// make_uni_int3, make_uni_float2, etc.
+#define MAKE_UNI_VECN(typen,type)                                           \
+  inline typen make_uni_##typen(type a) {                               \
+    type arr[] = { a, a, a, a };                                        \
+    return *(typen*)(arr);                                              \
+    }
+MAKE_UNI_VECN(bool2,bool)
+MAKE_UNI_VECN(int2,int)
+MAKE_UNI_VECN(float2,float)
+MAKE_UNI_VECN(double2,double)
+MAKE_UNI_VECN(bool3,bool)
+MAKE_UNI_VECN(int3,int)
+MAKE_UNI_VECN(float3,float)
+MAKE_UNI_VECN(double3,double)
+MAKE_UNI_VECN(bool4,bool)
+MAKE_UNI_VECN(int4,int)
+MAKE_UNI_VECN(float4,float)
+MAKE_UNI_VECN(double4,double)
+
+// #ifdef OCT2D
+MAKE_UNI_VECN(booln,bool)
+MAKE_UNI_VECN(intn,int)
+MAKE_UNI_VECN(floatn,float)
+MAKE_UNI_VECN(doublen,double)
+// #else
+// MAKE_UNI_VECN(booln,bool)
+// MAKE_UNI_VECN(intn,int)
+// MAKE_UNI_VECN(floatn,float)
+// MAKE_UNI_VECN(doublen,double)
+// #endif
+
+// make_int3(v, 10) // where v is of type int2
 #define MAKE_VECN_(typen,typen_,type,n)                         \
   inline typen make_##typen(const typen_& v_, type a=0) {       \
     type arr[] = { a, a, a, a };                                \
