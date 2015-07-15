@@ -223,7 +223,7 @@ bool TriBoxOverlap(const int3 boxcenter,
     }
   }
   // const int boxhalfsize_f = static_cast<float>(boxhalfsize);
-  const int boxhalfsize_f = (float)(boxhalfsize);
+  const float boxhalfsize_f = (float)(boxhalfsize);
   float boxcenter_f[3];
   for (int i = 0; i < 3; ++i) {
     // boxcenter_f[i] = static_cast<float>(boxcenter.s[i]);

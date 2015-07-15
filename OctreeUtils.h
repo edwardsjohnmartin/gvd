@@ -17,8 +17,15 @@ OctCell FindNeighbor(
     const OctCell& cell, const int intersection,
     const std::vector<OctNode>& octree, const Resln& resln);
 
+struct CellIntersection {
+  CellIntersection(const float t_, const intn p_)
+      : t(t_), p(p_) {}
+  float t;
+  intn p;
+};
+
 // Find intersections of the line segment ab with an octree cell.
-std::vector<intn> FindIntersections(
+std::vector<CellIntersection> FindIntersections(
     const intn& a, const intn& b, const OctCell& cell,
     const std::vector<OctNode>& octree, const Resln& resln);
 

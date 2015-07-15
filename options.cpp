@@ -60,6 +60,10 @@ bool OctreeOptions::ProcessArg(int& i, char** argv) {
     ++i;
     o.level_of_interest = atoi(argv[i]);
     ++i;
+  } else if (strcmp(argv[i], "--karras") == 0) {
+    ++i;
+    o.karras_iterations = atoi(argv[i]);
+    ++i;
   } else if (strcmp(argv[i], "--test") == 0) {
     ++i;
     o.test = atoi(argv[i]);

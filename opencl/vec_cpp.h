@@ -601,6 +601,24 @@ inline float2 normalize(const float2 v) {
 inline int2 normalize(const int2 v) {
   return v / length(v);
 }
+inline double3 unit(const double3 v) {
+  return v / length(v);
+}
+inline float3 unit(const float3 v) {
+  return v / length(v);
+}
+inline int3 unit(const int3 v) {
+  return v / length(v);
+}
+inline double2 unit(const double2 v) {
+  return v / length(v);
+}
+inline float2 unit(const float2 v) {
+  return v / length(v);
+}
+inline int2 unit(const int2 v) {
+  return v / length(v);
+}
 //------------------------------------------------------------
 // cross
 #define VEC_CROSS_VEC(type3)                            \

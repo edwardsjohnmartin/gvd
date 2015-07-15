@@ -19,6 +19,7 @@
 
 #include "../opencl/defs.h"
 #include "../opencl/vec.h"
+#include "../opencl/segment.h"
 
 #include "../timer.h"
 #include "../opencl/vertex.h"
@@ -32,6 +33,45 @@
 #include "../OctreeUtils.h"
 
 using Karras::OctNode;
+
+// A CellIntersections object stores multiple labels for each of a
+// cell's children.
+class CellIntersections {
+ private:
+  static const int NUM_LABELS = 2;
+  static const int NUM_OCTANTS = (1<<DIM);
+
+ public:
+  CellIntersections() {
+    for (int i = 0; i < NUM_LABELS * NUM_OCTANTS; ++i) {
+      l[i] = -1;
+    }
+  }
+  void set(const int octant, const int label, const float_seg& seg) {
+    for (int i = octant*NUM_LABELS; i < (octant+1)*NUM_LABELS; ++i) {
+      if (l[i] == -1) {
+        l[i] = label;
+        segs[i] = seg;
+        break;
+      }
+      if (l[i] == label) {
+        break;
+      }
+    }
+  }
+  bool is_multi(const int octant) const {
+    return l[octant*NUM_LABELS+1] > -1;
+  }
+  float_seg seg(const int i, const int octant) const {
+    return segs[octant*NUM_LABELS+i];
+  }
+  int label(const int i, const int octant) const {
+    return l[octant*NUM_LABELS+i];
+  }
+ private:
+  int l[NUM_LABELS*NUM_OCTANTS];
+  float_seg segs[NUM_LABELS*NUM_OCTANTS];
+};
 
 class OctViewer2 : public GL2D {
  public:
@@ -48,6 +88,9 @@ class OctViewer2 : public GL2D {
   void PrintCommands() const;
 
   void Find(int x, int y);
+  std::vector<Karras::CellIntersection> Walk(
+      const intn& a, const intn& b);
+  void FindMultiCells();
 
   void AddPoint(int x, int y);
 
@@ -102,7 +145,8 @@ class OctViewer2 : public GL2D {
                 // const oct::Direction<2>& d) const;
                 const oct::Direction& d) const;
   void DrawOctree() const;
-  void DrawNode(const OctNode& node, const intn origin, const int length) const;
+  void DrawNode(const OctNode& parent, const int parent_idx,
+                const intn origin, const int length) const;
   void DrawGVD() const;
   void DrawPath() const;
   void DrawVoronoi() const;
@@ -187,6 +231,7 @@ class OctViewer2 : public GL2D {
   bool show_gvd;
   bool show_path;
   bool show_voronoi;
+  int show_poly_vertices;
   bool show_vertex_ids;
   bool show_statistics;
   // 0 = none
@@ -207,8 +252,10 @@ class OctViewer2 : public GL2D {
 
   // new
   vector<OctNode> octree;
-  vector<floatn> points;
-  vector<intn> qpoints;
+  vector<CellIntersections> cell_intersections;
+  vector<floatn> karras_points;
+  // vector<intn> qpoints;
+  vector<intn> extra_qpoints;
   Karras::Resln resln;
   Karras::OctCell fnode;
   intn seg_a, seg_b;

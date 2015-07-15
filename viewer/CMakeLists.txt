@@ -2,7 +2,6 @@ cmake_minimum_required (VERSION 2.6)
 project (GVD)
 
 SET(SRCS
-  ../OctreeUtils.cpp
   ../opencl.cpp
   ../octree.cpp
   ../octree_gpu.cpp
@@ -15,6 +14,7 @@ SET(SRCS
   ../options.cpp
   ../geometry_cpp.cpp
   ../opencl/bit.cpp
+  ../opencl/geom.cpp
 #  ../opencl/distance3.cpp
   ../opencl/geometry.cpp
   ../opencl/uvertex_network.cpp
@@ -35,6 +35,7 @@ SET(OCT2_SRCS
   ./octviewer2.cpp
   ../jrs-triangle.c
   ../karras.cpp
+  ../OctreeUtils.cpp
 )
 
 SET(GVD3_SRCS
@@ -101,6 +102,13 @@ if(BUILD_OCT2)
   set_target_properties (oct-viewer2 PROPERTIES COMPILE_DEFINITIONS "OCT2D")
   TARGET_LINK_LIBRARIES(oct-viewer2 ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${OPENCL_LIBRARY})
 endif(BUILD_OCT2)
+
+option(BUILD_FIT "Build fit test software" ON)
+if(BUILD_FIT)
+  ADD_EXECUTABLE(fit ${SRCS} ${OCT2_SRCS} fit_main.cpp)
+  set_target_properties (fit PROPERTIES COMPILE_DEFINITIONS "OCT2D")
+  TARGET_LINK_LIBRARIES(fit ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${OPENCL_LIBRARY})
+endif(BUILD_FIT)
 
 #ADD_EXECUTABLE(segment2 ${SRCS} ${SEGMENT2_SRCS})
 #set_target_properties (segment2 PROPERTIES COMPILE_DEFINITIONS "OCT2D")

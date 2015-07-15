@@ -25,6 +25,9 @@ struct Resln {
     mbits = bits * DIM;
   }
 
+  friend std::ostream& operator<<(std::ostream& out, const Resln& resln);
+  friend std::istream& operator>>(std::istream& in, Resln& resln);
+
   // width is the quantized width in one dimension.
   int width;
   int volume;
@@ -33,6 +36,17 @@ struct Resln {
   // Total number of bits for morton code is mbits = bits * DIM.
   int mbits;
 };
+
+inline std::ostream& operator<<(std::ostream& out, const Resln& resln) {
+  out << resln.width << " " << resln.volume << " "
+      << resln.bits << " " << resln.mbits;
+  return out;
+}
+
+inline std::istream& operator>>(std::istream& in, Resln& resln) {
+  in >> resln.width >> resln.volume >> resln.bits >> resln.mbits;
+  return in;
+}
 
 } // namespace
 

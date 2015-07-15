@@ -27,6 +27,9 @@
 #include "./pngio.h"
 
 #include "../karras.h"
+#include "../OctreeUtils.h"
+#include "../OctNode.h"
+#include "../Resln.h"
 
 using namespace std;
 

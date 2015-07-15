@@ -184,9 +184,11 @@ vector<OctNode> BuildOctree(
   it = std::unique (mpoints.begin(), mpoints.end());
   mpoints.resize(std::distance(mpoints.begin(),it));
 
-  // Send mpoints to gpu
-  oct::Gpu gpu;
-  gpu.CreateMPoints(mpoints.size());
+  // // Send mpoints to gpu
+  // if (o.gpu) {
+  //   oct::Gpu gpu;
+  //   gpu.CreateMPoints(mpoints.size());
+  // }
 
   const int n = mpoints.size();
   const LcpLength lcp_length(mpoints, resln);

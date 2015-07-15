@@ -2,6 +2,8 @@
 #include "./karras.h"
 
 #include <iostream>
+#include <fstream>
+#include <set>
 
 #include "./bb.h"
 
@@ -25,7 +27,8 @@ OctCell FindLeaf(
   intn origin = make_uni_intn(0);
   int width = resln.width;
   OctNode const * node = &octree[0];
-  for (int i = resln.mbits-DIM; i > 0; i-=DIM) {
+  int idx = 0;
+  for (int i = resln.mbits-DIM; i >= 0; i-=DIM) {
     const int octant = (z >> i) & mask;
     width /= 2;
 
@@ -36,13 +39,26 @@ OctCell FindLeaf(
 
     if (node->is_leaf(octant)) {
       // Empty leaf node
-      return OctCell(origin, width, node, octant, 0, (*node)[octant]);
+      return OctCell(origin, width, idx, node, octant, 0,
+                     (*node)[octant]);
     }
-    const int idx = (*node)[octant];
+    idx = (*node)[octant];
     node = &octree[idx];
   }
+
+  ofstream out("find.err");
+  out << p << endl;
+  out << resln << endl;
+  out << octree << endl;
+  out.close();
+
+  cerr << "Didn't find leaf node" << endl;
+  cerr << "p = " << p << endl;
+  cerr << "resln = " << resln << endl;
+  // cerr << "octree = " << octree.size() << " " << octree.back() << endl;
+  cerr << "octree = " << octree << endl;
+
   throw logic_error("Didn't find leaf node");
-  // return node;
 }
 
 OctCell FindNeighbor(
@@ -51,7 +67,7 @@ OctCell FindNeighbor(
   throw logic_error("Not implemented");
 }
 
-std::vector<intn> FindIntersections(
+std::vector<CellIntersection> FindIntersections(
     const intn& a, const intn& b, const OctCell& cell,
     const std::vector<OctNode>& octree, const Resln& resln) {
   floatn af = convert_floatn(a);
@@ -60,53 +76,55 @@ std::vector<intn> FindIntersections(
   float len = length(vf);
   vf = vf / len;
 
-  vector<intn> ret;
+  vector<CellIntersection> ret;
 
-  BoundingBox<intn> bb;
-  bb(cell.get_origin());
-  bb(cell.get_origin() + make_uni_intn(cell.get_width()));
+  BoundingBox<floatn> bb;
+  bb(convert_floatn(cell.get_origin()));
+  bb(convert_floatn(cell.get_origin()) + make_uni_floatn(cell.get_width()));
 
   vector<float> t_values;
-  vector<intn> p_values;
+  vector<floatn> p_values;
   {
     // Bottom edge
     const int y = cell.get_origin().y;
     const float t = (y - af.y) / vf.y;
     t_values.push_back(t);
-    const intn p = make_intn(af.x + vf.x * t, y);
+    const floatn p = make_floatn(af.x + vf.x * t, y);
     p_values.push_back(p);
   } {
     // Right edge
     const int x = cell.get_origin().x + cell.get_width();
     const float t = (x - af.x) / vf.x;
     t_values.push_back(t);
-    const intn p = make_intn(x, af.y + vf.y * t);
+    const floatn p = make_floatn(x, af.y + vf.y * t);
     p_values.push_back(p);
   } {
     // Top edge
     const int y = cell.get_origin().y + cell.get_width();
     const float t = (y - af.y) / vf.y;
     t_values.push_back(t);
-    const intn p = make_intn(af.x + vf.x * t, y);
+    const floatn p = make_floatn(af.x + vf.x * t, y);
     p_values.push_back(p);
   } {
     // Left edge
     const int x = cell.get_origin().x;
     const float t = (x - af.x) / vf.x;
     t_values.push_back(t);
-    const intn p = make_intn(x, af.y + vf.y * t);
+    const floatn p = make_floatn(x, af.y + vf.y * t);
     p_values.push_back(p);
   }
 
+  std::set<intn> point_set;
   for (int i = 0; i < t_values.size(); ++i) {
     const float t = t_values[i];
-    const intn p = p_values[i];
+    const floatn p = p_values[i];
     if (t >= 0 && t < len) {
-      // const intn p = convert_intn(af + vf * t);
       if (bb.in_closed(p)) {
-        ret.push_back(p);
-      } else if (i == 1) {
-        cout << bb << " " << p << endl;
+        const intn qp = convert_intn(p);
+        if (point_set.find(qp) == point_set.end()) {
+          ret.push_back(CellIntersection(t, qp));
+          point_set.insert(qp);
+        }
       }
     }
   }

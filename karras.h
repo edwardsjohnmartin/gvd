@@ -24,11 +24,11 @@ void OutputOctree(const std::vector<OctNode>& octree);
 
 } // namespace
 
-inline std::ostream& operator<<(std::ostream& out, const Karras::Resln& resln) {
-  out << "width=" << resln.width << ", volume=" << resln.volume
-      << ", bits=" << resln.bits
-      << ", mbits=" << resln.mbits;
-  return out;
-}
+// inline std::ostream& operator<<(std::ostream& out, const Karras::Resln& resln) {
+//   out << "width=" << resln.width << ", volume=" << resln.volume
+//       << ", bits=" << resln.bits
+//       << ", mbits=" << resln.mbits;
+//   return out;
+// }
 
 #endif

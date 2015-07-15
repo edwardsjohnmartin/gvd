@@ -856,6 +856,17 @@ void GVDViewer3::TileSurfaceGpu() {
   }
   ResetGvdMeshVertexColors();
 
+  GraphConstructor<3> gc;
+  for (const Mesh& mesh : gvd_meshes) {
+    const vector<float3>& vertices = mesh.vertices();
+    for (const Triangle& t : mesh.triangles()) {
+      gc.AddTriangle(convert_double3(vertices[t.s[0]]),
+                     convert_double3(vertices[t.s[1]]),
+                     convert_double3(vertices[t.s[2]]));
+    }
+  }
+  _gvd_graph = gc.GetGraph();
+
   // t.restart("* 7");
   bb_full = gvd_meshes[0].bb();
   if (center == float3())
@@ -1854,11 +1865,13 @@ void GVDViewer3::Recenter(int x, int y) {
 void GVDViewer3::Search(const int start, const int end) {
   search_path.clear();
   _gvd_graph.Dijkstra(start, end, back_inserter(search_path));
+  cout << "Searched: " << search_path.size() << endl;
   reverse(search_path.begin(), search_path.end());
   glutPostRedisplay();
 }
 
 void GVDViewer3::SetStartSearch(int x, int y) {
+  cout << "Starting search" << endl;
   bool hit;
   const double3 p = convert_double3(Pick(x, y, hit));
   if (!hit) return;
@@ -1885,6 +1898,7 @@ void GVDViewer3::SetStartSearch(int x, int y) {
 }
 
 void GVDViewer3::SetEndSearch(int x, int y) {
+  cout << "Ending search" << endl;
   bool hit;
   const double3 p = convert_double3(Pick(x, y, hit));
   if (!hit) return;
