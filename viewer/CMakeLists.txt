@@ -36,6 +36,11 @@ SET(OCT2_SRCS
   ../jrs-triangle.c
   ../karras.cpp
   ../OctreeUtils.cpp
+  ../bigint/BigInteger.cc
+  ../bigint/BigUnsigned.cc
+  ../bigint/BigIntegerAlgorithms.cc
+  ../bigint/BigIntegerUtils.cc
+  ../bigint/BigUnsignedInABase.cc
 )
 
 SET(GVD3_SRCS

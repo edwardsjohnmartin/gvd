@@ -11,8 +11,8 @@
 
 namespace Karras {
 
-int xyz2z(intn p, const Resln& r);
-intn z2xyz(const int z, const Resln& r);
+Morton xyz2z(intn p, const Resln& r);
+intn z2xyz(const Morton z, const Resln& r);
 
 std::vector<intn> Quantize(const std::vector<floatn>& points, const Resln& r);
 

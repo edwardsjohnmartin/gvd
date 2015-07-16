@@ -13,6 +13,9 @@
 #include "../opencl/vec.h"
 #include "../opencl/segment.h"
 #include "../opencl/geom.h"
+// #include "../karatsuba.h"
+#include "../bigint/BigUnsigned.hh"
+#include "../bigint/BigIntegerUtils.hh"
 
 using namespace std;
 
@@ -297,6 +300,15 @@ void Keyboard(unsigned char key, int x, int y) {
 }
 
 int main(int argc, char** argv) {
+  if (argc == 3) {
+    BigUnsigned i;
+    i.multiply(stringToBigUnsigned(argv[1]), stringToBigUnsigned(argv[2]));
+    cout << bigUnsignedToString(i) << endl;
+    cout << i.getLength() << endl;
+  }
+  // test_karatsuba();
+  exit(0);
+
   bool i1, i2;
   const floatn i = line_intersection(
       make_floatn(17136, 12798),

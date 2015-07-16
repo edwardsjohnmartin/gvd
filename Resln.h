@@ -3,8 +3,11 @@
 
 namespace Karras {
 
+typedef unsigned int Morton;
+
 // Stores resolution and octree height values
 struct Resln {
+ public:
   Resln()
       : width(8), volume(64), bits(3), mbits(3*DIM) {}
   Resln(const int width_)

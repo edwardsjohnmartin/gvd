@@ -20,7 +20,7 @@ using std::shared_ptr;
 
 namespace Karras {
 
-int xyz2z(intn p, const Resln& resln) {
+Morton xyz2z(intn p, const Resln& resln) {
   int ret = 0;
   for (int i = 0; i < resln.bits; ++i) {
     for (int j = 0; j < DIM; ++j) {
@@ -31,7 +31,7 @@ int xyz2z(intn p, const Resln& resln) {
   return ret;
 }
 
-intn z2xyz(const int z, const Resln& resln) {
+intn z2xyz(const Morton z, const Resln& resln) {
   intn p = make_intn(0);
   for (int i = 0; i < resln.bits; ++i) {
     for (int j = 0; j < DIM; ++j) {
@@ -59,7 +59,7 @@ int sign(const int i) {
 // Now shift, and lcp is
 //      ___
 // 00000011
-int compute_lcp(const int value, const int length, const Resln& resln) {
+int compute_lcp(const Morton value, const int length, const Resln& resln) {
   int mask = 0;
   for (int i = 0; i < length; ++i) {
     mask |= (1 << (resln.mbits - 1 - i));
@@ -69,9 +69,9 @@ int compute_lcp(const int value, const int length, const Resln& resln) {
 }
 
 // Longest common prefix, denoted \delta in karras2014
-int compute_lcp_length(const int a, const int b, const Resln& resln) {
+int compute_lcp_length(const Morton a, const Morton b, const Resln& resln) {
   for (int i = resln.mbits-1; i >= 0; --i) {
-    const int mask = 1 << i;
+    const Morton mask = 1 << i;
     if ((a & mask) != (b & mask)) {
       return resln.mbits - i - 1;
     }
@@ -81,7 +81,7 @@ int compute_lcp_length(const int a, const int b, const Resln& resln) {
 
 class LcpLength {
  public:
-  LcpLength(const vector<int>& mpoints, const Resln& resln)
+  LcpLength(const vector<Morton>& mpoints, const Resln& resln)
       : _mpoints(mpoints), _resln(resln) {}
 
   int operator()(const int i, const int j) const {
@@ -93,20 +93,20 @@ class LcpLength {
   }
 
  private:
-  const vector<int>& _mpoints;
+  const vector<Morton>& _mpoints;
   const Resln& _resln;
 };
 
 struct BrtNode {
   // If lcp is 10011 and DIM == 2 then the last bit is dropped
   // and return is [0b10, 0b01] = [2, 1].
-  vector<int> oct_nodes() const {
-    static const int mask = (DIM == 2) ? 3 : 7;
+  vector<Morton> oct_nodes() const {
+    static const Morton mask = (DIM == 2) ? 3 : 7;
     if (DIM > 3)
       throw logic_error("BrtNode::oct_nodes not yet supported for D>3");
     const int bias = lcp_length % DIM;
     const int n = lcp_length / DIM;
-    vector<int> ret(n);
+    vector<Morton> ret(n);
     for (int i = 0; i < n; ++i) {
       const int offset = DIM * (n-i-1) + bias;
       ret[i] = (lcp >> offset) & mask;
@@ -119,7 +119,7 @@ struct BrtNode {
   // Whether the left (resp. right) child is a leaf or not
   bool left_leaf, right_leaf;
   // The longest common prefix
-  int lcp;
+  Morton lcp;
   // Number of bits in the longest common prefix
   int lcp_length;
 
@@ -172,7 +172,7 @@ vector<OctNode> BuildOctree(
   if (points.empty())
     throw logic_error("Zero points not supported");
   
-  vector<int> mpoints(points.size());
+  vector<Morton> mpoints(points.size());
   for (int i = 0; i < points.size(); ++i) {
     mpoints[i] = xyz2z(points[i], resln);
   }
@@ -180,8 +180,8 @@ vector<OctNode> BuildOctree(
   sort(mpoints.begin(), mpoints.end());
 
   // Make sure points are unique
-  std::vector<int>::iterator it;
-  it = std::unique (mpoints.begin(), mpoints.end());
+  std::vector<Morton>::iterator it;
+  it = std::unique(mpoints.begin(), mpoints.end());
   mpoints.resize(std::distance(mpoints.begin(),it));
 
   // // Send mpoints to gpu
@@ -270,8 +270,8 @@ vector<OctNode> BuildOctree(
            << " right = " << I[i].left+1 << (I[i].right_leaf ? "L" : "I")
            << " lcp = " << I[i].lcp
            << " oct nodes: (";
-      vector<int> onodes = I[i].oct_nodes();
-      for (const int onode : onodes) {
+      vector<Morton> onodes = I[i].oct_nodes();
+      for (const Morton onode : onodes) {
         cout << onode << " ";
       }
       cout << ") lcp_length = " << I[i].lcp_length
@@ -323,7 +323,7 @@ vector<OctNode> BuildOctree(
       // m = number of local splits
       const int m = local_splits[brt_i];
       // onodes = vector of octree indices \in [0, 2^DIM]
-      const vector<int> onodes = I[brt_i].oct_nodes();
+      const vector<Morton> onodes = I[brt_i].oct_nodes();
       // current octree node index
       int oct_i = prefix_sums[brt_i];
       for (int j = 0; j < m-1; ++j) {
@@ -346,8 +346,7 @@ vector<OctNode> BuildOctree(
       if (int(onodes.size()) - m < 0) {
         throw logic_error("error 2");
       }
-      if (onodes[onodes.size() - m] < 0 ||
-          onodes[onodes.size() - m] >= 4) {
+      if (onodes[onodes.size() - m] >= 4) {
         throw logic_error("error 3");
       }
       octree[oct_parent].set_child(onodes[onodes.size() - m], oct_i);

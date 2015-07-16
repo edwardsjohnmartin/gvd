@@ -2045,7 +2045,9 @@ void OctViewer2::Display() {
 
   // build octree
   if (dirty) {
+    Timer t("Building octree");
     BuildOctree();
+    t.stop();
 
     // for (int i = 0; i < 6; ++i) {
     //   tex_init[i] = false;

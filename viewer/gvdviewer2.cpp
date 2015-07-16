@@ -876,7 +876,9 @@ void GVDViewer2::BuildOctree() {
 
   vertices.Clear();
   // Build the octree
+  Timer t("Building octree");
   vertices = oct::BuildOctree(all_vertices, all_edges, bb, o);
+  t.stop();
   if (o.timings)
     cout << "vertices size = " << vertices.size() << endl;
 
@@ -1492,7 +1494,9 @@ void GVDViewer2::Display() {
 
   // build octree
   if (dirty) {
+    // Timer t("Building octree");
     BuildOctree();
+    // t.stop();
     for (int i = 0; i < 6; ++i) {
       tex_init[i] = false;
     }
