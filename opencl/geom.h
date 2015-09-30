@@ -43,7 +43,13 @@ std::vector<floatn> v_sample(const float_seg& a, const float_seg& b);
 
 // Pass A and B by value! They'll change in the function.
 void FitBoxes(float_seg A, float_seg B, const float& min_d,
+              std::vector<floatn>* samples,
               std::vector<floatn>* origins, std::vector<float>* lengths);
+
+void FitBoxesNoIntersection(
+    float_seg A, float_seg B, const float& min_d,
+    std::vector<floatn>* samples,
+    std::vector<floatn>* origins, std::vector<float>* lengths);
 
 bool multi_intersection(const float_seg& A, const float_seg& B);
 

@@ -15,6 +15,7 @@
 #ifndef __OPTIONS_H__
 #define __OPTIONS_H__
 
+#include <vector>
 #include <set>
 #include <map>
 
@@ -85,6 +86,7 @@ struct OctreeOptions {
   //   IMPORTANT_MATRIX 1 0 0 0 1 0 0 0 1
   void ReadOptionsFile();
 
+  std::vector<std::string> filenames;
   level_t max_level;
   int tri_threshold;
   bool simple_dist;

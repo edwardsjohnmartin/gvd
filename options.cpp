@@ -33,6 +33,16 @@ bool OctreeOptions::ProcessArg(int& i, char** argv) {
     ++i;
     o.max_level = atoi(argv[i]);
     ++i;
+  } else if (strcmp(argv[i], "-f") == 0) {
+    ++i;
+    ifstream in(argv[i]);
+    string f;
+    getline(in, f);
+    while (in && !f.empty()) {
+      o.filenames.push_back(f);
+      getline(in, f);
+    }
+    ++i;
   } else if (strcmp(argv[i], "-a") == 0) {
     ++i;
     o.ambiguous_max_level = atoi(argv[i]);

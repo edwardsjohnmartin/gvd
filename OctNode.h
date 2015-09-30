@@ -124,6 +124,13 @@ struct OctCell {
     return BoundingBox<intn>(origin, origin+make_uni_intn(width));
   }
 
+  bool operator==(const OctCell& cell) const {
+    return origin == cell.origin
+        && width == cell.width
+        && parent_idx == cell.parent_idx
+        && octant == cell.octant;
+  }
+
   friend std::ostream& operator<<(std::ostream& out, const OctCell& cell);
   friend std::istream& operator>>(std::istream& in, OctCell& cell);
 

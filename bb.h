@@ -86,23 +86,26 @@ class BoundingBox {
     return m;
   }
 
-  bool in_open(const Point& p) const {
+  bool in_open(const Point& p, const NumType epsilon = 0) const {
     for (int i = 0; i < D; ++i) {
-      if (p.s[i] <= _min.s[i] || p.s[i] >= _max.s[i]) return false;
+      if (p.s[i] <= _min.s[i]-epsilon ||
+          p.s[i] >= _max.s[i]+epsilon) return false;
     }
     return true;
   }
 
-  bool in_half_open(const Point& p) const {
+  bool in_half_open(const Point& p, const NumType epsilon = 0) const {
     for (int i = 0; i < D; ++i) {
-      if (p.s[i] < _min.s[i] || p.s[i] >= _max.s[i]) return false;
+      if (p.s[i] < _min.s[i]-epsilon ||
+          p.s[i] >= _max.s[i]+epsilon) return false;
     }
     return true;
   }
 
-  bool in_closed(const Point& p) const {
+  bool in_closed(const Point& p, const NumType epsilon = 0) const {
     for (int i = 0; i < D; ++i) {
-      if (p.s[i] < _min.s[i] || p.s[i] > _max.s[i]) return false;
+      if (p.s[i] < _min.s[i]-epsilon ||
+          p.s[i] > _max.s[i]+epsilon) return false;
     }
     return true;
   }

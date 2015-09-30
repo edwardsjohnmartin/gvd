@@ -19,7 +19,9 @@ class float_seg {
   const floatn& p() const { return _a; }
   floatn unit() const { return vector() / length(); }
   float length() const { return ::length(vector()); }
+  float length2() const { return ::length2(vector()); }
   void reverse() { std::swap(_a, _b); }
+  bool is_degenerate() const { return _a == _b; }
 
   friend std::ostream& operator<<(std::ostream& out, const float_seg& s);
   friend std::istream& operator>>(std::istream& in, float_seg& s);

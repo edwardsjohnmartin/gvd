@@ -21,11 +21,11 @@ using std::shared_ptr;
 namespace Karras {
 
 Morton xyz2z(intn p, const Resln& resln) {
-  int ret = 0;
+  Morton ret = 0;
   for (int i = 0; i < resln.bits; ++i) {
     for (int j = 0; j < DIM; ++j) {
       if (p.s[j] & (1<<i))
-        ret |= 1 << (i*DIM+j);
+        ret |= Morton(1) << (i*DIM+j);
     }
   }
   return ret;
@@ -35,7 +35,7 @@ intn z2xyz(const Morton z, const Resln& resln) {
   intn p = make_intn(0);
   for (int i = 0; i < resln.bits; ++i) {
     for (int j = 0; j < DIM; ++j) {
-      if (z & (1 << (i*DIM+j)))
+      if ((z & (Morton(1) << (i*DIM+j))) > 0)
         p.s[j] |= (1<<i);
     }
   }
@@ -59,19 +59,19 @@ int sign(const int i) {
 // Now shift, and lcp is
 //      ___
 // 00000011
-int compute_lcp(const Morton value, const int length, const Resln& resln) {
-  int mask = 0;
+Morton compute_lcp(const Morton value, const int length, const Resln& resln) {
+  Morton mask(0);
   for (int i = 0; i < length; ++i) {
-    mask |= (1 << (resln.mbits - 1 - i));
+    mask |= (Morton(1) << (resln.mbits - 1 - i));
   }
-  const int lcp = (value & mask) >> (resln.mbits - length);
+  const Morton lcp = (value & mask) >> (resln.mbits - length);
   return lcp;
 }
 
 // Longest common prefix, denoted \delta in karras2014
 int compute_lcp_length(const Morton a, const Morton b, const Resln& resln) {
   for (int i = resln.mbits-1; i >= 0; --i) {
-    const Morton mask = 1 << i;
+    const Morton mask = Morton(1) << i;
     if ((a & mask) != (b & mask)) {
       return resln.mbits - i - 1;
     }
@@ -100,16 +100,17 @@ class LcpLength {
 struct BrtNode {
   // If lcp is 10011 and DIM == 2 then the last bit is dropped
   // and return is [0b10, 0b01] = [2, 1].
-  vector<Morton> oct_nodes() const {
-    static const Morton mask = (DIM == 2) ? 3 : 7;
+  vector<int> oct_nodes() const {
+    static const int mask = (DIM == 2) ? 3 : 7;
     if (DIM > 3)
       throw logic_error("BrtNode::oct_nodes not yet supported for D>3");
     const int bias = lcp_length % DIM;
     const int n = lcp_length / DIM;
-    vector<Morton> ret(n);
+    vector<int> ret(n);
     for (int i = 0; i < n; ++i) {
       const int offset = DIM * (n-i-1) + bias;
-      ret[i] = (lcp >> offset) & mask;
+      // TODO: could be a bug here
+      ret[i] = (lcp >> offset).getBlock(0) & mask;
     }
     return ret;
   }
@@ -270,8 +271,8 @@ vector<OctNode> BuildOctree(
            << " right = " << I[i].left+1 << (I[i].right_leaf ? "L" : "I")
            << " lcp = " << I[i].lcp
            << " oct nodes: (";
-      vector<Morton> onodes = I[i].oct_nodes();
-      for (const Morton onode : onodes) {
+      vector<int> onodes = I[i].oct_nodes();
+      for (const int onode : onodes) {
         cout << onode << " ";
       }
       cout << ") lcp_length = " << I[i].lcp_length
@@ -323,7 +324,7 @@ vector<OctNode> BuildOctree(
       // m = number of local splits
       const int m = local_splits[brt_i];
       // onodes = vector of octree indices \in [0, 2^DIM]
-      const vector<Morton> onodes = I[brt_i].oct_nodes();
+      const vector<int> onodes = I[brt_i].oct_nodes();
       // current octree node index
       int oct_i = prefix_sums[brt_i];
       for (int j = 0; j < m-1; ++j) {

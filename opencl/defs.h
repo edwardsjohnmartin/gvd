@@ -121,6 +121,8 @@ void CompareAndExit(const T& a, const T& b,
 //------------------------------------------------------------
 //------------------------------------------------------------
 
+#define EPSILON 1e-6
+
 #ifndef nullptr
 #define nullptr 0
 #endif

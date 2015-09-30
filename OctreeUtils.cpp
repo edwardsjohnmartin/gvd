@@ -6,6 +6,7 @@
 #include <set>
 
 #include "./bb.h"
+#include "./opencl/geom.h"
 
 using std::vector;
 using std::cout;
@@ -16,7 +17,7 @@ namespace Karras {
 
 OctCell FindLeaf(
     const intn& p, const vector<OctNode>& octree, const Resln& resln) {
-  const int z = xyz2z(p, resln);
+  const Morton z = xyz2z(p, resln);
 
   // Set up mask
   int mask = 0;
@@ -29,7 +30,7 @@ OctCell FindLeaf(
   OctNode const * node = &octree[0];
   int idx = 0;
   for (int i = resln.mbits-DIM; i >= 0; i-=DIM) {
-    const int octant = (z >> i) & mask;
+    const int octant = (z >> i).getBlock(0) & mask;
     width /= 2;
 
     if (octant % 2 == 1)
@@ -68,69 +69,97 @@ OctCell FindNeighbor(
 }
 
 std::vector<CellIntersection> FindIntersections(
-    const intn& a, const intn& b, const OctCell& cell,
+    const floatn& a, const floatn& b, const OctCell& cell,
     const std::vector<OctNode>& octree, const Resln& resln) {
-  floatn af = convert_floatn(a);
-  floatn bf = convert_floatn(b);
-  floatn vf = bf - af;
-  float len = length(vf);
-  vf = vf / len;
+  // static const float EPSILON = 1e-6;
+  floatn af = a;
+  floatn bf = b;
+  // v is normalized (3 lines down)
+  floatn v = bf - af;
+  float len = length(v);
+  v = v / len;
 
-  vector<CellIntersection> ret;
-
+  const intn& origin = cell.get_origin();
+  const int width = cell.get_width();
   BoundingBox<floatn> bb;
-  bb(convert_floatn(cell.get_origin()));
-  bb(convert_floatn(cell.get_origin()) + make_uni_floatn(cell.get_width()));
+  bb(convert_floatn(origin));
+  bb(convert_floatn(origin) + make_uni_floatn(width));
 
   vector<float> t_values;
   vector<floatn> p_values;
   {
     // Bottom edge
-    const int y = cell.get_origin().y;
-    const float t = (y - af.y) / vf.y;
+    const int y = origin.y;
+    const float t = (y - af.y) / v.y;
     t_values.push_back(t);
-    const floatn p = make_floatn(af.x + vf.x * t, y);
+    const floatn p = make_floatn(af.x + v.x * t, y);
     p_values.push_back(p);
   } {
     // Right edge
-    const int x = cell.get_origin().x + cell.get_width();
-    const float t = (x - af.x) / vf.x;
+    const int x = origin.x + width;
+    const float t = (x - af.x) / v.x;
     t_values.push_back(t);
-    const floatn p = make_floatn(x, af.y + vf.y * t);
+    const floatn p = make_floatn(x, af.y + v.y * t);
     p_values.push_back(p);
   } {
     // Top edge
-    const int y = cell.get_origin().y + cell.get_width();
-    const float t = (y - af.y) / vf.y;
+    const int y = origin.y + width;
+    const float t = (y - af.y) / v.y;
     t_values.push_back(t);
-    const floatn p = make_floatn(af.x + vf.x * t, y);
+    const floatn p = make_floatn(af.x + v.x * t, y);
     p_values.push_back(p);
   } {
     // Left edge
-    const int x = cell.get_origin().x;
-    const float t = (x - af.x) / vf.x;
+    const int x = origin.x;
+    const float t = (x - af.x) / v.x;
     t_values.push_back(t);
-    const floatn p = make_floatn(x, af.y + vf.y * t);
+    const floatn p = make_floatn(x, af.y + v.y * t);
     p_values.push_back(p);
   }
 
-  std::set<intn> point_set;
+  vector<CellIntersection> ret;
+  std::set<floatn> point_set;
   for (int i = 0; i < t_values.size(); ++i) {
     const float t = t_values[i];
     const floatn p = p_values[i];
-    if (t >= 0 && t < len) {
-      if (bb.in_closed(p)) {
-        const intn qp = convert_intn(p);
-        if (point_set.find(qp) == point_set.end()) {
-          ret.push_back(CellIntersection(t, qp));
-          point_set.insert(qp);
-        }
+    // const float x = p.s[0];
+    // const float y = p.s[1];
+    if (t >= -EPSILON && t < len+EPSILON) {
+      if (bb.in_closed(p, EPSILON)) {
+        ret.push_back(CellIntersection(t, p));
+        point_set.insert(p);
       }
     }
   }
+  
+  if (ret.size() == 2) {
+    if (dist(ret[0].p, ret[1].p) < EPSILON) {
+      ret.resize(1);
+    }
+  }
 
-  // p = af + t * vf
-  // (p.x - af.x) / vf.x = t
+  if (ret.size() > 2) {
+    // If there are 3 or more intersections then choose the two that
+    // most closely match the direction v of the intersecting line
+    CellIntersection best[2];
+    float best_dot = 0;
+    for (int i = 0; i < ret.size(); ++i) {
+      for (int j = i+1; j < ret.size(); ++j) {
+        const floatn c = ret[i].p;
+        const floatn d = ret[j].p;
+        const floatn u = normalize(d-c);
+        const float cur_dot = fabs(dot(u, v));
+        if (cur_dot > best_dot) {
+          best_dot = cur_dot;
+          best[0] = ret[i];
+          best[1] = ret[j];
+        }
+      }
+    }
+    ret.clear();
+    ret.push_back(best[0]);
+    ret.push_back(best[1]);
+  }
 
   return ret;
 }

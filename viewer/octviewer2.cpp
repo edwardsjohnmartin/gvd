@@ -44,6 +44,8 @@ extern "C" {
 #include "../jrs-triangle.h"
 }
 
+Karras::OctCell fnode;
+
 typedef oct::LabeledSegment<2> LabeledSegment;
 
 using namespace std;
@@ -270,7 +272,7 @@ OctViewer2::OctViewer2(const int win_width, const int win_height)
 
   show_help = false;
   show_advanced_help = false;
-  show_octree = false;
+  show_octree = true;
   show_vertex_labels = false;
   show_cell_vertices = false;
   show_vertex_distance = false;
@@ -289,7 +291,7 @@ OctViewer2::OctViewer2(const int win_width, const int win_height)
   o = oct::OctreeOptions::For2D();
   entry_mode = 0;
   octree_color = make_double3(0.7, 0.7, 0.7);
-  seg_a = seg_b = make_int2(-1, -1);
+  seg_a = seg_b = make_float2(-1, -1);
 }
 
 void OctViewer2::ReadMesh(const string& filename) {
@@ -442,16 +444,15 @@ void OctViewer2::test(const int test) {
     }
 
     cout << "Resln = (" << resln << ")" << endl;
-    vector<int> tmp;
+    vector<Morton> tmp;
     for (const intn p : qpoints) {
       cout << p << endl;
       tmp.push_back(xyz2z(p, resln));
     }
     sort(tmp.begin(), tmp.end());
-    for (const int mp : tmp) {
-      // const int mp = xyz2z(p, resln);
-      const std::bitset<16> bmp(mp);
-      cout << std::setw(5) << mp << ", " << bmp << endl;
+    for (const Morton mp : tmp) {
+      // const std::bitset<16> bmp(mp);
+      // cout << std::setw(5) << mp << ", " << bmp << endl;
     }
 
     for (int i = 0; i < 1000; ++i) {
@@ -496,7 +497,7 @@ void OctViewer2::test(const int test) {
     using namespace Karras;
 
     OctCell cell;
-    intn a, b;
+    floatn a, b;
     vector<OctNode> octree;
     Resln resln;
 
@@ -504,8 +505,17 @@ void OctViewer2::test(const int test) {
     in >> cell >> a >> b >> octree >> resln;
     in.close();
 
+    cerr << "a = " << a << endl;
+    cerr << "b = " << b << endl;
+    cerr << "cell = " << cell << endl;
+    cerr << "resln = " << resln << endl;
     const vector<CellIntersection> intersections =
         FindIntersections(a, b, cell, octree, resln);
+
+    if (intersections.size() > 2) {
+      cerr << "More than 2 intersections in cell" << endl;
+    }
+    cout << "Number of intersections: " << intersections.size() << endl;
   
     exit(0);
   } else if (o.test == 8) {
@@ -515,6 +525,14 @@ void OctViewer2::test(const int test) {
     for (const floatn sample : samples) {
       cout << sample << endl;
     }
+    exit(0);
+  } else if (o.test == 9) {
+    float_seg a(make_floatn(160, 65), make_floatn(155, 65));
+    float_seg b(make_floatn(160, 67), make_floatn(156, 67));
+    vector<floatn> samples;
+    vector<floatn> origins;
+    vector<float> lengths;
+    FitBoxesNoIntersection(a, b, 1, &samples, &origins, &lengths);
     exit(0);
   }
 }
@@ -542,7 +560,16 @@ int OctViewer2::ProcessArgs(int argc, char** argv) {
   for (; i < argc; ++i) {
     string filename(argv[i]);
     cout << filename << endl;
-    ReadMesh(filename);
+    o.filenames.push_back(filename);
+    // ReadMesh(filename);
+  }
+
+  if (o.filenames.empty()) {
+    throw logic_error("No filenames");
+  }
+
+  for (const string& f : o.filenames) {
+    ReadMesh(f);
   }
 
   int num_edges = 0;
@@ -816,27 +843,34 @@ void OctViewer2::Find(int x, int y) {
   floatn fv = Obj2Oct(Win2Obj(make_floatn(x, y)));
   intn v = make_intn(fv.s[0], fv.s[1]);
   fnode = Karras::FindLeaf(v, octree, resln);
+  dirty = true;
+  glutPostRedisplay();
 
-  seg_a = seg_b;
-  seg_b = v;
+  // seg_a = seg_b;
+  // // seg_b = v;
+  // seg_b = fv;
   
-  if (seg_a == make_int2(-1, -1))
-    return;
+  // // if (seg_a == make_int2(-1, -1))
+  // if (seg_a == make_float2(-1, -1))
+  //   return;
 
-  const vector<CellIntersection> all_intersections = Walk(seg_a, seg_b);
-  intersections.clear();
-  for (const CellIntersection& i : all_intersections) {
-    const intn p = i.p;
-    intersections.push_back(p);
-  }
+  // const vector<CellIntersection> all_intersections = Walk(seg_a, seg_b);
+  // intersections.clear();
+  // for (const CellIntersection& i : all_intersections) {
+  //   // const intn p = i.p;
+  //   const floatn p = i.p;
+  //   intersections.push_back(p);
+  // }
 }
 
 // Cell walk visitor
-typedef void (*cwv)(Karras::OctCell, const intn&, const intn&,
-    const vector<OctNode>&, const Karras::Resln&, void*);
+// typedef void (*cwv)(Karras::OctCell, const intn& a, const intn& b,
+typedef void (*cwv)(Karras::OctCell, const floatn& a, const floatn& b,
+    const vector<OctNode>& octree, const Karras::Resln& resln, void* data);
 
 void CellWalk(
-    const intn& a, const intn& b,
+    // const intn& a, const intn& b,
+    const floatn& a, const floatn& b,
     const vector<OctNode>& octree, const Karras::Resln& resln,
     cwv v, void* data) {
   using namespace Karras;
@@ -848,15 +882,17 @@ void CellWalk(
     else dir[i] = 0;
   }
   CellIntersection cur(0, a);
-  const Karras::OctCell bcell = Karras::FindLeaf(b, octree, resln);
+  const Karras::OctCell bcell = Karras::FindLeaf(convert_intn(b),
+                                                 octree, resln);
   vector<CellIntersection> local_intersections;
   vector<CellIntersection> all_intersections;
   bool done = false;
   int count = 0;
-  Karras::OctCell cell = Karras::FindLeaf(cur.p, octree, resln);
+  Karras::OctCell cell = Karras::FindLeaf(convert_intn(cur.p), octree, resln);
   do {
     ++count;
-    if (count > 10000) throw logic_error("Infinite loop");
+    if (count > 10000)
+      throw logic_error("Infinite loop");
     v(cell, a, b, octree, resln, data);
 
     const vector<CellIntersection> local_intersections =
@@ -873,7 +909,8 @@ void CellWalk(
       }
     }
 
-    Karras::OctCell new_cell = Karras::FindLeaf(cur.p, octree, resln);
+    Karras::OctCell new_cell = Karras::FindLeaf(
+        convert_intn(cur.p), octree, resln);
     done = local_intersections.empty() ||
         (cell.get_origin() == bcell.get_origin()) ||
         (new_cell.get_origin() == cell.get_origin());
@@ -887,45 +924,108 @@ struct MCData {
   int cur_label;
 };
 
-void MCCallback(Karras::OctCell cell, const intn& a, const intn& b,
+void write_seg(const floatn& a, const floatn& b, const string& fn) {
+  ofstream out(fn);
+  out << std::fixed << a << endl << b << endl;
+  out.close();
+}
+
+void write_seg(const float_seg& s, const string& fn) {
+  write_seg(s.a(), s.b(), fn);
+}
+
+void write_cell(const intn& o, const int& w, const string& fn) {
+  ofstream out(fn);
+  out << o << endl;
+  out << o+make_intn(w, 0) << endl;
+  out << o+make_intn(w, w) << endl;
+  out << o+make_intn(0, w) << endl;
+  out << o << endl;
+  out.close();
+}
+
+void error_log(Karras::OctCell cell, const floatn& a, const floatn& b,
+               const vector<OctNode>& octree, const Karras::Resln& resln) {
+  cerr << "a = " << std::fixed << a << endl;
+  cerr << "b = " << std::fixed << b << endl;
+  cerr << "cell = " << cell << endl;
+  cerr << "resln = " << resln << endl;
+  ofstream out("mccallback.err");
+  out << cell << " " << a << " " << b
+      << " " << octree << " " << resln << endl;
+  out.close();
+  write_seg(a, b, "data1.dat");
+  const intn o = cell.get_origin();
+  const int w = cell.get_width();
+  write_cell(o, w, "data2.dat");
+  const int w2 = w/2;
+  // Boundary
+  write_cell(o-make_intn(w2, w2), 2*w, "data3.dat");
+}
+
+inline bool within(const float& a, const float& b, const float& epsilon) {
+  return fabs(a-b) < epsilon;
+}
+
+// void MCCallback(Karras::OctCell cell, const intn& a, const intn& b,
+void MCCallback(Karras::OctCell cell, const floatn& a, const floatn& b,
                   const vector<OctNode>& octree, const Karras::Resln& resln,
                   void* data) {
+  // const static float EPSILON = 1e-6;
+
   using namespace Karras;
   MCData* d = static_cast<MCData*>(data);
   const int octant = cell.get_octant();
 
+  // debug
+  OctCell test_cell;
+  stringstream ss("8796416 6561024 256 22009 3 -1");
+  ss >> test_cell;
+  if (cell == test_cell || cell == fnode) {
+    cout << "here in MCCallback" << endl;
+  }
+
   const vector<CellIntersection> intersections =
       FindIntersections(a, b, cell, octree, resln);
   if (intersections.size() > 2) {
+    error_log(cell, a, b, octree, resln);
     cerr << "More than 2 intersections with a cell" << endl;
-    cerr << "cell.origin = " << cell.get_origin()
-         << " cell.width = " << cell.get_width()
-         << " a = " << a << " b = " << b << endl;
     for (const CellIntersection& ci : intersections) {
       cerr << "  " << ci.p << endl;
     }
-    ofstream out("mccallback.err");
-    out << cell << " " << a << " " << b
-        << " " << octree << " " << resln << endl;
-    out.close();
-    exit(0);
-    // throw logic_error("More than 2 intersections with a cell");
+    throw logic_error("More than 2 intersections with a cell");
   }
   if (intersections.size() == 2) {
-    float_seg seg(convert_floatn(intersections[0].p),
-                  convert_floatn(intersections[1].p));
+    float_seg seg(intersections[0].p,
+                  intersections[1].p);
     CellIntersections& cell_intersections = d->labels[cell.get_parent_idx()];
     cell_intersections.set(octant, d->cur_label, seg);
   } else if (intersections.size() == 1) {
     // Find which endpoint is in cell
     const BoundingBox<intn> bb = cell.bb();
-    const floatn p = convert_floatn(intersections[0].p);
-    floatn q = convert_floatn(a);
-    if (bb.in_half_open(b))
-      q = convert_floatn(b);
-    float_seg seg(p, q);
-    CellIntersections& cell_intersections = d->labels[cell.get_parent_idx()];
-    cell_intersections.set(octant, d->cur_label, seg);
+    const floatn p = intersections[0].p;
+    floatn q;
+    bool degenerate = false;
+    if (bb.in_half_open(convert_intn(a), EPSILON)) {
+      q = a;
+    } else if (bb.in_half_open(convert_intn(b), EPSILON)) {
+      q = b;
+    } else if ((within(p.x, bb.min().x, EPSILON) ||
+                within(p.x, bb.max().x, EPSILON)) &&
+               (within(p.y, bb.min().y, EPSILON) ||
+                within(p.y, bb.max().y, EPSILON))) {
+      degenerate = true;
+    } else {
+      degenerate = true;
+      // error_log(cell, a, b, octree, resln);
+      // throw logic_error("Only one intersection but neither endpoint is"
+      //                   " in bounding box");
+    }
+    if (!degenerate) {
+      float_seg seg(p, q);
+      CellIntersections& cell_intersections = d->labels[cell.get_parent_idx()];
+      cell_intersections.set(octant, d->cur_label, seg);
+    }
   }
 }
 
@@ -948,8 +1048,8 @@ void OctViewer2::FindMultiCells() {
     const std::vector<float2> polygon = temp_polygons[j];
     data.cur_label = j;
     for (int i = 0; i < polygon.size() - 1; ++i) {
-      const intn a = convert_intn(Obj2Oct(polygon[i]));
-      const intn b = convert_intn(Obj2Oct(polygon[i+1]));
+      const floatn a = Obj2Oct(polygon[i]);
+      const floatn b = Obj2Oct(polygon[i+1]);
       CellWalk(a, b, octree, resln, MCCallback, &data);
       vector<CellIntersection> local = Walk(a, b);
       for (const CellIntersection& ci : local) {
@@ -961,40 +1061,55 @@ void OctViewer2::FindMultiCells() {
   // Find points that we want to add in order to run a more effective
   // Karras octree construction.
   extra_qpoints.clear();
+  _origins.clear();
+  _lengths.clear();
   for (int i = 0; i < octree.size(); ++i) {
     const CellIntersections& intersection = cell_intersections[i];
     for (int octant = 0; octant < (1<<DIM); ++octant) {
-      if (intersection.is_multi(octant)) {
-        // We'll compare segments at 0 and 1.
-        float_seg segs[2] = { intersection.seg(0, octant),
-                              intersection.seg(1, octant) };
-        vector<floatn> origins;
-        vector<float> lengths;
-        if (!multi_intersection(segs[0], segs[1])) {
-          try {
-            FitBoxes(segs[0], segs[1], 1, &origins, &lengths);
-          } catch(logic_error& e) {
-            cerr << "segments: " << segs[0] << " " << segs[1] << endl;
-            cerr << "labels: " << intersection.label(0, octant)
-                 << " " << intersection.label(1, octant) << endl;
-            throw e;
+      const int num_labels = intersection.num_labels(octant);
+      // cout << "cell = " << i << "/" << octant << ": " << num_labels << endl;
+      // if (intersection.is_multi(octant)) {
+      //   {
+      for (int j = 0; j < num_labels; ++j) {
+      // for (int j = 0; j < 1; ++j) {
+        for (int k = j+1; k < num_labels; ++k) {
+        // for (int k = j+1; k < std::min(2, num_labels); ++k) {
+          // We'll compare segments at j and k.
+          float_seg segs[2] = { intersection.seg(j, octant),
+                                intersection.seg(k, octant) };
+          vector<floatn> samples;
+          vector<floatn> origins;
+          vector<float> lengths;
+          if (!multi_intersection(segs[0], segs[1])) {
+            try {
+              if (i == fnode.get_parent_idx() && octant == fnode.get_octant()) {
+                cout << "here in FitBoxes" << endl;
+                write_seg(segs[0], "seg0.dat");
+                write_seg(segs[1], "seg1.dat");
+              }
+              FitBoxes(segs[0], segs[1], 1, &samples, &origins, &lengths);
+            } catch(logic_error& e) {
+              cerr << "segments: " << segs[0] << " " << segs[1] << endl;
+              cerr << "labels: " << intersection.label(0, octant)
+                   << " " << intersection.label(1, octant) << endl;
+              write_seg(segs[0], "seg0.dat");
+              write_seg(segs[1], "seg1.dat");
+              throw e;
+            }
           }
-        }
-        for (int i = 0; i < origins.size(); ++i) {
-          const floatn& o = origins[i];
-          const float& d = lengths[i];
-          extra_qpoints.push_back(convert_intn(o+make_floatn(d/2, d/2)));
-          extra_qpoints.push_back(convert_intn(o+make_floatn(d/2, 0)));
-          extra_qpoints.push_back(convert_intn(o+make_floatn(0, d/2)));
-          extra_qpoints.push_back(convert_intn(o+make_floatn(d/2, d)));
-          extra_qpoints.push_back(convert_intn(o+make_floatn(d, d/2)));
+          _origins.insert(_origins.end(), origins.begin(), origins.end());
+          _lengths.insert(_lengths.end(), lengths.begin(), lengths.end());
+          for (const floatn& sample : samples) {
+            extra_qpoints.push_back(convert_intn(sample));
+          }
         }
       }
     }
   }
 }
 
-void WalkCallback(Karras::OctCell cell, const intn& a, const intn& b,
+// void WalkCallback(Karras::OctCell cell, const intn& a, const intn& b,
+void WalkCallback(Karras::OctCell cell, const floatn& a, const floatn& b,
                   const vector<OctNode>& octree, const Karras::Resln& resln,
                   void* data) {
   
@@ -1006,13 +1121,14 @@ void WalkCallback(Karras::OctCell cell, const intn& a, const intn& b,
   const vector<CellIntersection> local_intersections =
       FindIntersections(a, b, cell, octree, resln);
   for (const CellIntersection& i : local_intersections) {
-    const intn p = i.p;
+    // const intn p = i.p;
     all_intersections.push_back(i);
   }
 }
 
 vector<Karras::CellIntersection> OctViewer2::Walk(
-    const intn& a, const intn& b) {
+    // const intn& a, const intn& b) {
+    const floatn& a, const floatn& b) {
   using namespace Karras;
 
   vector<CellIntersection> all_intersections;
@@ -1378,31 +1494,16 @@ void OctViewer2::BuildOctree() {
   } while (iterations < o.karras_iterations && !extra_qpoints.empty());
   cout << "Karras iterations: " << iterations << endl;
 
-  // vertices.Clear();
-  // // Build the octree
-  // vertices = oct::BuildOctree(all_vertices, all_edges, bb, o);
-  // if (o.timings)
-  //   cout << "vertices size = " << vertices.size() << endl;
-
-  // if (vertices.NumCells() == 1) {
-  //   vertices.Clear();
-  // } else {
-  //   // Store the vertex locations
-  //   vertex_locations.resize(vertices.size());
-  //   vertex_circle.resize(vertices.size(), false);
-  //   oct::VisitVertices<2>(vertices, StoreVertexLocationCallback(this));
-
-  //   // Compute the maximum distance?
-  //   oct::VisitVertices<2>(
-  //       vertices, DFDistCallback(this, &max_dist_oct, &max_dist_obj));
-
-  //   // Compute the bisector
-  //   DrawGVDLinesCallback callback(this, o);
-  //   oct::VisitVertices<2>(vertices, callback);
-  //   gvd_graph = callback.GetGraph();
-
-  //   search_path.clear();
-  // }
+  // Count the number of cells with multiple intersections
+  int count = 0;
+  for (int i = 0; i < cell_intersections.size(); ++i) {
+    for (int j = 0; j < 4; ++j) {
+      if (cell_intersections[i].is_multi(j)) {
+        ++count;
+      }
+    }
+  }
+  cout << "Number of multi-intersection cells: " << count << endl;
   
   //------------------
   // Cleanup OpenCL
@@ -1460,16 +1561,25 @@ void OctViewer2::DrawNode(
       DrawNode(octree[parent[i]], parent[i], o, length/2);
     } else {
       if (&parent == fnode.get_parent() && i == fnode.get_octant()) {
-        glLineWidth(1);
-        glColor3dv(octree_color.s);
-      } else if (cell_intersections[parent_idx].is_multi(i)) {
-        glLineWidth(2);
+        glLineWidth(3);
+        glColor3d(0.5, 0, 0.5);
+        glSquare(Oct2Obj(o), Oct2Obj(length/2));
+      }
+      if (cell_intersections[parent_idx].is_multi(i)) {
+        glLineWidth(5);
         glColor3d(1, 0, 0);
       } else {
         glLineWidth(1);
         glColor3dv(octree_color.s);
       }
       glSquare(Oct2Obj(o), Oct2Obj(length/2));
+      if (show_vertex_ids) {
+        stringstream ss;
+        // ss << o;
+        ss << parent_idx << "/" << i << " -- " << o;
+        // ss << o << " " << w << " " << parent_idx << " " << i << " -1";
+        BitmapString(ss.str(), Oct2Obj(o), 1, 3);
+      }
     }
   }
 }
@@ -1948,23 +2058,39 @@ void OctViewer2::PrintStatistics() const {
       max_level = max(max_level, vertices.CellLevel(i));
     }
   }
+
+  vector<string> lines;
   {
     stringstream ss;
     ss << "Max level: " << (int)max_level;
-    BitmapString(ss.str(), Win2Obj(make_float2(2, window_height-2)),
-                 kLeftJustify, kBottomJustify);
+    lines.push_back(ss.str());
   } {
     stringstream ss;
     ss << "Quadtree cells: " << num_cells;
-    BitmapString(ss.str(), Win2Obj(make_float2(2, window_height-19)),
-                 kLeftJustify, kBottomJustify);
+    lines.push_back(ss.str());
   } {
-    const int2 mouse_oct = convert_int2(Obj2Oct(mouse_obj));
-    stringstream ss;
-    // ss << mouse_oct;
-    ss << mouse_obj;
-    // BitmapString(ss.str(), Win2Obj(float2(2, window_height-19-17)),
-    //              kLeftJustify, kBottomJustify);
+    // const int2 mouse_oct = convert_int2(Obj2Oct(mouse_obj));
+    // stringstream ss;
+    // // ss << mouse_oct;
+    // ss << mouse_obj;
+    // // lines.push_back(ss.str());
+  } {
+    if (show_poly_vertices == 0) {
+      lines.push_back("No vertices");
+    } else if (show_poly_vertices == 1) {
+      lines.push_back("Latest Karras points");
+    } else if (show_poly_vertices == 2) {
+      lines.push_back("Next Karras points");
+    } else if (show_poly_vertices == 3) {
+      lines.push_back("Polygon / cell intersections");
+    }
+  }
+
+  int offset = 2;
+  for (const string& s : lines) {
+    BitmapString(s, Win2Obj(make_float2(2, window_height-offset)),
+                 kLeftJustify, kBottomJustify);
+    offset += 17;
   }
 }
 
@@ -2056,20 +2182,35 @@ void OctViewer2::Display() {
   }
 
   // Draw octree
-  DrawOctree();
+  if (show_octree) {
+    DrawOctree();
+  }
 
   if (show_poly_vertices == 1) {
+    // Show in blue the points that were used in the latest Karras run
     for (const floatn& p : karras_points) {
       glColor3f(0.0, 0.0, 0.7);
       glSquareCentered(p, Win2Obj(4));
     }
   } else if (show_poly_vertices == 2) {
+    // Show fit boxes
+    glColor3f(0.7, 0.7, 0.7);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    for (int i = 0; i < _origins.size(); ++i) {
+      const floatn& o = _origins[i];
+      const float& d = _lengths[i];
+      glSquare(Oct2Obj(convert_intn(o)), Oct2Obj(d));
+    }
+    // Show in red any points that will be added in the next Karras run
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glColor3f(1.0, 0.0, 0.0);
     for (const intn& p : extra_qpoints) {
-      glColor3f(1.0, 0.0, 0.0);
       glSquareCentered(Oct2Obj(p), Win2Obj(4));
     }
   } else if (show_poly_vertices == 3) {
-    for (const intn& p : intersections) {
+    // Show in green anywhere the polygons intersect existing cells
+    for (const floatn& pf : intersections) {
+      const intn p = convert_intn(pf);
       glColor3f(1.0, 0.0, 0.0);
       glSquareCentered(Oct2Obj(p), Win2Obj(4));
     }
@@ -2134,9 +2275,9 @@ void OctViewer2::Display() {
   // if (show_vertex_labels) {
   //   DrawVertexLabels();
   // }
-  // if (show_statistics) {
-  //   PrintStatistics();
-  // }
+  if (show_statistics) {
+    PrintStatistics();
+  }
   // PrintHelp();
 
   // // Debug circles

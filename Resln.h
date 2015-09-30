@@ -1,9 +1,14 @@
 #ifndef __RESLN_H__
 #define __RESLN_H__
 
+#include "./bigint/BigUnsigned.hh"
+#include "./bigint/BigIntegerUtils.hh"
+
 namespace Karras {
 
-typedef unsigned int Morton;
+// typedef unsigned int Morton;
+// typedef unsigned long Morton;
+typedef BigUnsigned Morton;
 
 // Stores resolution and octree height values
 struct Resln {

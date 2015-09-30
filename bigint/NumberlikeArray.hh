@@ -3,7 +3,7 @@
 
 #include <stdexcept>
 
-// #define BIG_INTEGER_STATIC
+#define BIG_INTEGER_STATIC
 #define BIG_INTEGER_SIZE 100
 
 // Make sure we have NULL.

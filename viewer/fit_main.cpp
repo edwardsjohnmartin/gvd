@@ -215,10 +215,11 @@ int angle_octant(const float2& v) {
 }
 
 void DrawSeparator(float_seg A, float_seg B, const float& min_d) {
+  vector<floatn> samples;
   vector<floatn> origins;
   vector<float> lengths;
   if (!multi_intersection(A, B)) {
-    FitBoxes(A, B, min_d, &origins, &lengths);
+    FitBoxes(A, B, min_d, &samples, &origins, &lengths);
   }
 
   glColor3f(0, 1, 0);
@@ -234,10 +235,13 @@ void DrawSeparator(float_seg A, float_seg B, const float& min_d) {
   glColor3f(1, 0, 0);
   glPointSize(4);
   glBegin(GL_POINTS);
-  for (int i = 0; i < origins.size(); ++i) {
-    const floatn& o = origins[i];
-    const float& d = lengths[i];
-    glVertex2fv((o+make_uni_floatn(d/2)).s);
+  // for (int i = 0; i < origins.size(); ++i) {
+  //   const floatn& o = origins[i];
+  //   const float& d = lengths[i];
+  //   glVertex2fv((o+make_uni_floatn(d/2)).s);
+  // }
+  for (const floatn& sample : samples) {
+    glVertex2fv(sample.s);
   }
   glEnd();
 }
@@ -300,41 +304,41 @@ void Keyboard(unsigned char key, int x, int y) {
 }
 
 int main(int argc, char** argv) {
-  if (argc == 3) {
-    BigUnsigned i;
-    i.multiply(stringToBigUnsigned(argv[1]), stringToBigUnsigned(argv[2]));
-    cout << bigUnsignedToString(i) << endl;
-    cout << i.getLength() << endl;
-  }
-  // test_karatsuba();
-  exit(0);
+  // if (argc == 3) {
+  //   BigUnsigned i;
+  //   i.multiply(stringToBigUnsigned(argv[1]), stringToBigUnsigned(argv[2]));
+  //   cout << bigUnsignedToString(i) << endl;
+  //   cout << i.getLength() << endl;
+  // }
+  // // test_karatsuba();
+  // exit(0);
 
-  bool i1, i2;
-  const floatn i = line_intersection(
-      make_floatn(17136, 12798),
-      make_floatn(17133, 12800),
-      make_floatn(17136, 12799),
-      make_floatn(17135, 12800),
-      &i1, &i2);
-  cout << i << " " << i1 << " " << i2 << endl;
-  for (int j = 17000; j > 0; j-=1) {
-    cout << endl;
-    const floatn i = line_intersection(
-        // make_floatn(17136, 12798),
-        // make_floatn(17133, 12800),
-        // make_floatn(17136, 12799),
-        // make_floatn(17135, 12800),
-        make_floatn(j+136, 12798),
-        make_floatn(j+133, 12800),
-        make_floatn(j+136, 12799),
-        make_floatn(j+135, 12800),
-        &i1, &i2);
-    if (!i2) {
-      cout << "j = " << j << ": " << i << " " << i1 << " " << i2 << endl;
-      break;
-    }
-  }
-  exit(0);
+  // bool i1, i2;
+  // const floatn i = line_intersection(
+  //     make_floatn(17136, 12798),
+  //     make_floatn(17133, 12800),
+  //     make_floatn(17136, 12799),
+  //     make_floatn(17135, 12800),
+  //     &i1, &i2);
+  // cout << i << " " << i1 << " " << i2 << endl;
+  // for (int j = 17000; j > 0; j-=1) {
+  //   cout << endl;
+  //   const floatn i = line_intersection(
+  //       // make_floatn(17136, 12798),
+  //       // make_floatn(17133, 12800),
+  //       // make_floatn(17136, 12799),
+  //       // make_floatn(17135, 12800),
+  //       make_floatn(j+136, 12798),
+  //       make_floatn(j+133, 12800),
+  //       make_floatn(j+136, 12799),
+  //       make_floatn(j+135, 12800),
+  //       &i1, &i2);
+  //   if (!i2) {
+  //     cout << "j = " << j << ": " << i << " " << i1 << " " << i2 << endl;
+  //     break;
+  //   }
+  // }
+  // exit(0);
 
   cout << endl;
   cout << "Key commands:" << endl;

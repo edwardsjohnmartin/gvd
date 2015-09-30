@@ -11,15 +11,18 @@ floatn centroid(const float_seg& s) {
 }
 
 floatn closest(const floatn& p, const float_seg& s) {
-  floatn v = s.b() - s.a();
+  if (s.is_degenerate())
+    return s.a();
+  static const float EPSILON = 1e-6;
+  floatn v = s.vector();
   float len = length(v);
   v = v / len;
   floatn u = p - s.a();
   float t = dot(u, v);
   floatn q = s.a() + v * t;
-  if (t < 0)
+  if (t < 0 || dist(q, s.a()) < EPSILON)
     q = s.a();
-  else if (t > len)
+  else if (t > len || dist(q, s.b()) < EPSILON)
     q = s.b();
   return q;
 }
@@ -126,7 +129,6 @@ bool multi_intersection(
       }
     } else {
       // Lines are vertical
-      const double m = (y2-y1)/(x2-x1);
       if (x1 == x3) {
         // Lines are collinear
         const float len1 = fabs(y2-y1);
@@ -274,7 +276,7 @@ void closest(const float_seg& a, const float_seg& b,
     *ca = a.a();
     *cb = c;
     *ca_end = true;
-    *cb_end = false;
+    *cb_end = (c == b.a() || c == b.b());
     float dist = length(a.a()-c);
 
     floatn c_ = closest(a.b(), b);
@@ -284,7 +286,7 @@ void closest(const float_seg& a, const float_seg& b,
       *ca = a.b();
       *cb = c;
       *ca_end = true;
-      *cb_end = false;
+      *cb_end = (c == b.a() || c == b.b());
       dist = dist_;
     }
 
@@ -294,7 +296,7 @@ void closest(const float_seg& a, const float_seg& b,
       c = c_;
       *ca = c;
       *cb = b.a();
-      *ca_end = false;
+      *ca_end = (c == a.a() || c == a.b());
       *cb_end = true;
       dist = dist_;
     }
@@ -305,7 +307,7 @@ void closest(const float_seg& a, const float_seg& b,
       c = c_;
       *ca = c;
       *cb = b.b();
-      *ca_end = false;
+      *ca_end = (c == a.a() || c == a.b());
       *cb_end = true;
       dist = dist_;
     }
@@ -464,7 +466,12 @@ vector<floatn> v_sample(const float_seg& a, const float_seg& b) {
 
 // Pass A and B by value! They'll change in the function.
 void FitBoxesNoIntersection(float_seg A, float_seg B, const float& min_d,
+                            std::vector<floatn>* samples,
                             vector<floatn>* origins, vector<float>* lengths) {
+  static const int OFFSET_FACTOR = 4;
+
+  const float_seg A_orig(A);
+  const float_seg B_orig(B);
   bool done = false;
   while (!done) {
     // Closest points between A and B
@@ -504,22 +511,30 @@ void FitBoxesNoIntersection(float_seg A, float_seg B, const float& min_d,
 
     float d;
     floatn o;
+    // floatn new_samples[2];
+    floatn sample_offset = make_floatn(0, 0);
     if (dist(ca, cb) < min_d) {
       o = (ca+cb)/2 - make_uni_floatn(min_d/2);
       d = min_d;
       c_cb = cb;
       c_cb_end = cb_end;
+      // new_samples[0] = ca;
+      // new_samples[1] = cb;
     } else if (cb_end && (A.a().x == B.a().x || A.a().y == B.a().y)) {
       // Special case: closest points are axis aligned
       d = dist(A.a(), B.a());
       o = make_floatn(fmin(A.a().x, B.a().x), fmin(A.a().y, B.a().y));
       if (A.a().x == B.a().x) {
+        sample_offset = make_floatn(d/OFFSET_FACTOR, 0);
         if (A.vector().x < 0) {
           o = o - make_floatn(d, 0);
+          sample_offset = sample_offset * -1;
         }
       } else if (A.a().y == B.a().y) {
+        sample_offset = make_floatn(0, d/16);
         if (A.vector().y < 0) {
           o = o - make_floatn(0, d);
+          sample_offset = sample_offset * -1;
         }
       }
       c_cb = cb;
@@ -549,6 +564,10 @@ void FitBoxesNoIntersection(float_seg A, float_seg B, const float& min_d,
       const float box_y_dir = (v.y >= 0) ? 0 : -d;
       o = ca + make_floatn(box_x_dir, box_y_dir);
     }
+    // Add samples between ca and cb to avoid numerical problems when
+    // ca or cb are on cell boundary
+    samples->push_back(ca + (cb-ca)/OFFSET_FACTOR + sample_offset);
+    samples->push_back(cb + (ca-cb)/OFFSET_FACTOR + sample_offset);
     origins->push_back(o);
     lengths->push_back(d);
 
@@ -604,6 +623,7 @@ void FitBoxesNoIntersection(float_seg A, float_seg B, const float& min_d,
       if (A.a() == make_floatn(A_x, A_y) && B.a() == make_floatn(B_x, B_y)) {
         done = true;
         cout << "Infinite loop" << endl;
+        cout << "A_orig = " << A_orig << " B_orig = " << B_orig << endl;
       }
       A = float_seg(make_floatn(A_x, A_y), A.b());
       B = float_seg(make_floatn(B_x, B_y), B.b());
@@ -613,6 +633,7 @@ void FitBoxesNoIntersection(float_seg A, float_seg B, const float& min_d,
 
 // Pass A and B by value! They'll change in the function.
 void FitBoxes(float_seg A, float_seg B, const float& min_d,
+              std::vector<floatn>* samples,
               vector<floatn>* origins, vector<float>* lengths) {
   // First check to see if there's an intersection. If so, split the
   // segments into multiple segments.
@@ -622,6 +643,7 @@ void FitBoxes(float_seg A, float_seg B, const float& min_d,
   //if (dist(ca, cb) < min_d / 2) {
   if (ca == cb) {
     // Intersection or very close approach
+    samples->push_back(ca);
     origins->push_back(ca - make_floatn(min_d/2, min_d/2));
     lengths->push_back(min_d);
     // Reorder A and B so they are moving left to right
@@ -644,10 +666,10 @@ void FitBoxes(float_seg A, float_seg B, const float& min_d,
       swap(A0_valid, A1_valid);
     }
     if (A0_valid && B0_valid)
-      FitBoxesNoIntersection(A0, B0, min_d, origins, lengths);
+      FitBoxesNoIntersection(A0, B0, min_d, samples, origins, lengths);
     if (A1_valid && B1_valid)
-      FitBoxesNoIntersection(A1, B1, min_d, origins, lengths);
+      FitBoxesNoIntersection(A1, B1, min_d, samples, origins, lengths);
   } else {
-    FitBoxesNoIntersection(A, B, min_d, origins, lengths);
+    FitBoxesNoIntersection(A, B, min_d, samples, origins, lengths);
   }
 }

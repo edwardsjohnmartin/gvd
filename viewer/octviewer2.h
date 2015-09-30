@@ -37,7 +37,7 @@ using Karras::OctNode;
 // A CellIntersections object stores multiple labels for each of a
 // cell's children.
 class CellIntersections {
- private:
+ public:
   static const int NUM_LABELS = 2;
   static const int NUM_OCTANTS = (1<<DIM);
 
@@ -55,12 +55,23 @@ class CellIntersections {
         break;
       }
       if (l[i] == label) {
+        if (seg.length2() > segs[i].length2()) {
+          // Keep the longest segment for the given label
+          segs[i] = seg;
+        }
         break;
       }
     }
   }
   bool is_multi(const int octant) const {
     return l[octant*NUM_LABELS+1] > -1;
+  }
+  int num_labels(const int octant) const {
+    for (int i = 0; i < NUM_LABELS; ++i) {
+      if (l[octant*NUM_LABELS+i] < 0)
+        return i;
+    }
+    return NUM_LABELS;
   }
   float_seg seg(const int i, const int octant) const {
     return segs[octant*NUM_LABELS+i];
@@ -89,7 +100,8 @@ class OctViewer2 : public GL2D {
 
   void Find(int x, int y);
   std::vector<Karras::CellIntersection> Walk(
-      const intn& a, const intn& b);
+      // const intn& a, const intn& b);
+      const floatn& a, const floatn& b);
   void FindMultiCells();
 
   void AddPoint(int x, int y);
@@ -257,9 +269,13 @@ class OctViewer2 : public GL2D {
   // vector<intn> qpoints;
   vector<intn> extra_qpoints;
   Karras::Resln resln;
-  Karras::OctCell fnode;
-  intn seg_a, seg_b;
-  vector<intn> intersections;
+  // Karras::OctCell fnode;
+  // intn seg_a, seg_b;
+  floatn seg_a, seg_b;
+  // vector<intn> intersections;
+  vector<floatn> intersections;
+  vector<floatn> _origins;
+  vector<float> _lengths;
 };
 
 #endif
