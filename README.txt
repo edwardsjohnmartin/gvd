@@ -1,4 +1,4 @@
-gvd-viewer2 / gvd-viewer3
+gvd-viewer2 / gvd-viewer3 / oct-viewer2
 A 2- and 3-Dimensional Generalized Voronoi Diagram approximator
 Version 1.0
 
@@ -12,7 +12,7 @@ propagates a distance transform over the octree vertices, then builds a GVD
 approximation using the labels and distances on the vertices. For more
 information, please see:
 
-http://sci.utah.edu/~jedwards/research/gvd/index.html
+http://www2.cose.utah.edu/~edwajohn/research/gvd/index.html
 
 ------------------------------------------------------------------------------
 
