@@ -92,7 +92,8 @@ class TopoGraph {
   }
 
   const std::set<int>& operator[](int i) const { return _links[i]; }
-  const std::set<int>& at(int i) const { return _links[i]; }
+  const std::set<int>& at(int i) const { if (i >= _links.size()) return _empty_set;
+    return _links[i]; }
 
   const std::set<int>& Ring(int i, int ring) const {
     if (_rings.empty())
@@ -164,6 +165,8 @@ class TopoGraph {
   // _rings[0][1] refers to the zeroth object's one-ring neighbors
   // _rings[3][2] refers to the third object's two-ring neighbors
   mutable std::vector<std::vector<std::set<int> > > _rings;
+
+  std::set<int> _empty_set;
 };
 
 struct CostStruct {
