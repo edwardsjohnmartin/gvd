@@ -52,8 +52,10 @@ struct OctreeOptions {
   }
 
   static OctreeOptions For2D() {
+    // OctreeOptions o(kMaxLevel,
+    //                 0, false, false, false);
     OctreeOptions o(kMaxLevel,
-                    0, false, false, false);
+                    0, false, true, true);
     o.gpu = false;
     return o;
   }
