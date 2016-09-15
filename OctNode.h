@@ -1,7 +1,7 @@
 #ifndef __OCT_NODE_H__
 #define __OCT_NODE_H__
 
-#include "./resln.h"
+#include "./Resln.h"
 #include "./bb.h"
 
 namespace Karras {
