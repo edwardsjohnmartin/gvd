@@ -359,6 +359,10 @@ int GVDViewer2::ProcessArgs(int argc, char** argv) {
     ReadMesh(filename);
   }
 
+  for (const string& f : o.filenames) {
+	  ReadMesh(f);
+  }
+
   int num_edges = 0;
   for (int i = 0; i < polygons.size(); ++i) {
     num_edges += polygons[i].size();
