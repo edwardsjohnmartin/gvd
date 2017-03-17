@@ -15,9 +15,11 @@
 #ifndef __COMMON_GL_INCLUDES_H__
 #define __COMMON_GL_INCLUDES_H__
 
-#ifdef _WIN32
+#ifdef WIN32
+#define NOMINMAX
 #include <windows.h>
-#endif
+#undef NOMINMAX
+#endif // WIN32
 
 // #define GL_GLEXT_PROTOTYPES
 #ifdef __MAC__
@@ -27,25 +29,20 @@
 #else
   #define GL_GLEXT_PROTOTYPES
 #   define ANT_UNIX
-#   include <X11/cursorfont.h>
+//#   include <X11/cursorfont.h>
 #   define GLX_GLXEXT_LEGACY
-#   include <GL/glx.h>
-#   include <X11/Xatom.h>
-#   include <unistd.h>
+//#   include <GL/glx.h>  Needs to be added to cmake
+//#   include <X11/Xatom.h>  Needs to be added to cmake
+//#   include <unistd.h> Not available on windows
 #   include <malloc.h>
-#   undef _WIN32
-#   undef WIN32
-#   undef _WIN64
-#   undef WIN64
-#   undef _WINDOWS
-#   undef ANT_WINDOWS
 #   undef ANT_OSX
 #	    include <GL/gl.h>  // must be included after windows.h
   #define GL_GLEXT_PROTOTYPES
+
   #include <GL/gl.h>
   #include <GL/glu.h>
   #include <GL/glut.h>
-  #include <GL/glext.h>
+  //#include <GL/glext.h> Needs to be added to cmake
   // #define GLX_GLXEXT_LEGACY
   // #include <GL/glx.h>
   // #define GL_GLEXT_PROTOTYPES

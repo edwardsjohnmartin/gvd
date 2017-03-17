@@ -93,23 +93,15 @@ bool OctreeOptions::ProcessArg(int& i, char** argv) {
   return i != orig_i;
 }
 
-// trim from start
-string& ltrim(string &s) {
-  s.erase(s.begin(), find_if(s.begin(),
-                             s.end(), not1(ptr_fun<int, int>(isspace))));
-  return s;
-}
-
-// trim from end
-string& rtrim(string &s) {
-  s.erase(find_if(s.rbegin(), s.rend(),
-                  not1(ptr_fun<int, int>(isspace))).base(), s.end());
-  return s;
-}
-
-// trim from both ends
-string& trim(string &s) {
-  return ltrim(rtrim(s));
+string trim(const string& str)
+{
+	size_t first = str.find_first_not_of(' ');
+	if (string::npos == first)
+	{
+		return str;
+	}
+	size_t last = str.find_last_not_of(' ');
+	return str.substr(first, (last - first + 1));
 }
 
 void OctreeOptions::ReadOptionsFile() {

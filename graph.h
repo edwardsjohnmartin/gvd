@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <limits>
+#include <iterator>
 
 #include "./opencl/vec.h"
 #include "./opencl/edge.h"

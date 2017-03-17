@@ -661,7 +661,7 @@ void OctViewer2::Keyboard(unsigned char key, int x, int y) {
       dirty = true;
       break;
     case 'D':
-      o.max_level = max(o.max_level-1, 0);
+      o.max_level = maximum(o.max_level-1, 0);
       cout << "Max octree level = " << static_cast<int>(o.max_level) << endl;
       dirty = true;
       break;
@@ -671,7 +671,7 @@ void OctViewer2::Keyboard(unsigned char key, int x, int y) {
       dirty = true;
       break;
     case 'd':
-      o.karras_iterations = max(o.karras_iterations-1, 1);
+      o.karras_iterations = maximum(o.karras_iterations-1, 1);
       cout << "Max Karras iterations = " << o.karras_iterations << endl;
       dirty = true;
       break;
@@ -778,7 +778,7 @@ void OctViewer2::Search(const int start, const int end) {
 
 void OctViewer2::SetStartSearch(int x, int y) {
   const double2 p = convert_double2(Win2Obj(make_float2(x, y)));
-  double min_dist = numeric_limits<double>::max();
+  double min_dist = numeric_limits<double>::maximum();
   int start = -1;
   const std::vector<double2>& vertices = gvd_graph.GetVertices();
   for (int i = 0; i < vertices.size(); ++i) {
@@ -802,7 +802,7 @@ void OctViewer2::SetStartSearch(int x, int y) {
 
 void OctViewer2::SetEndSearch(int x, int y) {
   const double2 p = convert_double2(Win2Obj(make_float2(x, y)));
-  double min_dist = numeric_limits<double>::max();
+  double min_dist = numeric_limits<double>::maximum();
   int end = -1;
   const std::vector<double2>& vertices = gvd_graph.GetVertices();
   for (int i = 0; i < vertices.size(); ++i) {
@@ -1958,11 +1958,11 @@ bool OctViewer2::DistanceFunctionVertex(const int vi, const int2& p) const {
   const int2 p0 = convert_int2(Obj2Win(Oct2Obj(p+make_int2(0, 0))));
   const int2 p1 = convert_int2(Obj2Win(Oct2Obj(p+make_int2(w, w))));
 
-  for (int y = max(p1.s[1], 0); y < min(p0.s[1], window_height); ++y) {
-    for (int x = max(p0.s[0], 0); x < min(p1.s[0], window_width); ++x) {
+  for (int y = maximum(p1.s[1], 0); y < min(p0.s[1], window_height); ++y) {
+    for (int x = maximum(p0.s[0], 0); x < min(p1.s[0], window_width); ++x) {
       // Find the visible vertex with the closest point
       const float2 p0 = Win2Obj(make_float2(x, y));
-      float min_dist = numeric_limits<float>::max();
+      float min_dist = numeric_limits<float>::maximum();
       int min_label;
       for (int i = 0; i < cpoints.size(); ++i) {
         // const float d = (p0-cpoints[i]).norm2();
@@ -2055,7 +2055,7 @@ void OctViewer2::PrintStatistics() const {
   for (int i = 0; i < vertices.size(); ++i) {
     if (vertices.IsBase(i)) {
       ++num_cells;
-      max_level = max(max_level, vertices.CellLevel(i));
+      max_level = maximum(max_level, vertices.CellLevel(i));
     }
   }
 

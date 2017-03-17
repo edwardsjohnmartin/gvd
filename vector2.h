@@ -18,6 +18,7 @@
 #ifndef __OCT_VECTOR2_H__
 #define __OCT_VECTOR2_H__
 
+#include <algorithm>
 #include <vector>
 #include <utility>
 #include <cfloat>

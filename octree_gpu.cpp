@@ -12,7 +12,8 @@
  **    sci.utah.edu/~jedwards/research/gvd/index.html **
  *******************************************************/
 
-#include <sys/time.h>
+//sys/time.h isn't cross platform...
+//#include <sys/time.h>
 
 #include "./octree_gpu.h"
 #include "./geometry_cpp.h"
@@ -743,7 +744,7 @@ void BuildOctreeGpu1(
     const OctreeOptions& o) {
 
   Timer t("BuildOctreeGpu1");
-  WallTimer wt("BuildOctreeGpu1 (wall)");
+  //WallTimer wt("BuildOctreeGpu1 (wall)");
 
   Stage0(vi2geometries, vi2geometries_array, geom_vertices, mvertices, gpu, o);
 
@@ -856,7 +857,7 @@ void BuildOctreeGpu1_cpu(
     const OctreeOptions& o) {
 
   Timer t("BuildOctreeGpu1");
-  WallTimer wt("BuildOctreeGpu1 (wall)");
+  //WallTimer wt("BuildOctreeGpu1 (wall)");
 
   // cout << "Initial: " << vi2geometries << endl;
 

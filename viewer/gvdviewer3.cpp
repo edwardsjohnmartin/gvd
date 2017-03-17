@@ -278,7 +278,7 @@ GVDViewer3::~GVDViewer3() {
 
 int3 GVDViewer3::Obj2Oct(const float3& v) const {
   const float3 size = bb_objects.size();
-  const float max_size = max(size.s[0], max(size.s[1], size.s[2]));
+  const float max_size = maximum(size.s[0], maximum(size.s[1], size.s[2]));
   return
       convert_int3(make_float3(kWidth, kWidth, kWidth) * ((v-bb_objects.min())/max_size));
 }
@@ -286,14 +286,14 @@ int3 GVDViewer3::Obj2Oct(const float3& v) const {
 float3 GVDViewer3::Oct2Obj(const int3& v) const {
   const float3 vf = make_float3(v.s[0], v.s[1], v.s[2]);
   const float3 size = bb_objects.size();
-  const float max_size = max(size.s[0], max(size.s[1], size.s[2]));
+  const float max_size = maximum(size.s[0], maximum(size.s[1], size.s[2]));
   const GLfloat w = kWidth;
   return (vf/w)*max_size+bb_objects.min();
 }
 
 GLfloat GVDViewer3::Oct2Obj(int dist) const {
   const float3 size = bb_objects.size();
-  const float max_size = max(size.s[0], max(size.s[1], size.s[2]));
+  const float max_size = maximum(size.s[0], maximum(size.s[1], size.s[2]));
   const GLfloat ow = kWidth;
   return (dist/ow)*max_size;
 }
@@ -1116,7 +1116,7 @@ void GVDViewer3::PrintStatistics() const {
   for (int i = 0; i < vertices.size(); ++i) {
     if (vertices.IsBase(i)) {
       ++num_cells;
-      max_level = max(max_level, vertices.CellLevel(i));
+      max_level = maximum(max_level, vertices.CellLevel(i));
     }
   }
   {
@@ -1721,7 +1721,7 @@ float3 GVDViewer3::MapMouse(GLfloat x, GLfloat y) {
     x = x/len;
     y = y/len;
   }
-  const GLfloat z = sqrt(max(0.0f, 1 - x*x - y*y));
+  const GLfloat z = sqrt(maximum(0.0f, 1 - x*x - y*y));
   return make_float3(x, y, z);
 }
 
@@ -1835,7 +1835,7 @@ int GVDViewer3::PickGvdVertex(int x, int y, int* label) {
   const float3 p = Pick(x, y, hit);
   if (!hit) return -1;
 
-  double min_dist = numeric_limits<double>::max();
+  double min_dist = numeric_limits<double>::maximum();
   int vi = -1;
   // for (const Mesh& mesh : gvd_meshes) {
   for (int l = 0; l < gvd_meshes.size(); ++l) {
@@ -1876,7 +1876,7 @@ void GVDViewer3::SetStartSearch(int x, int y) {
   const double3 p = convert_double3(Pick(x, y, hit));
   if (!hit) return;
 
-  double min_dist = numeric_limits<double>::max();
+  double min_dist = numeric_limits<double>::maximum();
   int start = -1;
   const std::vector<double3>& vertices = _gvd_graph.GetVertices();
   for (int i = 0; i < vertices.size(); ++i) {
@@ -1903,7 +1903,7 @@ void GVDViewer3::SetEndSearch(int x, int y) {
   const double3 p = convert_double3(Pick(x, y, hit));
   if (!hit) return;
 
-  double min_dist = numeric_limits<double>::max();
+  double min_dist = numeric_limits<double>::maximum();
   int end = -1;
   const std::vector<double3>& vertices = _gvd_graph.GetVertices();
   for (int i = 0; i < vertices.size(); ++i) {
@@ -2244,7 +2244,7 @@ void GVDViewer3::Keyboard(unsigned char key, int x, int y) {
       GenerateSurface(o);
       break;
     case 'd':
-      o.max_level = max(o.max_level-1, 0);
+      o.max_level = maximum(o.max_level-1, 0);
       cout << "Max octree level = " << static_cast<int>(o.max_level) << endl;
       GenerateSurface(o);
       break;

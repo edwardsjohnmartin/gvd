@@ -30,6 +30,10 @@
 #include "../gvd.h"
 #include "../graph.h"
 
+#ifndef M_PI
+#define M_PI       3.14159265358979323846   // pi
+#endif
+
 #ifdef SINGLE
 #define REAL float
 #else /* not SINGLE */
@@ -39,6 +43,9 @@
 extern "C" {
 #include "../jrs-triangle.h"
 }
+
+#ifdef WIN32
+#endif
 
 typedef oct::LabeledSegment<2> LabeledSegment;
 
@@ -383,7 +390,7 @@ void GVDViewer2::Keyboard(unsigned char key, int x, int y) {
     case 'o':
       if (glutGetModifiers() & GLUT_ACTIVE_ALT) {
         for (int i = 0; i < 3; ++i) {
-          octree_color.s[i] = std::min(octree_color.s[i] * 1.1, 1.0);
+          octree_color.s[i] = min(octree_color.s[i] * 1.1, 1.0);
         }
       } else {
         show_octree = !show_octree;
@@ -1297,8 +1304,8 @@ bool GVDViewer2::DistanceFunctionVertex(const int vi, const int2& p) const {
   const int2 p0 = convert_int2(Obj2Win(Oct2Obj(p+make_int2(0, 0))));
   const int2 p1 = convert_int2(Obj2Win(Oct2Obj(p+make_int2(w, w))));
 
-  for (int y = max(p1.s[1], 0); y < min(p0.s[1], window_height); ++y) {
-    for (int x = max(p0.s[0], 0); x < min(p1.s[0], window_width); ++x) {
+  for (int y = std::max(p1.s[1], 0); y < min(p0.s[1], window_height); ++y) {
+    for (int x = std::max(p0.s[0], 0); x < min(p1.s[0], window_width); ++x) {
       // Find the visible vertex with the closest point
       const float2 p0 = Win2Obj(make_float2(x, y));
       float min_dist = numeric_limits<float>::max();
@@ -1394,7 +1401,7 @@ void GVDViewer2::PrintStatistics() const {
   for (int i = 0; i < vertices.size(); ++i) {
     if (vertices.IsBase(i)) {
       ++num_cells;
-      max_level = max(max_level, vertices.CellLevel(i));
+      max_level = std::max(max_level, vertices.CellLevel(i));
     }
   }
   {

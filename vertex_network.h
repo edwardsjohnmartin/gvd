@@ -15,6 +15,7 @@
 #ifndef __VERTEX_NETWORK_H__
 #define __VERTEX_NETWORK_H__
 
+#include <algorithm>
 #include <vector>
 #include <set>
 

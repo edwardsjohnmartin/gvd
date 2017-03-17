@@ -66,7 +66,7 @@ public:
   T min() const
   { return _min; }
 
-  T max() const
+  T maximum() const
   { return _max; }
 
   T range() const {
@@ -85,7 +85,7 @@ template <typename T>
 std::ostream& operator<<(std::ostream& out, const statistics<T>& stats)
 {
   out << "Sample size = " << stats.N() << " Average = " << stats.mean() << " Standard deviation = " << stats.std_dev()
-    << " Min = " << stats.min() << " Max = " << stats.max();
+    << " Min = " << stats.min() << " Max = " << stats.maximum();
   return out;
 }
 

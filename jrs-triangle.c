@@ -344,8 +344,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#define NO_TIMER
 #ifndef NO_TIMER
-#include <sys/time.h>
+//#include <sys/time.h> this header isn't cross platform...
 #endif /* not NO_TIMER */
 #ifdef CPU86
 #include <float.h>

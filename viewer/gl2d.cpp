@@ -34,8 +34,8 @@ void GL2D::Reshape(const int win_width, const int win_height,
   win_obj = BB(win_min_obj, win_max_obj);
 
   // const float2 world_min(-window_aspect
-  //                       + 2*window_aspect*(viewport.min()[0]/window_width),
-  //                       -1 + 2*viewport.min()[1]/window_height);
+  //                       + 2*window_aspect*(viewport.minimum()[0]/window_width),
+  //                       -1 + 2*viewport.minimum()[1]/window_height);
   // const float2 world_max(-window_aspect
   //                       + 2*window_aspect*(viewport.max()[0]/window_width),
   //                       -1 + 2*viewport.max()[1]/window_height);
@@ -58,7 +58,7 @@ void GL2D::Reshape(const int win_width, const int win_height) {
 }
 
 float2 GL2D::Win2Obj(const float2& w) const {
-  // const float2& mi = win_obj.min();
+  // const float2& mi = win_obj.minimum();
   // const float2& ma = win_obj.max();
   // const GLfloat obj_width = (ma[0]-mi[0]);
   // const GLfloat obj_height = (ma[1]-mi[1]);
@@ -68,11 +68,10 @@ float2 GL2D::Win2Obj(const float2& w) const {
 
   // const GLfloat view_width = view_obj.size()[0];
   // const GLfloat view_height = view_obj.size()[1];
-  // return float2(view_width*(winobj[0]-mi[0])/obj_width + view_obj.min()[0],
-  //              view_height*(winobj[1]-mi[1])/obj_height + view_obj.min()[1]);
+  // return float2(view_width*(winobj[0]-mi[0])/obj_width + view_obj.minimum()[0],
+  //              view_height*(winobj[1]-mi[1])/obj_height + view_obj.minimum()[1]);
   const float2& mi = view_obj.min();
   const float2& ma = view_obj.max();
-
   const GLfloat obj_width = win_obj.size().s[0];
   const GLfloat obj_height = win_obj.size().s[1];
   return make_float2(
@@ -174,7 +173,7 @@ void GL2D::BitmapString(const string& s) const {
 float3 GL2D::RandomColor() const {
   float3 c = make_float3(0);
   for (int i = 0; i < 3; ++i) {
-    c.s[i] = random() / static_cast<float>(RAND_MAX);
+    c.s[i] = rand() / static_cast<float>(RAND_MAX);
   }
   return c;
 }
@@ -192,7 +191,7 @@ float3 GL2D::RandomColor(const float3& avoid) const {
 
 // Returned color may not be close to avoid
 float3 GL2D::RandomColor(int seed, const float3& avoid) const {
-  srandom(seed+1);
+  srand(seed+1);
   return RandomColor(avoid);
 }
 

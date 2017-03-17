@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <iostream>
+#include <string>
 
 #ifdef __OPEN_CL_SUPPORT__
 #ifdef __APPLE__
@@ -62,7 +63,7 @@ static __CONST__ int kSubAdded = 19;
 
 template <typename T, typename P>
 void CompareAndExit(const T& a, const T& b, const P p,
-                    const std::string prefix) {
+                    std::string prefix) {
   if (a != b) {
     std::cout << prefix << " (" << p << "): " << a << " " << b << std::endl;
     std::cout << "CompareAndExit exiting" << std::endl;
@@ -72,7 +73,7 @@ void CompareAndExit(const T& a, const T& b, const P p,
 
 template <typename T>
 void CompareAndExit(const T& a, const T& b,
-                    const std::string prefix) {
+                    std::string prefix) {
   if (a != b) {
     std::cout << prefix << ": " << a << " " << b << std::endl;
     std::cout << "CompareAndExit exiting" << std::endl;

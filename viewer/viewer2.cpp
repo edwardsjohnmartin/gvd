@@ -116,7 +116,7 @@ void Keyboard(unsigned char key, int x, int y) {
         stringstream ss;
         ss << "shot-" << setfill('0') << setw(n_size) << (i+1);
         string fn = ss.str() + ".png";
-        writePngImage(fn.c_str(), window_width, window_height);
+        //writePngImage(fn.c_str(), window_width, window_height); png.h not required in cmake...
 
         // stringstream ss;
         // ss << "sshot-";
