@@ -522,8 +522,8 @@ bool ReducedIsClique(
   }
 
   const int m = incident.size();
-  vector<bool> parent(m, true);
-  for (int i = 0; parent[i] && i < m; ++i) {
+  vector<unsigned char> parent(m, true);
+  for (int i = 0; i < m && parent[i]; ++i) {
     const int vi = incident[i];
     // int count = 0;
     for (int j = i+1; j < m; ++j) {
