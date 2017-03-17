@@ -5,3 +5,4 @@ build
 xcode
 a.out
 *.swp
+.vs
