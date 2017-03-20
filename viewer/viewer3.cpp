@@ -1,16 +1,16 @@
 /*******************************************************
- ** Generalized Voronoi Diagram Project               **
- ** Copyright (c) 2015 John Martin Edwards            **
- ** Scientific Computing and Imaging Institute        **
- ** 72 S Central Campus Drive, Room 3750              **
- ** Salt Lake City, UT 84112                          **
- **                                                   **
- ** For information about this project contact        **
- ** John Edwards at                                   **
- **    edwardsjohnmartin@gmail.com                    **
- ** or visit                                          **
- **    sci.utah.edu/~jedwards/research/gvd/index.html **
- *******************************************************/
+  ** Generalized Voronoi Diagram Project               **
+  ** Copyright (c) 2015 John Martin Edwards            **
+  ** Scientific Computing and Imaging Institute        **
+  ** 72 S Central Campus Drive, Room 3750              **
+  ** Salt Lake City, UT 84112                          **
+  **                                                   **
+  ** For information about this project contact        **
+  ** John Edwards at                                   **
+  **    edwardsjohnmartin@gmail.com                    **
+  ** or visit                                          **
+  **    sci.utah.edu/~jedwards/research/gvd/index.html **
+  *******************************************************/
 
 #include "./gvdviewer3.h"
 #include "../opencl.h"
@@ -18,6 +18,8 @@
 #include "./pngio.h"
 #include "../vector3.h"
 #include "./io.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 using namespace std;
 
@@ -32,8 +34,8 @@ float window_aspect = window_width / static_cast<float>(window_height);
 
 GVDViewer3 scene(window_width, window_height);
 // GLfloat near = 1;
-GLfloat near = -1;
-GLfloat far = -1;
+GLfloat near_ = -1;
+GLfloat far_ = -1;
 
 void MyDisplay() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -44,16 +46,16 @@ void MyDisplay() {
   // from -100 to 100 in z
   // const GLfloat far = 201;
   const GLfloat theta = 40.0;
-  if (near == -1) {
+  if (near_ == -1) {
     BoundingBox3f bb = scene.bbox_full();
     const float zoom = 1;
     const float3 size = bb.size();
     const float3 eye = make_float3(
         0, 0, size.s[2]/2 + ((size.s[1]/2)/tan(20*M_PI/180.0))*1.1) * zoom;
-    near = 1;
-    far = length(eye) + length(size)*2;
+    near_ = 1;
+    far_ = length(eye) + length(size)*2;
   }
-  gluPerspective(theta, window_aspect, near, far);
+  gluPerspective(theta, window_aspect, near_, far_);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -80,19 +82,19 @@ void Keyboard(unsigned char key, int x, int y) {
   //const float zoom_factor = 1.2;
   switch (key) {
     case 'c':
-      near *= 0.9;
+      near_ *= 0.9;
       glutPostRedisplay();
       break;
     case 'C':
-      near *= 1.1;
+      near_ *= 1.1;
       glutPostRedisplay();
       break;
     case 'u':
-      far *= 0.9;
+      far_ *= 0.9;
       glutPostRedisplay();
       break;
     case 'U':
-      far *= 1.1;
+      far_ *= 1.1;
       glutPostRedisplay();
       break;
     case 's':
@@ -124,7 +126,8 @@ void Special(int key, int x, int y) {
 void SimpleScreenshot() {
   // scene.WriteGvdMesh();
   scene.SetShowStatistics(false);
-  writePngImage("screenshot.png", window_width, window_height);
+  /* function undefined. */
+  //writePngImage("screenshot.png", window_width, window_height);
 }
 
 // To rename:
@@ -135,13 +138,15 @@ void Screenshot() {
   scene.WriteGvdMesh();
 
   scene.SetShowStatistics(false);
-  writePngImage("screenshot.png", window_width, window_height);
+  /* function undefined. */
+  //writePngImage("screenshot.png", window_width, window_height);
 
   // objects
   scene.SetShowMesh(true);
   scene.SetShowGVD(false);
   MyDisplay();
-  writePngImage("screenshot-o.png", window_width, window_height);
+  /* function undefined. */
+  //writePngImage("screenshot-o.png", window_width, window_height);
 
   // objects and GVD
   scene.SetShowMesh(true);
@@ -149,7 +154,8 @@ void Screenshot() {
   scene.SetGVDColor(false);
   scene.SetGVDMode(3);
   MyDisplay();
-  writePngImage("screenshot-om.png", window_width, window_height);
+  /* function undefined. */
+  //writePngImage("screenshot-om.png", window_width, window_height);
 
   // objects and inverted GVD
   scene.SetShowMesh(true);
@@ -159,7 +165,8 @@ void Screenshot() {
   scene.InvertGVD();
   MyDisplay();
   scene.InvertGVD();
-  writePngImage("screenshot-omi.png", window_width, window_height);
+  /* function undefined. */
+  //writePngImage("screenshot-omi.png", window_width, window_height);
 
   // objects and colored GVD
   scene.SetShowMesh(true);
@@ -167,7 +174,8 @@ void Screenshot() {
   scene.SetGVDColor(true);
   scene.SetGVDMode(2);
   MyDisplay();
-  writePngImage("screenshot-omc.png", window_width, window_height);
+  /* function undefined. */
+  //writePngImage("screenshot-omc.png", window_width, window_height);
 
   // GVD
   scene.SetShowMesh(false);
@@ -175,7 +183,8 @@ void Screenshot() {
   scene.SetGVDColor(false);
   scene.SetGVDMode(3);
   MyDisplay();
-  writePngImage("screenshot-m.png", window_width, window_height);
+  /* function undefined. */
+  //writePngImage("screenshot-m.png", window_width, window_height);
 
   // inverted GVD
   scene.SetShowMesh(false);
@@ -185,7 +194,8 @@ void Screenshot() {
   scene.InvertGVD();
   MyDisplay();
   scene.InvertGVD();
-  writePngImage("screenshot-mi.png", window_width, window_height);
+  /* function undefined. */
+  //writePngImage("screenshot-mi.png", window_width, window_height);
 
   // colored GVD
   scene.SetShowMesh(false);
@@ -193,7 +203,8 @@ void Screenshot() {
   scene.SetGVDColor(true);
   scene.SetGVDMode(2);
   MyDisplay();
-  writePngImage("screenshot-mc.png", window_width, window_height);
+  /* function undefined. */
+  //writePngImage("screenshot-mc.png", window_width, window_height);
 
   // Restore
   scene.SetShowMesh(true);
@@ -219,7 +230,8 @@ void Rotate360() {
     stringstream ss;
     ss << "shot-" << setfill('0') << setw(n_size) << num;
     string fn = ss.str() + ".png";
-    writePngImage(fn.c_str(), window_width, window_height);
+    /* function undefined. */
+    //writePngImage(fn.c_str(), window_width, window_height);
   }
 }
 
@@ -244,7 +256,8 @@ void ExplodeRiceDwarf() {
     stringstream ss;
     ss << "shot-" << setfill('0') << setw(n_size) << num;
     string fn = ss.str() + ".png";
-    writePngImage(fn.c_str(), window_width, window_height);
+    /* function undefined. */
+    //writePngImage(fn.c_str(), window_width, window_height);
   }
 }
 
@@ -301,7 +314,8 @@ void ExplodeKnives() {
       scene.SetShowGVD(false);
       MyDisplay();
       const string fn = "slice/o/" + base + ".png";
-      writePngImage(fn.c_str(), window_width, window_height);
+      /* function undefined. */
+      //writePngImage(fn.c_str(), window_width, window_height);
     } {
       // objects and GVD
       scene.SetShowMesh(true);
@@ -309,7 +323,8 @@ void ExplodeKnives() {
       scene.SetGVDColor(false);
       MyDisplay();
       const string fn = "slice/om/" + base + ".png";
-      writePngImage(fn.c_str(), window_width, window_height);
+      /* function undefined. */
+      //writePngImage(fn.c_str(), window_width, window_height);
     } {
       // objects and inverted GVD
       scene.SetShowMesh(true);
@@ -319,7 +334,8 @@ void ExplodeKnives() {
       MyDisplay();
       scene.InvertGVD();
       const string fn = "slice/omi/" + base + ".png";
-      writePngImage(fn.c_str(), window_width, window_height);
+      /* function undefined. */
+      //writePngImage(fn.c_str(), window_width, window_height);
     } {
       // objects and colored GVD
       scene.SetShowMesh(true);
@@ -327,7 +343,8 @@ void ExplodeKnives() {
       scene.SetGVDColor(true);
       MyDisplay();
       const string fn = "slice/omc/" + base + ".png";
-      writePngImage(fn.c_str(), window_width, window_height);
+      /* function undefined. */
+      //writePngImage(fn.c_str(), window_width, window_height);
     } {
       // GVD
       scene.SetShowMesh(false);
@@ -335,7 +352,8 @@ void ExplodeKnives() {
       scene.SetGVDColor(false);
       MyDisplay();
       const string fn = "slice/m/" + base + ".png";
-      writePngImage(fn.c_str(), window_width, window_height);
+      /* function undefined. */
+      //writePngImage(fn.c_str(), window_width, window_height);
     } {
       // inverted GVD
       scene.SetShowMesh(false);
@@ -345,7 +363,8 @@ void ExplodeKnives() {
       MyDisplay();
       scene.InvertGVD();
       const string fn = "slice/mi/" + base + ".png";
-      writePngImage(fn.c_str(), window_width, window_height);
+      /* function undefined. */
+      //writePngImage(fn.c_str(), window_width, window_height);
     } {
       // colored GVD
       scene.SetShowMesh(false);
@@ -353,7 +372,8 @@ void ExplodeKnives() {
       scene.SetGVDColor(true);
       MyDisplay();
       const string fn = "slice/mc/" + base + ".png";
-      writePngImage(fn.c_str(), window_width, window_height);
+      /* function undefined. */
+      //writePngImage(fn.c_str(), window_width, window_height);
     } {
       // Write object meshes
       const std::vector<Mesh>& meshes = scene.Meshes();
@@ -376,9 +396,9 @@ void ExplodeKnives() {
       }
     }
     cout << "**** frame = " << frame
-         << " inc = " << inc
-         << " v = " << v
-         << endl;
+          << " inc = " << inc
+          << " v = " << v
+          << endl;
   }
 }
 
