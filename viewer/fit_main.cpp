@@ -246,7 +246,7 @@ void DrawSeparator(float_seg A, float_seg B, const float& min_d) {
   glEnd();
 }
 
-void Display() {
+void FitDisplay() {
   glClear(GL_COLOR_BUFFER_BIT);
 
   // draw quadtree
@@ -350,7 +350,7 @@ int main(int argc, char** argv) {
   glutInitWindowSize(window_width, window_height);
   glutInitWindowPosition(0, 0);
   glutCreateWindow("fit");
-  glutDisplayFunc(Display);
+  glutDisplayFunc(FitDisplay);
   glutKeyboardFunc(Keyboard);
   glutMouseFunc(Mouse);
   glutMotionFunc(MouseMotion);
